@@ -1,13 +1,13 @@
 # Name of your application. Used to uniquely configure containers.
-service: jalen_rails_template
+service: jot
 
 # Name of the container image.
-image: your-user/jalen_rails_template
+image: jalen0x/jot
 
 # Deploy to these servers.
 servers:
   web:
-    - 192.168.0.1
+    - 192.168.88.11
   # job:
   #   hosts:
   #     - 192.168.0.1
@@ -18,7 +18,7 @@ servers:
 #
 # Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
 proxy:
-  host: app.example.com
+  host: jot.jalenx.me
   ssl:
     certificate_pem: SSL_CERTIFICATE
     private_key_pem: SSL_PRIVATE_KEY
@@ -26,8 +26,8 @@ proxy:
 # Credentials for your image host.
 registry:
   # Specify the registry server, if you're not using Docker Hub
-  # server: registry.digitalocean.com / ghcr.io / ...
-  username: your-user
+  # server: ghcr.io
+  username: jalen0x
 
   # Always use an access token rather than real password when possible.
   password:
@@ -45,8 +45,8 @@ env:
     - GITHUB_CLIENT_ID
     - GITHUB_CLIENT_SECRET
   clear:
-    # Resolves to the `jalen_rails_template-db` accessory container inside the Kamal Docker network.
-    DB_HOST: jalen_rails_template-db
+    # Resolves to the `jot-db` accessory container inside the Kamal Docker network.
+    DB_HOST: jot-db
 
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
@@ -59,7 +59,7 @@ env:
     # WEB_CONCURRENCY: 2
 
     # Log everything from Rails
-    # RAILS_LOG_LEVEL: debug
+    RAILS_LOG_LEVEL: debug
 
 # Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
 # "bin/kamal logs -r job" will tail logs from the first server in the job section.
@@ -72,7 +72,7 @@ aliases:
 
 # Persistent storage volume for Rails internal files. Active Storage uses Cloudflare R2 in production.
 volumes:
-  - "jalen_rails_template_storage:/rails/storage"
+  - "jot_storage:/rails/storage"
 
 
 # Bridge fingerprinted assets, like JS and CSS, between versions to avoid
@@ -94,20 +94,20 @@ builder:
   #   - GITHUB_TOKEN
 
 # Use a different ssh user than root
-# ssh:
-#   user: app
+ssh:
+  user: ubuntu
 
 # PostgreSQL runs as a Kamal-managed accessory container on the same host,
 # reached by the app container through the `kamal` Docker network under the
-# name `jalen_rails_template-db`. No ports are published to the host or LAN.
+# name `jot-db`. No ports are published to the host or LAN.
 accessories:
   db:
     image: postgres:18
-    host: 192.168.0.1
+    host: 192.168.88.11
     env:
       clear:
-        POSTGRES_USER: jalen_rails_template
-        POSTGRES_DB: jalen_rails_template_production
+        POSTGRES_USER: jot
+        POSTGRES_DB: jot_production
       secret:
         - POSTGRES_PASSWORD
     files:

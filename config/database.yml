@@ -27,18 +27,18 @@ default: &default
 development:
   primary:
     <<: *default
-    database: jalen_rails_template_development
+    database: jot_development
   cache:
     <<: *default
-    database: jalen_rails_template_development_cache
+    database: jot_development_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *default
-    database: jalen_rails_template_development_queue
+    database: jot_development_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *default
-    database: jalen_rails_template_development_cable
+    database: jot_development_cable
     migrations_paths: db/cable_migrate
 
 # Warning: The database defined as "test" will be erased and
@@ -46,7 +46,7 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: jalen_rails_template_test
+  database: jot_test
 
 # You never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -71,19 +71,19 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: jalen_rails_template_production
-    username: jalen_rails_template
+    database: jot_production
+    username: jot
     password: <%= require_discrete_db_env ? ENV.fetch("POSTGRES_PASSWORD") : ENV["POSTGRES_PASSWORD"] %>
     host: <%= require_discrete_db_env ? ENV.fetch("DB_HOST") : ENV["DB_HOST"] %>
   cache:
     <<: *primary_production
-    database: jalen_rails_template_production_cache
+    database: jot_production_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    database: jalen_rails_template_production_queue
+    database: jot_production_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
-    database: jalen_rails_template_production_cable
+    database: jot_production_cable
     migrations_paths: db/cable_migrate

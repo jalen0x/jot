@@ -1,6 +1,6 @@
 TemplateBase.config = TemplateBase::Configuration.new(
-  "application_name" => "Starter App",
-  "domain" => "example.test",
-  "support_email" => "support@example.test",
-  "default_from_email" => "Starter App <no-reply@example.test>"
+  "application_name" => "Jot",
+  "domain" => "jot.jalenx.me",
+  "support_email" => "support@jot.jalenx.me",
+  "default_from_email" => "Jot <no-reply@jot.jalenx.me>"
 )
