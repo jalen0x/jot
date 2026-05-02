@@ -6,6 +6,9 @@
     <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
     <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Reports</h1>
     <p class="mt-2 max-w-2xl text-sm text-body">Review income, expenses, and category totals for a date range.</p>
+    <div class="mt-4">
+      <%= button_to "Export transactions CSV", data_exports_path, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+    </div>
   </div>
 
   <%= form_with url: reports_path, method: :get, class: "bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs" do |form| %>
