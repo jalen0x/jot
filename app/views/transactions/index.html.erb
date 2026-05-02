@@ -11,6 +11,34 @@
     <%= render(ButtonComponent.new(href: new_transaction_path)) { "New transaction" } %>
   </div>
 
+  <% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+
+  <%= form_with url: transactions_path, method: :get, class: "bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs" do |form| %>
+    <div class="grid gap-4 md:grid-cols-4">
+      <div>
+        <%= form.label :transaction_kind, "Type", class: "block mb-2 text-sm font-medium text-heading" %>
+        <%= form.select :transaction_kind, Transaction.transaction_kinds.except("balance_adjustment").keys.map { |key| [ key.humanize, key ] }, { include_blank: "All types", selected: params[:transaction_kind] }, class: field_classes %>
+      </div>
+      <div>
+        <%= form.label :account_id, "Account", class: "block mb-2 text-sm font-medium text-heading" %>
+        <%= form.collection_select :account_id, @filter_accounts, :id, :name, { include_blank: "All accounts", selected: params[:account_id] }, class: field_classes %>
+      </div>
+      <div>
+        <%= form.label :transaction_category_id, "Category", class: "block mb-2 text-sm font-medium text-heading" %>
+        <%= form.collection_select :transaction_category_id, @filter_categories, :id, :name, { include_blank: "All categories", selected: params[:transaction_category_id] }, class: field_classes %>
+      </div>
+      <div>
+        <%= form.label :tag_id, "Tag", class: "block mb-2 text-sm font-medium text-heading" %>
+        <%= form.collection_select :tag_id, @filter_tags, :id, :name, { include_blank: "All tags", selected: params[:tag_id] }, class: field_classes %>
+      </div>
+    </div>
+
+    <div class="mt-4 flex justify-end gap-3">
+      <%= render(ButtonComponent.new(variant: :secondary, href: transactions_path)) { "Clear" } %>
+      <%= render(ButtonComponent.new(type: :submit)) { "Apply filters" } %>
+    </div>
+  <% end %>
+
   <% if @transactions.any? %>
     <ul class="divide-y divide-default overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
       <% @transactions.each do |transaction| %>
