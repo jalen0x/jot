@@ -1,0 +1,36 @@
+<%# locals: (transaction_category:) %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+
+<%= form_with model: transaction_category, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
+  <% if transaction_category.errors.any? %>
+    <div class="mb-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
+      <p class="font-medium">Category could not be saved.</p>
+      <ul class="mt-2 list-disc ps-5">
+        <% transaction_category.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= render FormField::InputComponent.new(form: form, field: :name, label: "Name", autofocus: true, required: true) %>
+
+  <div class="mb-4 grid gap-4 sm:grid-cols-3">
+    <div>
+      <%= form.label :category_type, "Type", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.select :category_type, TransactionCategory.category_types.keys.map { |key| [ key.humanize, key ] }, {}, class: field_classes %>
+    </div>
+    <div>
+      <%= form.label :icon_key, "Icon", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.number_field :icon_key, min: 1, required: true, class: field_classes %>
+    </div>
+    <%= render FormField::InputComponent.new(form: form, field: :color_hex, label: "Color", placeholder: "F97316", required: true) %>
+  </div>
+
+  <%= render FormField::InputComponent.new(form: form, field: :comment, label: "Comment", type: :textarea) %>
+
+  <div class="flex items-center justify-end gap-3">
+    <%= render(ButtonComponent.new(variant: :secondary, href: transaction_categories_path)) { "Cancel" } %>
+    <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Saving..." })) { "Create category" } %>
+  </div>
+<% end %>
