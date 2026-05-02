@@ -1,0 +1,11 @@
+<% content_for :title, "New tag group" %>
+
+<section class="mx-auto w-full max-w-2xl">
+  <div class="mb-6">
+    <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
+    <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">New tag group</h1>
+    <p class="mt-2 text-sm text-body">Group related transaction tags.</p>
+  </div>
+
+  <%= render "form", transaction_tag_group: @transaction_tag_group %>
+</section>

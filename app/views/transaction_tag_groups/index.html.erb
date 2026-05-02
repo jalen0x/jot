@@ -1,0 +1,48 @@
+<% content_for :title, "Tags" %>
+
+<section class="flex flex-col gap-6">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
+      <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Tags</h1>
+      <p class="mt-2 max-w-2xl text-sm text-body">Add optional labels for future transaction filtering.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-3">
+      <%= render(ButtonComponent.new(variant: :secondary, href: new_transaction_tag_group_path)) { "New group" } %>
+      <%= render(ButtonComponent.new(href: new_transaction_tag_path)) { "New tag" } %>
+    </div>
+  </div>
+
+  <% if @transaction_tag_groups.any? || @ungrouped_tags.any? %>
+    <ul class="grid gap-4 md:grid-cols-2">
+      <% @transaction_tag_groups.each do |group| %>
+        <li id="<%= dom_id(group) %>" class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
+          <h2 class="text-lg font-semibold text-heading"><%= group.name %></h2>
+          <ul class="mt-4 flex flex-wrap gap-2">
+            <% group.transaction_tags.select(&:kept?).sort_by(&:display_order).each do |tag| %>
+              <li class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading"><%= tag.name %></li>
+            <% end %>
+          </ul>
+        </li>
+      <% end %>
+
+      <% if @ungrouped_tags.any? %>
+        <li class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
+          <h2 class="text-lg font-semibold text-heading">Ungrouped</h2>
+          <ul class="mt-4 flex flex-wrap gap-2">
+            <% @ungrouped_tags.each do |tag| %>
+              <li class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading"><%= tag.name %></li>
+            <% end %>
+          </ul>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <div class="bg-neutral-primary-soft border border-default rounded-base p-8 text-center shadow-xs">
+      <h2 class="text-xl font-semibold text-heading">No tags yet</h2>
+      <p class="mx-auto mt-2 max-w-xl text-sm text-body">Create tags when categories are too broad for the filters you need.</p>
+      <div class="mt-5"><%= render(ButtonComponent.new(href: new_transaction_tag_path)) { "Create first tag" } %></div>
+    </div>
+  <% end %>
+</section>
