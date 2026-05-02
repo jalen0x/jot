@@ -173,6 +173,92 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: import_batches; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.import_batches (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    source_filename text DEFAULT ''::text NOT NULL,
+    raw_csv text NOT NULL,
+    imported_count integer DEFAULT 0 NOT NULL,
+    error_message text DEFAULT ''::text NOT NULL,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL,
+    CONSTRAINT import_batches_status_valid CHECK ((status = ANY (ARRAY[0, 1, 2, 3])))
+);
+
+
+--
+-- Name: TABLE import_batches; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.import_batches IS 'User-owned transaction import batches';
+
+
+--
+-- Name: COLUMN import_batches.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.import_batches.user_id IS 'Owner of this import batch';
+
+
+--
+-- Name: COLUMN import_batches.status; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.import_batches.status IS 'Import status code: pending, processing, imported, or failed';
+
+
+--
+-- Name: COLUMN import_batches.source_filename; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.import_batches.source_filename IS 'Original uploaded file name or label';
+
+
+--
+-- Name: COLUMN import_batches.raw_csv; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.import_batches.raw_csv IS 'Raw CSV snapshot to import';
+
+
+--
+-- Name: COLUMN import_batches.imported_count; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.import_batches.imported_count IS 'Number of imported transaction rows';
+
+
+--
+-- Name: COLUMN import_batches.error_message; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.import_batches.error_message IS 'User-facing import error message';
+
+
+--
+-- Name: import_batches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.import_batches_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: import_batches_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.import_batches_id_seq OWNED BY public.import_batches.id;
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -658,6 +744,60 @@ ALTER SEQUENCE public.transactions_id_seq OWNED BY public.transactions.id;
 
 
 --
+-- Name: user_preferences; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_preferences (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    default_currency_code text DEFAULT 'USD'::text NOT NULL,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL,
+    CONSTRAINT user_preferences_default_currency_code_length CHECK ((char_length(default_currency_code) = 3))
+);
+
+
+--
+-- Name: TABLE user_preferences; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.user_preferences IS 'User-owned display and ledger defaults';
+
+
+--
+-- Name: COLUMN user_preferences.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_preferences.user_id IS 'Owner of these preferences';
+
+
+--
+-- Name: COLUMN user_preferences.default_currency_code; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_preferences.default_currency_code IS 'ISO 4217 default currency code for new ledger records';
+
+
+--
+-- Name: user_preferences_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_preferences_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_preferences_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_preferences_id_seq OWNED BY public.user_preferences.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -705,6 +845,13 @@ ALTER TABLE ONLY public.accounts ALTER COLUMN id SET DEFAULT nextval('public.acc
 
 
 --
+-- Name: import_batches id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.import_batches ALTER COLUMN id SET DEFAULT nextval('public.import_batches_id_seq'::regclass);
+
+
+--
 -- Name: transaction_categories id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -740,6 +887,13 @@ ALTER TABLE ONLY public.transactions ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: user_preferences id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_preferences ALTER COLUMN id SET DEFAULT nextval('public.user_preferences_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -760,6 +914,14 @@ ALTER TABLE ONLY public.accounts
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: import_batches import_batches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.import_batches
+    ADD CONSTRAINT import_batches_pkey PRIMARY KEY (id);
 
 
 --
@@ -811,6 +973,14 @@ ALTER TABLE ONLY public.transactions
 
 
 --
+-- Name: user_preferences user_preferences_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_preferences
+    ADD CONSTRAINT user_preferences_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -844,6 +1014,20 @@ CREATE INDEX index_accounts_on_parent_account_id ON public.accounts USING btree 
 --
 
 CREATE INDEX index_accounts_on_user_id ON public.accounts USING btree (user_id);
+
+
+--
+-- Name: index_import_batches_on_owner_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_import_batches_on_owner_created_at ON public.import_batches USING btree (user_id, created_at);
+
+
+--
+-- Name: index_import_batches_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_import_batches_on_user_id ON public.import_batches USING btree (user_id);
 
 
 --
@@ -1001,6 +1185,13 @@ CREATE INDEX index_transactions_on_user_id ON public.transactions USING btree (u
 
 
 --
+-- Name: index_user_preferences_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_user_preferences_on_user_id ON public.user_preferences USING btree (user_id);
+
+
+--
 -- Name: index_users_on_discarded_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1045,6 +1236,14 @@ ALTER TABLE ONLY public.transaction_categories
 
 
 --
+-- Name: import_batches fk_rails_12f3440250; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.import_batches
+    ADD CONSTRAINT fk_rails_12f3440250 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: transaction_categories fk_rails_4b9fac99aa; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1074,6 +1273,14 @@ ALTER TABLE ONLY public.transaction_taggings
 
 ALTER TABLE ONLY public.transaction_taggings
     ADD CONSTRAINT fk_rails_85aa95e074 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: user_preferences fk_rails_a69bfcfd81; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_preferences
+    ADD CONSTRAINT fk_rails_a69bfcfd81 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -1147,6 +1354,8 @@ ALTER TABLE ONLY public.transactions
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260503130000'),
+('20260503120000'),
 ('20260503110000'),
 ('20260503100000'),
 ('20260503090000'),

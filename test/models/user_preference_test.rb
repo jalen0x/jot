@@ -1,0 +1,26 @@
+require "test_helper"
+
+class UserPreferenceTest < ActiveSupport::TestCase
+  test "normalizes the default currency code" do
+    preference = UserPreference.new(user: create(:user), default_currency_code: " eur ")
+
+    assert_predicate preference, :valid?, preference.errors.full_messages.to_sentence
+    assert_equal "EUR", preference.default_currency_code
+  end
+
+  test "requires a three-letter default currency code" do
+    preference = UserPreference.new(user: create(:user), default_currency_code: "US")
+
+    refute_predicate preference, :valid?
+    assert_includes preference.errors[:default_currency_code], "is invalid"
+  end
+
+  test "allows only one preference record per user" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD")
+    duplicate = UserPreference.new(user: user, default_currency_code: "EUR")
+
+    refute_predicate duplicate, :valid?
+    assert_includes duplicate.errors[:user_id], "has already been taken"
+  end
+end
