@@ -134,6 +134,7 @@ GEM
     crass (1.0.6)
     css_parser (2.0.0)
       addressable
+    csv (3.3.5)
     date (3.5.1)
     debug (1.11.1)
       irb (~> 1.10)
@@ -554,6 +555,7 @@ DEPENDENCIES
   brakeman
   bundler-audit
   capybara
+  csv (~> 3.3)
   debug
   devise (~> 5.0.0.rc)
   discard (~> 1.4)
