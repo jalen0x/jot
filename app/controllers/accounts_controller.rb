@@ -64,9 +64,13 @@ class AccountsController < ApplicationController
       account_structure: :single_account,
       icon_key: 1,
       color_hex: "22C55E",
-      currency_code: "USD",
+      currency_code: default_currency_code,
       balance_cents: 0,
       display_order: next_display_order
     }
+  end
+
+  def default_currency_code
+    current_user.user_preference&.default_currency_code || "USD"
   end
 end

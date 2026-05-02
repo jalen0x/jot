@@ -1,0 +1,33 @@
+<% content_for :title, "Preferences" %>
+
+<section class="max-w-2xl space-y-8">
+  <div class="space-y-3">
+    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Settings</p>
+    <h1 class="text-3xl font-semibold tracking-tight text-heading">Preferences</h1>
+    <p class="text-body">Choose defaults used by new ledger records.</p>
+  </div>
+
+  <%= form_with model: @user_preference, url: user_preference_path, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs space-y-5" do |form| %>
+    <% if @user_preference.errors.any? %>
+      <div class="rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
+        <p class="font-medium">Preferences could not be saved.</p>
+        <ul class="mt-2 list-disc ps-5">
+          <% @user_preference.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div>
+      <%= form.label :default_currency_code, "Default currency code", class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.text_field :default_currency_code, required: true, maxlength: 3, class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+      <p class="mt-2 text-sm text-body-subtle">Used as the starting currency on new account forms.</p>
+    </div>
+
+    <div class="flex justify-end gap-3">
+      <%= render(ButtonComponent.new(variant: :secondary, href: dashboard_path)) { "Cancel" } %>
+      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Saving..." })) { "Save preferences" } %>
+    </div>
+  <% end %>
+</section>

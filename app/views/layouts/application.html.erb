@@ -34,6 +34,7 @@
             <%= link_to "Categories", transaction_categories_path, class: "text-sm font-medium text-body hover:text-heading" %>
             <%= link_to "Tags", transaction_tag_groups_path, class: "text-sm font-medium text-body hover:text-heading" %>
             <%= link_to "Transactions", transactions_path, class: "text-sm font-medium text-body hover:text-heading" %>
+            <%= link_to "Preferences", user_preference_path, class: "text-sm font-medium text-body hover:text-heading" %>
             <%= link_to "Clear Data", new_ledger_clearance_path, class: "text-sm font-medium text-body hover:text-heading" %>
             <span class="hidden text-body-subtle sm:inline"><%= current_user.name.presence || current_user.email %></span>
             <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
