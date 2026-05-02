@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   resource :dashboard, only: :show
+  resource :reports, only: :show
   resources :transaction_categories, only: [ :index, :new, :create ]
   resources :transaction_tag_groups, only: [ :index, :new, :create ]
   resources :transaction_tags, only: [ :new, :create ]
