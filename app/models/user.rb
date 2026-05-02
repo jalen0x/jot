@@ -3,4 +3,8 @@ class User < ApplicationRecord
 
   has_many :accounts, dependent: :restrict_with_error
   has_many :transactions, dependent: :restrict_with_error
+  has_many :transaction_categories, dependent: :restrict_with_error
+  has_many :transaction_tag_groups, dependent: :restrict_with_error
+  has_many :transaction_tags, dependent: :restrict_with_error
+  has_many :transaction_taggings, dependent: :restrict_with_error
 end

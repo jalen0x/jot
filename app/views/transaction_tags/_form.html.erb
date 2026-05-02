@@ -1,0 +1,27 @@
+<%# locals: (transaction_tag:, transaction_tag_groups:) %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+
+<%= form_with model: transaction_tag, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
+  <% if transaction_tag.errors.any? %>
+    <div class="mb-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
+      <p class="font-medium">Tag could not be saved.</p>
+      <ul class="mt-2 list-disc ps-5">
+        <% transaction_tag.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= render FormField::InputComponent.new(form: form, field: :name, label: "Name", autofocus: true, required: true) %>
+
+  <div class="mb-4">
+    <%= form.label :transaction_tag_group_id, "Group", class: "block mb-2 text-sm font-medium text-heading" %>
+    <%= form.collection_select :transaction_tag_group_id, transaction_tag_groups, :id, :name, { include_blank: "Ungrouped" }, class: field_classes %>
+  </div>
+
+  <div class="flex items-center justify-end gap-3">
+    <%= render(ButtonComponent.new(variant: :secondary, href: transaction_tag_groups_path)) { "Cancel" } %>
+    <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Saving..." })) { "Create tag" } %>
+  </div>
+<% end %>

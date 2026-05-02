@@ -182,6 +182,341 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: transaction_categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.transaction_categories (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    parent_category_id bigint,
+    category_type integer NOT NULL,
+    name text NOT NULL,
+    display_order integer DEFAULT 0 NOT NULL,
+    icon_key integer NOT NULL,
+    color_hex text NOT NULL,
+    hidden boolean DEFAULT false NOT NULL,
+    comment text DEFAULT ''::text NOT NULL,
+    discarded_at timestamp(6) with time zone,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL,
+    CONSTRAINT transaction_categories_color_hex_length CHECK ((char_length(color_hex) = 6)),
+    CONSTRAINT transaction_categories_parent_not_self CHECK (((parent_category_id IS NULL) OR (parent_category_id <> id))),
+    CONSTRAINT transaction_categories_type_valid CHECK ((category_type = ANY (ARRAY[1, 2, 3])))
+);
+
+
+--
+-- Name: TABLE transaction_categories; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.transaction_categories IS 'User-owned transaction categories';
+
+
+--
+-- Name: COLUMN transaction_categories.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_categories.user_id IS 'Owner of this category';
+
+
+--
+-- Name: COLUMN transaction_categories.parent_category_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_categories.parent_category_id IS 'Parent category for two-level category hierarchies';
+
+
+--
+-- Name: COLUMN transaction_categories.category_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_categories.category_type IS 'Category type code: income, expense, or transfer';
+
+
+--
+-- Name: COLUMN transaction_categories.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_categories.name IS 'Human-readable category name';
+
+
+--
+-- Name: COLUMN transaction_categories.display_order; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_categories.display_order IS 'User-controlled display order';
+
+
+--
+-- Name: COLUMN transaction_categories.icon_key; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_categories.icon_key IS 'Icon identifier from the category icon catalog';
+
+
+--
+-- Name: COLUMN transaction_categories.color_hex; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_categories.color_hex IS 'Six-character RGB hex color without #';
+
+
+--
+-- Name: COLUMN transaction_categories.hidden; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_categories.hidden IS 'Whether the category is hidden in normal lists';
+
+
+--
+-- Name: COLUMN transaction_categories.comment; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_categories.comment IS 'Optional user note';
+
+
+--
+-- Name: COLUMN transaction_categories.discarded_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_categories.discarded_at IS 'Soft deletion timestamp';
+
+
+--
+-- Name: transaction_categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.transaction_categories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: transaction_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.transaction_categories_id_seq OWNED BY public.transaction_categories.id;
+
+
+--
+-- Name: transaction_tag_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.transaction_tag_groups (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    name text NOT NULL,
+    display_order integer DEFAULT 0 NOT NULL,
+    discarded_at timestamp(6) with time zone,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL
+);
+
+
+--
+-- Name: TABLE transaction_tag_groups; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.transaction_tag_groups IS 'User-owned transaction tag groups';
+
+
+--
+-- Name: COLUMN transaction_tag_groups.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_tag_groups.user_id IS 'Owner of this tag group';
+
+
+--
+-- Name: COLUMN transaction_tag_groups.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_tag_groups.name IS 'Human-readable tag group name';
+
+
+--
+-- Name: COLUMN transaction_tag_groups.display_order; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_tag_groups.display_order IS 'User-controlled display order';
+
+
+--
+-- Name: COLUMN transaction_tag_groups.discarded_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_tag_groups.discarded_at IS 'Soft deletion timestamp';
+
+
+--
+-- Name: transaction_tag_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.transaction_tag_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: transaction_tag_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.transaction_tag_groups_id_seq OWNED BY public.transaction_tag_groups.id;
+
+
+--
+-- Name: transaction_taggings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.transaction_taggings (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    transaction_id bigint NOT NULL,
+    transaction_tag_id bigint NOT NULL,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL
+);
+
+
+--
+-- Name: TABLE transaction_taggings; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.transaction_taggings IS 'Join table between transactions and tags';
+
+
+--
+-- Name: COLUMN transaction_taggings.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_taggings.user_id IS 'Owner of this tagging';
+
+
+--
+-- Name: COLUMN transaction_taggings.transaction_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_taggings.transaction_id IS 'Tagged transaction';
+
+
+--
+-- Name: COLUMN transaction_taggings.transaction_tag_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_taggings.transaction_tag_id IS 'Applied transaction tag';
+
+
+--
+-- Name: transaction_taggings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.transaction_taggings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: transaction_taggings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.transaction_taggings_id_seq OWNED BY public.transaction_taggings.id;
+
+
+--
+-- Name: transaction_tags; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.transaction_tags (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    transaction_tag_group_id bigint,
+    name text NOT NULL,
+    display_order integer DEFAULT 0 NOT NULL,
+    hidden boolean DEFAULT false NOT NULL,
+    discarded_at timestamp(6) with time zone,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL
+);
+
+
+--
+-- Name: TABLE transaction_tags; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.transaction_tags IS 'User-owned transaction tags';
+
+
+--
+-- Name: COLUMN transaction_tags.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_tags.user_id IS 'Owner of this tag';
+
+
+--
+-- Name: COLUMN transaction_tags.transaction_tag_group_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_tags.transaction_tag_group_id IS 'Optional tag group';
+
+
+--
+-- Name: COLUMN transaction_tags.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_tags.name IS 'Human-readable tag name';
+
+
+--
+-- Name: COLUMN transaction_tags.display_order; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_tags.display_order IS 'User-controlled display order';
+
+
+--
+-- Name: COLUMN transaction_tags.hidden; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_tags.hidden IS 'Whether the tag is hidden in normal lists';
+
+
+--
+-- Name: COLUMN transaction_tags.discarded_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_tags.discarded_at IS 'Soft deletion timestamp';
+
+
+--
+-- Name: transaction_tags_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.transaction_tags_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: transaction_tags_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.transaction_tags_id_seq OWNED BY public.transaction_tags.id;
+
+
+--
 -- Name: transactions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -360,6 +695,34 @@ ALTER TABLE ONLY public.accounts ALTER COLUMN id SET DEFAULT nextval('public.acc
 
 
 --
+-- Name: transaction_categories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_categories ALTER COLUMN id SET DEFAULT nextval('public.transaction_categories_id_seq'::regclass);
+
+
+--
+-- Name: transaction_tag_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_tag_groups ALTER COLUMN id SET DEFAULT nextval('public.transaction_tag_groups_id_seq'::regclass);
+
+
+--
+-- Name: transaction_taggings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_taggings ALTER COLUMN id SET DEFAULT nextval('public.transaction_taggings_id_seq'::regclass);
+
+
+--
+-- Name: transaction_tags id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_tags ALTER COLUMN id SET DEFAULT nextval('public.transaction_tags_id_seq'::regclass);
+
+
+--
 -- Name: transactions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -395,6 +758,38 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: transaction_categories transaction_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_categories
+    ADD CONSTRAINT transaction_categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: transaction_tag_groups transaction_tag_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_tag_groups
+    ADD CONSTRAINT transaction_tag_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: transaction_taggings transaction_taggings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_taggings
+    ADD CONSTRAINT transaction_taggings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: transaction_tags transaction_tags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_tags
+    ADD CONSTRAINT transaction_tags_pkey PRIMARY KEY (id);
 
 
 --
@@ -439,6 +834,111 @@ CREATE INDEX index_accounts_on_parent_account_id ON public.accounts USING btree 
 --
 
 CREATE INDEX index_accounts_on_user_id ON public.accounts USING btree (user_id);
+
+
+--
+-- Name: index_transaction_categories_on_discarded_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_categories_on_discarded_at ON public.transaction_categories USING btree (discarded_at);
+
+
+--
+-- Name: index_transaction_categories_on_owner_type_parent_order; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_categories_on_owner_type_parent_order ON public.transaction_categories USING btree (user_id, category_type, parent_category_id, display_order);
+
+
+--
+-- Name: index_transaction_categories_on_parent_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_categories_on_parent_category_id ON public.transaction_categories USING btree (parent_category_id);
+
+
+--
+-- Name: index_transaction_categories_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_categories_on_user_id ON public.transaction_categories USING btree (user_id);
+
+
+--
+-- Name: index_transaction_tag_groups_on_discarded_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_tag_groups_on_discarded_at ON public.transaction_tag_groups USING btree (discarded_at);
+
+
+--
+-- Name: index_transaction_tag_groups_on_owner_order; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_tag_groups_on_owner_order ON public.transaction_tag_groups USING btree (user_id, display_order);
+
+
+--
+-- Name: index_transaction_tag_groups_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_tag_groups_on_user_id ON public.transaction_tag_groups USING btree (user_id);
+
+
+--
+-- Name: index_transaction_taggings_on_transaction_and_tag; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_transaction_taggings_on_transaction_and_tag ON public.transaction_taggings USING btree (transaction_id, transaction_tag_id);
+
+
+--
+-- Name: index_transaction_taggings_on_transaction_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_taggings_on_transaction_id ON public.transaction_taggings USING btree (transaction_id);
+
+
+--
+-- Name: index_transaction_taggings_on_transaction_tag_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_taggings_on_transaction_tag_id ON public.transaction_taggings USING btree (transaction_tag_id);
+
+
+--
+-- Name: index_transaction_taggings_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_taggings_on_user_id ON public.transaction_taggings USING btree (user_id);
+
+
+--
+-- Name: index_transaction_tags_on_discarded_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_tags_on_discarded_at ON public.transaction_tags USING btree (discarded_at);
+
+
+--
+-- Name: index_transaction_tags_on_owner_group_order; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_tags_on_owner_group_order ON public.transaction_tags USING btree (user_id, transaction_tag_group_id, display_order);
+
+
+--
+-- Name: index_transaction_tags_on_transaction_tag_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_tags_on_transaction_tag_group_id ON public.transaction_tags USING btree (transaction_tag_group_id);
+
+
+--
+-- Name: index_transaction_tags_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_tags_on_user_id ON public.transaction_tags USING btree (user_id);
 
 
 --
@@ -513,11 +1013,43 @@ ALTER TABLE ONLY public.transactions
 
 
 --
+-- Name: transaction_categories fk_rails_058bfd7845; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_categories
+    ADD CONSTRAINT fk_rails_058bfd7845 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: transaction_categories fk_rails_4b9fac99aa; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_categories
+    ADD CONSTRAINT fk_rails_4b9fac99aa FOREIGN KEY (parent_category_id) REFERENCES public.transaction_categories(id);
+
+
+--
 -- Name: transactions fk_rails_77364e6416; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.transactions
     ADD CONSTRAINT fk_rails_77364e6416 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: transaction_taggings fk_rails_7905dab616; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_taggings
+    ADD CONSTRAINT fk_rails_7905dab616 FOREIGN KEY (transaction_id) REFERENCES public.transactions(id);
+
+
+--
+-- Name: transaction_taggings fk_rails_85aa95e074; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_taggings
+    ADD CONSTRAINT fk_rails_85aa95e074 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -537,6 +1069,38 @@ ALTER TABLE ONLY public.accounts
 
 
 --
+-- Name: transaction_tags fk_rails_d5db8ca0c9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_tags
+    ADD CONSTRAINT fk_rails_d5db8ca0c9 FOREIGN KEY (transaction_tag_group_id) REFERENCES public.transaction_tag_groups(id);
+
+
+--
+-- Name: transaction_tag_groups fk_rails_dc26ed20aa; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_tag_groups
+    ADD CONSTRAINT fk_rails_dc26ed20aa FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: transaction_tags fk_rails_e6a6340042; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_tags
+    ADD CONSTRAINT fk_rails_e6a6340042 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: transaction_taggings fk_rails_f277d342d3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_taggings
+    ADD CONSTRAINT fk_rails_f277d342d3 FOREIGN KEY (transaction_tag_id) REFERENCES public.transaction_tags(id);
+
+
+--
 -- Name: transactions fk_rails_f7070c25b3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -551,6 +1115,7 @@ ALTER TABLE ONLY public.transactions
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260503100000'),
 ('20260503090000'),
 ('20260411171621');
 
