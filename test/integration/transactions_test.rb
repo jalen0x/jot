@@ -53,6 +53,32 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal 3_800, account.reload.balance_cents
   end
 
+  test "deletes a transaction for current user" do
+    user = create(:user)
+    account = create_account(user: user, balance_cents: 3_800)
+    transaction = create_transaction(user: user, comment: "Lunch")
+    transaction.update!(account: account, source_amount_cents: 1_200)
+    sign_in user
+
+    delete transaction_path(transaction)
+
+    assert_redirected_to transactions_path
+    assert_predicate transaction.reload, :discarded?
+    assert_equal 5_000, account.reload.balance_cents
+  end
+
+  test "does not delete another user's transaction" do
+    user = create(:user)
+    other_user = create(:user)
+    transaction = create_transaction(user: other_user, comment: "Other Lunch")
+    sign_in user
+
+    delete transaction_path(transaction)
+
+    assert_response :not_found
+    refute_predicate transaction.reload, :discarded?
+  end
+
   private
 
   def create_transaction(user:, comment:)

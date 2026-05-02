@@ -28,6 +28,19 @@ class TransactionsController < ApplicationController
     end
   end
 
+  # DELETE /transactions/:id
+  def destroy
+    transaction = policy_scope(Transaction).kept.find(params[:id])
+    authorize transaction
+    result = TransactionReversal.new.delete_transaction(transaction: transaction)
+
+    if result.deleted?
+      redirect_to transactions_path, notice: "Transaction deleted."
+    else
+      redirect_to transactions_path, alert: result.transaction.errors.full_messages.to_sentence
+    end
+  end
+
   private
 
   def filter_params
