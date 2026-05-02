@@ -16,6 +16,7 @@ Rails.application.routes.draw do
 
   resource :dashboard, only: :show
   resource :reports, only: :show
+  resources :data_exports, only: :create
   resources :transaction_categories, only: [ :index, :new, :create ]
   resources :transaction_tag_groups, only: [ :index, :new, :create ]
   resources :transaction_tags, only: [ :new, :create ]
