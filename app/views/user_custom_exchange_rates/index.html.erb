@@ -1,0 +1,65 @@
+<% content_for :title, "Custom Exchange Rates" %>
+
+<section class="space-y-8">
+  <div class="max-w-3xl space-y-3">
+    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Exchange rates</p>
+    <h1 class="text-3xl font-semibold tracking-tight text-heading">Custom exchange rates</h1>
+    <p class="text-body">Manage rates relative to your default currency, <%= @default_currency_code %>.</p>
+  </div>
+
+  <%= form_with model: @user_custom_exchange_rate, url: user_custom_exchange_rates_path, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
+    <% if @user_custom_exchange_rate.errors.any? %>
+      <div class="mb-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
+        <p class="font-medium">Exchange rate could not be saved.</p>
+        <ul class="mt-2 list-disc ps-5">
+          <% @user_custom_exchange_rate.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="grid gap-4 sm:grid-cols-3">
+      <div>
+        <%= form.label :currency_code, "Currency", class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.text_field :currency_code, required: true, maxlength: 3, placeholder: "EUR", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+      </div>
+      <div>
+        <%= form.label :rate, "Rate", class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.text_field :rate, required: true, placeholder: "1.25", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+      </div>
+      <div class="flex items-end">
+        <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Saving..." })) { "Save rate" } %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+    <table class="w-full text-left text-sm text-body">
+      <thead class="border-b border-default bg-neutral-secondary-medium text-xs uppercase text-body-subtle">
+        <tr>
+          <th scope="col" class="px-5 py-3">Currency</th>
+          <th scope="col" class="px-5 py-3">Rate</th>
+          <th scope="col" class="px-5 py-3 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if @exchange_rates.any? %>
+          <% @exchange_rates.each do |exchange_rate| %>
+            <tr class="border-b border-default last:border-0">
+              <td class="px-5 py-4 font-medium text-heading"><%= exchange_rate.currency_code %></td>
+              <td class="px-5 py-4"><%= exchange_rate.rate.to_s("F") %></td>
+              <td class="px-5 py-4 text-right">
+                <%= button_to "Delete", user_custom_exchange_rate_path(exchange_rate), method: :delete, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr>
+            <td colspan="3" class="px-5 py-8 text-center text-body-subtle">No custom exchange rates yet.</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

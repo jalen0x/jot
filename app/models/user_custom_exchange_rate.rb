@@ -3,6 +3,8 @@ class UserCustomExchangeRate < ApplicationRecord
 
   SCALE = 100_000_000
 
+  has_prefix_id :exr
+
   belongs_to :user
 
   normalizes :currency_code, with: ->(currency) { currency.to_s.strip.upcase }
