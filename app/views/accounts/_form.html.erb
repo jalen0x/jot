@@ -38,7 +38,7 @@
 
   <div class="mb-4">
     <%= label_tag "account_opening_balance_cents", "Opening balance cents", class: "block mb-2 text-sm font-medium text-heading" %>
-    <%= number_field_tag "account[opening_balance_cents]", account.balance_cents, id: "account_opening_balance_cents", class: field_classes %>
+    <%= number_field_tag "account[opening_balance_cents]", account.balance_cents, id: "account_opening_balance_cents", autocomplete: "off", class: field_classes %>
   </div>
 
   <%= render FormField::InputComponent.new(form: form, field: :comment, label: "Comment", type: :textarea) %>
