@@ -1,0 +1,58 @@
+<% content_for :title, "Reports" %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+
+<section class="flex flex-col gap-6">
+  <div>
+    <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
+    <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Reports</h1>
+    <p class="mt-2 max-w-2xl text-sm text-body">Review income, expenses, and category totals for a date range.</p>
+  </div>
+
+  <%= form_with url: reports_path, method: :get, class: "bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs" do |form| %>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <%= form.label :start_date, "Start date", class: "block mb-2 text-sm font-medium text-heading" %>
+        <%= form.date_field :start_date, value: @start_date, class: field_classes %>
+      </div>
+      <div>
+        <%= form.label :end_date, "End date", class: "block mb-2 text-sm font-medium text-heading" %>
+        <%= form.date_field :end_date, value: @end_date, class: field_classes %>
+      </div>
+    </div>
+    <div class="mt-4 flex justify-end"><%= render(ButtonComponent.new(type: :submit)) { "Update report" } %></div>
+  <% end %>
+
+  <div class="grid gap-4 md:grid-cols-3">
+    <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
+      <p class="text-sm font-medium text-body-subtle">Income</p>
+      <p class="mt-2 text-3xl font-semibold text-heading"><%= number_to_currency(@summary.income_cents / 100.0, unit: "") %></p>
+    </div>
+    <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
+      <p class="text-sm font-medium text-body-subtle">Expense</p>
+      <p class="mt-2 text-3xl font-semibold text-heading"><%= number_to_currency(@summary.expense_cents / 100.0, unit: "") %></p>
+    </div>
+    <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
+      <p class="text-sm font-medium text-body-subtle">Net</p>
+      <p class="mt-2 text-3xl font-semibold text-heading"><%= number_to_currency(@summary.net_cents / 100.0, unit: "") %></p>
+    </div>
+  </div>
+
+  <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs">
+    <div class="border-b border-default px-5 py-4">
+      <h2 class="text-lg font-semibold text-heading">Category totals</h2>
+    </div>
+
+    <% if @summary.category_totals.any? %>
+      <ul class="divide-y divide-default">
+        <% @summary.category_totals.each do |name, amount_cents| %>
+          <li class="flex items-center justify-between px-5 py-4">
+            <span class="font-medium text-heading"><%= name %></span>
+            <span class="text-sm font-semibold text-heading"><%= number_to_currency(amount_cents / 100.0, unit: "") %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="px-5 py-8 text-center text-sm text-body">No income or expense transactions in this range.</p>
+    <% end %>
+  </div>
+</section>
