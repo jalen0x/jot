@@ -5,6 +5,7 @@ class TransactionsController < ApplicationController
   def index
     authorize Transaction
     @transactions = LedgerQuery.new.list_transactions(user: current_user, filters: filter_params)
+    load_filter_collections
   end
 
   # GET /transactions/new
@@ -81,5 +82,11 @@ class TransactionsController < ApplicationController
     @accounts = current_user.accounts.kept.order(:display_order, :name)
     @transaction_categories = current_user.transaction_categories.kept.order(:category_type, :display_order, :name)
     @transaction_tags = current_user.transaction_tags.kept.order(:display_order, :name)
+  end
+
+  def load_filter_collections
+    @filter_accounts = current_user.accounts.kept.order(:display_order, :name)
+    @filter_categories = current_user.transaction_categories.kept.order(:category_type, :display_order, :name)
+    @filter_tags = current_user.transaction_tags.kept.order(:display_order, :name)
   end
 end
