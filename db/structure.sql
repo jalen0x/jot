@@ -535,10 +535,13 @@ CREATE TABLE public.transactions (
     discarded_at timestamp(6) with time zone,
     created_at timestamp(6) with time zone NOT NULL,
     updated_at timestamp(6) with time zone NOT NULL,
+    transaction_category_id bigint,
+    CONSTRAINT transactions_balance_adjustment_has_no_category CHECK (((transaction_kind <> 1) OR (transaction_category_id IS NULL))),
     CONSTRAINT transactions_destination_amount_range CHECK (((destination_amount_cents >= '-99999999999'::bigint) AND (destination_amount_cents <= '99999999999'::bigint))),
     CONSTRAINT transactions_destination_differs_from_source CHECK (((destination_account_id IS NULL) OR (destination_account_id <> account_id))),
     CONSTRAINT transactions_kind_valid CHECK ((transaction_kind = ANY (ARRAY[1, 2, 3, 4]))),
     CONSTRAINT transactions_non_transfer_has_no_destination CHECK (((transaction_kind = 4) OR (destination_account_id IS NULL))),
+    CONSTRAINT transactions_normal_category_required CHECK (((transaction_kind = 1) OR (transaction_category_id IS NOT NULL))),
     CONSTRAINT transactions_source_amount_range CHECK (((source_amount_cents >= '-99999999999'::bigint) AND (source_amount_cents <= '99999999999'::bigint))),
     CONSTRAINT transactions_transfer_destination_required CHECK (((transaction_kind <> 4) OR (destination_account_id IS NOT NULL)))
 );
@@ -626,6 +629,13 @@ COMMENT ON COLUMN public.transactions.comment IS 'Optional user note';
 --
 
 COMMENT ON COLUMN public.transactions.discarded_at IS 'Soft deletion timestamp';
+
+
+--
+-- Name: COLUMN transactions.transaction_category_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transactions.transaction_category_id IS 'Category assigned to normal transactions';
 
 
 --
@@ -963,10 +973,24 @@ CREATE INDEX index_transactions_on_discarded_at ON public.transactions USING btr
 
 
 --
+-- Name: index_transactions_on_owner_category_time; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transactions_on_owner_category_time ON public.transactions USING btree (user_id, transaction_category_id, transacted_at);
+
+
+--
 -- Name: index_transactions_on_owner_time; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_transactions_on_owner_time ON public.transactions USING btree (user_id, transacted_at);
+
+
+--
+-- Name: index_transactions_on_transaction_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transactions_on_transaction_category_id ON public.transactions USING btree (transaction_category_id);
 
 
 --
@@ -1069,6 +1093,14 @@ ALTER TABLE ONLY public.accounts
 
 
 --
+-- Name: transactions fk_rails_cd0480b0ce; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT fk_rails_cd0480b0ce FOREIGN KEY (transaction_category_id) REFERENCES public.transaction_categories(id);
+
+
+--
 -- Name: transaction_tags fk_rails_d5db8ca0c9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1115,6 +1147,7 @@ ALTER TABLE ONLY public.transactions
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260503110000'),
 ('20260503100000'),
 ('20260503090000'),
 ('20260411171621');

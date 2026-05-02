@@ -6,6 +6,7 @@ class TransactionCategory < ApplicationRecord
   belongs_to :user
   belongs_to :parent_category, class_name: "TransactionCategory", optional: true
   has_many :sub_categories, class_name: "TransactionCategory", foreign_key: :parent_category_id, dependent: :restrict_with_error, inverse_of: :parent_category
+  has_many :transactions, dependent: :restrict_with_error
 
   enum :category_type, {
     income: 1,

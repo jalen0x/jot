@@ -1,0 +1,48 @@
+<% content_for :title, "Transactions" %>
+
+<section class="flex flex-col gap-6">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
+      <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Transactions</h1>
+      <p class="mt-2 max-w-2xl text-sm text-body">Record income, expenses, and transfers against your Rails ledger.</p>
+    </div>
+
+    <%= render(ButtonComponent.new(href: new_transaction_path)) { "New transaction" } %>
+  </div>
+
+  <% if @transactions.any? %>
+    <ul class="divide-y divide-default overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+      <% @transactions.each do |transaction| %>
+        <li id="<%= dom_id(transaction) %>" class="p-5">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 class="text-lg font-semibold text-heading"><%= transaction.comment.presence || transaction.transaction_kind.humanize %></h2>
+              <p class="mt-1 text-sm text-body-subtle">
+                <%= l(transaction.transacted_at, format: :long) %> · <%= transaction.account.name %> · <%= transaction.transaction_category.name %>
+              </p>
+              <% if transaction.transaction_tags.any? %>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <% transaction.transaction_tags.each do |tag| %>
+                    <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading"><%= tag.name %></span>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="text-right">
+              <p class="text-base font-semibold text-heading"><%= transaction.source_amount_cents %> cents</p>
+              <p class="mt-1 text-sm text-body-subtle"><%= transaction.transaction_kind.humanize %></p>
+            </div>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <div class="bg-neutral-primary-soft border border-default rounded-base p-8 text-center shadow-xs">
+      <h2 class="text-xl font-semibold text-heading">No transactions yet</h2>
+      <p class="mx-auto mt-2 max-w-xl text-sm text-body">Create your first income, expense, or transfer after setting up accounts and categories.</p>
+      <div class="mt-5"><%= render(ButtonComponent.new(href: new_transaction_path)) { "Create first transaction" } %></div>
+    </div>
+  <% end %>
+</section>
