@@ -15,6 +15,152 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: accounts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.accounts (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    parent_account_id bigint,
+    account_category integer NOT NULL,
+    account_structure integer NOT NULL,
+    name text NOT NULL,
+    display_order integer DEFAULT 0 NOT NULL,
+    icon_key integer NOT NULL,
+    color_hex text NOT NULL,
+    currency_code text NOT NULL,
+    balance_cents integer DEFAULT 0 NOT NULL,
+    comment text DEFAULT ''::text NOT NULL,
+    hidden boolean DEFAULT false NOT NULL,
+    discarded_at timestamp(6) with time zone,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL,
+    CONSTRAINT accounts_category_valid CHECK ((account_category = ANY (ARRAY[1, 2, 3, 4, 5, 6, 7, 8, 9]))),
+    CONSTRAINT accounts_color_hex_length CHECK ((char_length(color_hex) = 6)),
+    CONSTRAINT accounts_currency_code_length CHECK ((char_length(currency_code) = 3)),
+    CONSTRAINT accounts_parent_not_self CHECK (((parent_account_id IS NULL) OR (parent_account_id <> id))),
+    CONSTRAINT accounts_structure_valid CHECK ((account_structure = ANY (ARRAY[1, 2])))
+);
+
+
+--
+-- Name: TABLE accounts; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.accounts IS 'User-owned ledger accounts';
+
+
+--
+-- Name: COLUMN accounts.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.accounts.user_id IS 'Owner of this account';
+
+
+--
+-- Name: COLUMN accounts.parent_account_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.accounts.parent_account_id IS 'Parent account for two-level account hierarchies';
+
+
+--
+-- Name: COLUMN accounts.account_category; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.accounts.account_category IS 'Account category code from ezBookkeeping';
+
+
+--
+-- Name: COLUMN accounts.account_structure; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.accounts.account_structure IS 'Account structure code: single or multi-sub-account';
+
+
+--
+-- Name: COLUMN accounts.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.accounts.name IS 'Human-readable account name';
+
+
+--
+-- Name: COLUMN accounts.display_order; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.accounts.display_order IS 'User-controlled display order';
+
+
+--
+-- Name: COLUMN accounts.icon_key; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.accounts.icon_key IS 'Icon identifier from the account icon catalog';
+
+
+--
+-- Name: COLUMN accounts.color_hex; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.accounts.color_hex IS 'Six-character RGB hex color without #';
+
+
+--
+-- Name: COLUMN accounts.currency_code; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.accounts.currency_code IS 'ISO 4217 currency code';
+
+
+--
+-- Name: COLUMN accounts.balance_cents; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.accounts.balance_cents IS 'Current account balance in cents';
+
+
+--
+-- Name: COLUMN accounts.comment; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.accounts.comment IS 'Optional user note';
+
+
+--
+-- Name: COLUMN accounts.hidden; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.accounts.hidden IS 'Whether the account is hidden in normal lists';
+
+
+--
+-- Name: COLUMN accounts.discarded_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.accounts.discarded_at IS 'Soft deletion timestamp';
+
+
+--
+-- Name: accounts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.accounts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: accounts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.accounts_id_seq OWNED BY public.accounts.id;
+
+
+--
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -33,6 +179,137 @@ CREATE TABLE public.ar_internal_metadata (
 CREATE TABLE public.schema_migrations (
     version character varying NOT NULL
 );
+
+
+--
+-- Name: transactions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.transactions (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    destination_account_id bigint,
+    transaction_kind integer NOT NULL,
+    transacted_at timestamp(6) with time zone NOT NULL,
+    timezone_utc_offset_minutes integer DEFAULT 0 NOT NULL,
+    source_amount_cents integer NOT NULL,
+    destination_amount_cents integer DEFAULT 0 NOT NULL,
+    hide_amount boolean DEFAULT false NOT NULL,
+    comment text DEFAULT ''::text NOT NULL,
+    discarded_at timestamp(6) with time zone,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL,
+    CONSTRAINT transactions_destination_amount_range CHECK (((destination_amount_cents >= '-99999999999'::bigint) AND (destination_amount_cents <= '99999999999'::bigint))),
+    CONSTRAINT transactions_destination_differs_from_source CHECK (((destination_account_id IS NULL) OR (destination_account_id <> account_id))),
+    CONSTRAINT transactions_kind_valid CHECK ((transaction_kind = ANY (ARRAY[1, 2, 3, 4]))),
+    CONSTRAINT transactions_non_transfer_has_no_destination CHECK (((transaction_kind = 4) OR (destination_account_id IS NULL))),
+    CONSTRAINT transactions_source_amount_range CHECK (((source_amount_cents >= '-99999999999'::bigint) AND (source_amount_cents <= '99999999999'::bigint))),
+    CONSTRAINT transactions_transfer_destination_required CHECK (((transaction_kind <> 4) OR (destination_account_id IS NOT NULL)))
+);
+
+
+--
+-- Name: TABLE transactions; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.transactions IS 'User-owned ledger transactions';
+
+
+--
+-- Name: COLUMN transactions.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transactions.user_id IS 'Owner of this transaction';
+
+
+--
+-- Name: COLUMN transactions.account_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transactions.account_id IS 'Source account affected by this transaction';
+
+
+--
+-- Name: COLUMN transactions.destination_account_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transactions.destination_account_id IS 'Destination account for transfers';
+
+
+--
+-- Name: COLUMN transactions.transaction_kind; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transactions.transaction_kind IS 'Transaction kind code: balance adjustment, income, expense, transfer';
+
+
+--
+-- Name: COLUMN transactions.transacted_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transactions.transacted_at IS 'User-entered transaction timestamp';
+
+
+--
+-- Name: COLUMN transactions.timezone_utc_offset_minutes; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transactions.timezone_utc_offset_minutes IS 'User timezone offset at transaction time';
+
+
+--
+-- Name: COLUMN transactions.source_amount_cents; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transactions.source_amount_cents IS 'Source account amount or balance adjustment delta in cents';
+
+
+--
+-- Name: COLUMN transactions.destination_amount_cents; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transactions.destination_amount_cents IS 'Destination account amount for transfers in cents';
+
+
+--
+-- Name: COLUMN transactions.hide_amount; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transactions.hide_amount IS 'Whether amount should be hidden in normal UI';
+
+
+--
+-- Name: COLUMN transactions.comment; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transactions.comment IS 'Optional user note';
+
+
+--
+-- Name: COLUMN transactions.discarded_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transactions.discarded_at IS 'Soft deletion timestamp';
+
+
+--
+-- Name: transactions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.transactions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.transactions_id_seq OWNED BY public.transactions.id;
 
 
 --
@@ -76,10 +353,32 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: accounts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.accounts ALTER COLUMN id SET DEFAULT nextval('public.accounts_id_seq'::regclass);
+
+
+--
+-- Name: transactions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions ALTER COLUMN id SET DEFAULT nextval('public.transactions_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Name: accounts accounts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.accounts
+    ADD CONSTRAINT accounts_pkey PRIMARY KEY (id);
 
 
 --
@@ -99,11 +398,82 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: transactions transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT transactions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: index_accounts_on_discarded_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_accounts_on_discarded_at ON public.accounts USING btree (discarded_at);
+
+
+--
+-- Name: index_accounts_on_owner_parent_order; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_accounts_on_owner_parent_order ON public.accounts USING btree (user_id, parent_account_id, display_order);
+
+
+--
+-- Name: index_accounts_on_parent_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_accounts_on_parent_account_id ON public.accounts USING btree (parent_account_id);
+
+
+--
+-- Name: index_accounts_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_accounts_on_user_id ON public.accounts USING btree (user_id);
+
+
+--
+-- Name: index_transactions_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transactions_on_account_id ON public.transactions USING btree (account_id);
+
+
+--
+-- Name: index_transactions_on_destination_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transactions_on_destination_account_id ON public.transactions USING btree (destination_account_id);
+
+
+--
+-- Name: index_transactions_on_discarded_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transactions_on_discarded_at ON public.transactions USING btree (discarded_at);
+
+
+--
+-- Name: index_transactions_on_owner_time; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transactions_on_owner_time ON public.transactions USING btree (user_id, transacted_at);
+
+
+--
+-- Name: index_transactions_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transactions_on_user_id ON public.transactions USING btree (user_id);
 
 
 --
@@ -135,11 +505,52 @@ CREATE UNIQUE INDEX index_users_on_reset_password_token ON public.users USING bt
 
 
 --
+-- Name: transactions fk_rails_01f020e267; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT fk_rails_01f020e267 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: transactions fk_rails_77364e6416; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT fk_rails_77364e6416 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: accounts fk_rails_add3a59cd7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.accounts
+    ADD CONSTRAINT fk_rails_add3a59cd7 FOREIGN KEY (parent_account_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: accounts fk_rails_b1e30bebc8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.accounts
+    ADD CONSTRAINT fk_rails_b1e30bebc8 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: transactions fk_rails_f7070c25b3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT fk_rails_f7070c25b3 FOREIGN KEY (destination_account_id) REFERENCES public.accounts(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260503090000'),
 ('20260411171621');
 
