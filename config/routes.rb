@@ -17,7 +17,7 @@ Rails.application.routes.draw do
   resources :transaction_categories, only: [ :index, :new, :create ]
   resources :transaction_tag_groups, only: [ :index, :new, :create ]
   resources :transaction_tags, only: [ :new, :create ]
-  resources :transactions, only: [ :index, :new, :create ]
+  resources :transactions, only: [ :index, :new, :create, :destroy ]
   resources :accounts, only: [ :index, :new, :create ]
 
   # Defines the root path route ("/")
