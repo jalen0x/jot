@@ -1,0 +1,62 @@
+<% content_for :title, "Clear Ledger Data" %>
+
+<section class="space-y-8">
+  <div class="max-w-3xl space-y-3">
+    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Data management</p>
+    <h1 class="text-3xl font-semibold tracking-tight text-heading">Clear ledger data</h1>
+    <p class="text-body">Remove your transaction history or clear the full ledger setup. This cannot be undone.</p>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-4">
+    <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs p-4">
+      <p class="text-sm text-body-subtle">Accounts</p>
+      <p class="mt-2 text-2xl font-semibold text-heading"><%= @ledger_counts[:accounts] %></p>
+    </div>
+    <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs p-4">
+      <p class="text-sm text-body-subtle">Categories</p>
+      <p class="mt-2 text-2xl font-semibold text-heading"><%= @ledger_counts[:transaction_categories] %></p>
+    </div>
+    <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs p-4">
+      <p class="text-sm text-body-subtle">Tags</p>
+      <p class="mt-2 text-2xl font-semibold text-heading"><%= @ledger_counts[:transaction_tags] %></p>
+    </div>
+    <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs p-4">
+      <p class="text-sm text-body-subtle">Transactions</p>
+      <p class="mt-2 text-2xl font-semibold text-heading"><%= @ledger_counts[:transactions] %></p>
+    </div>
+  </div>
+
+  <% if @ledger_clearance_error.present? %>
+    <div class="rounded-base border border-danger bg-neutral-primary p-4 text-danger">
+      <%= @ledger_clearance_error %>
+    </div>
+  <% end %>
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    <%= form_with url: ledger_clearance_path, scope: :ledger_clearance, class: "bg-neutral-primary-soft border border-default rounded-base shadow-xs p-6 space-y-4" do |form| %>
+      <%= form.hidden_field :clearance_scope, value: "transactions" %>
+      <div>
+        <h2 class="text-xl font-semibold text-heading">Clear all transactions</h2>
+        <p class="mt-2 text-sm text-body">Deletes transaction history and resets account balances to zero. Accounts, categories, and tags remain available.</p>
+      </div>
+      <div>
+        <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.password_field :current_password, autocomplete: "current-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+      </div>
+      <%= form.submit "Clear Transactions", class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+    <% end %>
+
+    <%= form_with url: ledger_clearance_path, scope: :ledger_clearance, class: "bg-neutral-primary-soft border border-default rounded-base shadow-xs p-6 space-y-4" do |form| %>
+      <%= form.hidden_field :clearance_scope, value: "all" %>
+      <div>
+        <h2 class="text-xl font-semibold text-heading">Clear all data</h2>
+        <p class="mt-2 text-sm text-body">Deletes accounts, categories, tags, and transactions for this user. Other users' ledger data is not affected.</p>
+      </div>
+      <div>
+        <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.password_field :current_password, autocomplete: "current-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+      </div>
+      <%= form.submit "Clear All Data", class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+    <% end %>
+  </div>
+</section>
