@@ -1,0 +1,39 @@
+<% content_for :title, "Accounts" %>
+
+<section class="flex flex-col gap-6">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
+      <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Accounts</h1>
+      <p class="mt-2 max-w-2xl text-sm text-body">Create the accounts that transactions will update as the Rails rewrite grows.</p>
+    </div>
+
+    <%= render(ButtonComponent.new(href: new_account_path)) { "New account" } %>
+  </div>
+
+  <% if @accounts.any? %>
+    <ul class="grid gap-4 md:grid-cols-2">
+      <% @accounts.each do |account| %>
+        <li id="<%= dom_id(account) %>" class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-semibold text-heading"><%= account.name %></h2>
+              <p class="mt-1 text-sm text-body-subtle"><%= account.currency_code %> · <%= account.account_category.humanize %></p>
+            </div>
+            <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading"><%= number_to_currency(account.balance_cents / 100.0, unit: "") %></span>
+          </div>
+
+          <% if account.comment.present? %>
+            <p class="mt-4 text-sm text-body"><%= account.comment %></p>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <div class="bg-neutral-primary-soft border border-default rounded-base p-8 text-center shadow-xs">
+      <h2 class="text-xl font-semibold text-heading">No accounts yet</h2>
+      <p class="mx-auto mt-2 max-w-xl text-sm text-body">Start with cash, checking, credit card, or another account you use for daily bookkeeping.</p>
+      <div class="mt-5"><%= render(ButtonComponent.new(href: new_account_path)) { "Create first account" } %></div>
+    </div>
+  <% end %>
+</section>
