@@ -33,11 +33,23 @@ class TransactionTaggingTest < ActiveSupport::TestCase
     Transaction.create!(
       user: user,
       account: account,
+      transaction_category: create_category(user: user),
       transaction_kind: :income,
       transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
       timezone_utc_offset_minutes: 0,
       source_amount_cents: 1000,
       destination_amount_cents: 0
+    )
+  end
+
+  def create_category(user:)
+    TransactionCategory.create!(
+      user: user,
+      name: "Salary",
+      category_type: :income,
+      icon_key: 1,
+      color_hex: "22C55E",
+      display_order: 1
     )
   end
 end
