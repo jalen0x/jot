@@ -829,6 +829,7 @@ CREATE TABLE public.transaction_templates (
     discarded_at timestamp(6) with time zone,
     created_at timestamp(6) with time zone NOT NULL,
     updated_at timestamp(6) with time zone NOT NULL,
+    last_generated_on date,
     CONSTRAINT transaction_templates_destination_account_differs CHECK (((destination_account_id IS NULL) OR (destination_account_id <> account_id))),
     CONSTRAINT transaction_templates_schedule_frequency_valid CHECK ((schedule_frequency = ANY (ARRAY[0, 1, 2, 3, 4]))),
     CONSTRAINT transaction_templates_scheduled_at_minutes_range CHECK (((scheduled_at_minutes >= 0) AND (scheduled_at_minutes <= 1439))),
@@ -983,6 +984,13 @@ COMMENT ON COLUMN public.transaction_templates.hidden IS 'Whether the template i
 --
 
 COMMENT ON COLUMN public.transaction_templates.discarded_at IS 'Soft deletion timestamp';
+
+
+--
+-- Name: COLUMN transaction_templates.last_generated_on; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.last_generated_on IS 'Template-local date that last generated a transaction';
 
 
 --
@@ -2304,6 +2312,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260503200000'),
 ('20260503190000'),
 ('20260503180000'),
 ('20260503170000'),
