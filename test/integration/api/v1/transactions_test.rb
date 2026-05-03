@@ -280,6 +280,88 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_match(/Transaction category is unavailable/i, response.body)
   end
 
+  test "uploads and lists pictures for a token owner's transaction" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    transaction = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    raw_token = issue_token(user)
+
+    post api_v1_transaction_pictures_path(transaction),
+      params: { picture: fixture_file_upload("receipt.txt", "text/plain") },
+      headers: json_headers(raw_token)
+
+    assert_response :created
+    attachment = transaction.pictures.attachments.sole
+    body = JSON.parse(response.body)
+    picture_json = body.fetch("picture")
+    assert_equal attachment.id, picture_json.fetch("id")
+    assert_equal "receipt.txt", picture_json.fetch("filename")
+    assert_equal "text/plain", picture_json.fetch("content_type")
+    assert_equal attachment.byte_size, picture_json.fetch("byte_size")
+    assert_match(%r{/rails/active_storage/blobs/}, picture_json.fetch("url"))
+    refute_includes picture_json.keys, "user_id"
+
+    get api_v1_transaction_pictures_path(transaction), headers: json_headers(raw_token)
+
+    assert_response :success
+    pictures = JSON.parse(response.body).fetch("pictures")
+    assert_equal [ attachment.id ], pictures.map { |picture| picture.fetch("id") }
+  end
+
+  test "deletes one picture for the token owner's transaction" do
+    user = create(:user)
+    transaction = create_transaction(
+      user: user,
+      account: create_account(user: user, name: "Checking"),
+      category: create_category(user: user, name: "Food", category_type: :expense),
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    transaction.pictures.attach(io: StringIO.new("receipt"), filename: "receipt.txt", content_type: "text/plain", identify: false)
+    attachment = transaction.pictures.attachments.sole
+    blob = attachment.blob
+    raw_token = issue_token(user)
+
+    delete api_v1_transaction_picture_path(transaction, attachment), headers: json_headers(raw_token)
+
+    assert_response :no_content
+    assert_empty response.body
+    assert_empty transaction.reload.pictures.attachments
+    assert_not ActiveStorage::Blob.exists?(blob.id)
+  end
+
+  test "does not list another user's transaction pictures" do
+    user = create(:user)
+    other_user = create(:user)
+    transaction = create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Food", category_type: :expense),
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Other Lunch"
+    )
+    transaction.pictures.attach(io: StringIO.new("receipt"), filename: "receipt.txt", content_type: "text/plain", identify: false)
+    raw_token = issue_token(user)
+
+    get api_v1_transaction_pictures_path(transaction), headers: json_headers(raw_token)
+
+    assert_response :not_found
+    assert_predicate transaction.reload.pictures, :attached?
+  end
+
   test "deletes a transaction for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 3_750)
