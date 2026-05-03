@@ -35,7 +35,7 @@ class Api::V1::TransactionsController < ApiController
   private
 
   def filter_params
-    params.permit(:transaction_kind)
+    params.permit(:transaction_kind, :account_id, :transaction_category_id, :tag_id)
   end
 
   def transaction_params
