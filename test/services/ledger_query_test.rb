@@ -27,11 +27,49 @@ class LedgerQueryTest < ActiveSupport::TestCase
     assert_equal [ matching ], transactions.to_a
   end
 
+  test "filters by prefixed account id" do
+    user = create(:user)
+    matching_account = create_account(user: user)
+    other_account = create_account(user: user, name: "Savings")
+    matching = create_transaction(user: user, comment: "Matching", account: matching_account)
+    create_transaction(user: user, comment: "Other", account: other_account)
+
+    transactions = LedgerQuery.new.list_transactions(user: user, filters: { account_id: matching_account.to_param })
+
+    assert_equal [ matching ], transactions.to_a
+  end
+
+  test "filters by prefixed transaction category id" do
+    user = create(:user)
+    matching_category = create_category(user: user, name: "Groceries")
+    other_category = create_category(user: user, name: "Travel")
+    matching = create_transaction(user: user, comment: "Matching", category: matching_category)
+    create_transaction(user: user, comment: "Other", category: other_category)
+
+    transactions = LedgerQuery.new.list_transactions(user: user, filters: { transaction_category_id: matching_category.to_param })
+
+    assert_equal [ matching ], transactions.to_a
+  end
+
+  test "filters by prefixed tag id" do
+    user = create(:user)
+    matching_tag = create_tag(user: user, name: "Business")
+    other_tag = create_tag(user: user, name: "Personal")
+    matching = create_transaction(user: user, comment: "Matching")
+    other = create_transaction(user: user, comment: "Other")
+    TransactionTagging.create!(user: user, ledger_transaction: matching, transaction_tag: matching_tag)
+    TransactionTagging.create!(user: user, ledger_transaction: other, transaction_tag: other_tag)
+
+    transactions = LedgerQuery.new.list_transactions(user: user, filters: { tag_id: matching_tag.to_param })
+
+    assert_equal [ matching ], transactions.to_a
+  end
+
   private
 
-  def create_transaction(user:, comment:, transacted_at: Time.zone.parse("2026-05-03 10:00:00"))
-    account = create_account(user: user)
-    category = create_category(user: user)
+  def create_transaction(user:, comment:, transacted_at: Time.zone.parse("2026-05-03 10:00:00"), account: nil, category: nil)
+    account ||= create_account(user: user)
+    category ||= create_category(user: user)
 
     Transaction.create!(
       user: user,
@@ -46,10 +84,10 @@ class LedgerQueryTest < ActiveSupport::TestCase
     )
   end
 
-  def create_account(user:)
+  def create_account(user:, name: "Cash")
     Account.create!(
       user: user,
-      name: "Cash",
+      name: name,
       account_category: :cash,
       account_structure: :single_account,
       icon_key: 1,
@@ -60,10 +98,10 @@ class LedgerQueryTest < ActiveSupport::TestCase
     )
   end
 
-  def create_category(user:)
+  def create_category(user:, name: "Groceries")
     TransactionCategory.create!(
       user: user,
-      name: "Groceries",
+      name: name,
       category_type: :expense,
       icon_key: 1,
       color_hex: "F97316",
