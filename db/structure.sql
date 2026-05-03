@@ -829,6 +829,67 @@ ALTER SEQUENCE public.transactions_id_seq OWNED BY public.transactions.id;
 
 
 --
+-- Name: two_factor_authentications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.two_factor_authentications (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    otp_secret text NOT NULL,
+    enabled_at timestamp(6) with time zone NOT NULL,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL
+);
+
+
+--
+-- Name: TABLE two_factor_authentications; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.two_factor_authentications IS 'User-owned TOTP two-factor settings';
+
+
+--
+-- Name: COLUMN two_factor_authentications.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.two_factor_authentications.user_id IS 'Owner of this two-factor setting';
+
+
+--
+-- Name: COLUMN two_factor_authentications.otp_secret; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.two_factor_authentications.otp_secret IS 'Base32 TOTP secret for authenticator apps';
+
+
+--
+-- Name: COLUMN two_factor_authentications.enabled_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.two_factor_authentications.enabled_at IS 'Time two-factor authentication was enabled';
+
+
+--
+-- Name: two_factor_authentications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.two_factor_authentications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: two_factor_authentications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.two_factor_authentications_id_seq OWNED BY public.two_factor_authentications.id;
+
+
+--
 -- Name: user_custom_exchange_rates; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1050,6 +1111,13 @@ ALTER TABLE ONLY public.transactions ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: two_factor_authentications id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.two_factor_authentications ALTER COLUMN id SET DEFAULT nextval('public.two_factor_authentications_id_seq'::regclass);
+
+
+--
 -- Name: user_custom_exchange_rates id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1148,6 +1216,14 @@ ALTER TABLE ONLY public.transaction_tags
 
 ALTER TABLE ONLY public.transactions
     ADD CONSTRAINT transactions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: two_factor_authentications two_factor_authentications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.two_factor_authentications
+    ADD CONSTRAINT two_factor_authentications_pkey PRIMARY KEY (id);
 
 
 --
@@ -1399,6 +1475,13 @@ CREATE INDEX index_transactions_on_user_id ON public.transactions USING btree (u
 
 
 --
+-- Name: index_two_factor_authentications_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_two_factor_authentications_on_user_id ON public.two_factor_authentications USING btree (user_id);
+
+
+--
 -- Name: index_user_custom_exchange_rates_on_active_owner_currency; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1468,6 +1551,14 @@ ALTER TABLE ONLY public.transactions
 
 ALTER TABLE ONLY public.transaction_categories
     ADD CONSTRAINT fk_rails_058bfd7845 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: two_factor_authentications fk_rails_110abb6ee6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.two_factor_authentications
+    ADD CONSTRAINT fk_rails_110abb6ee6 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -1605,6 +1696,7 @@ ALTER TABLE ONLY public.transactions
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260503160000'),
 ('20260503150000'),
 ('20260503140000'),
 ('20260503130000'),
