@@ -101,6 +101,115 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal [ income.to_param ], body.fetch("transactions").map { |item| item.fetch("id") }
   end
 
+  test "filters transactions by prefixed account id" do
+    user = create(:user)
+    matching_account = create_account(user: user, name: "Checking")
+    other_account = create_account(user: user, name: "Savings")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    matching = create_transaction(
+      user: user,
+      account: matching_account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 11:00:00"),
+      source_amount_cents: 1_200,
+      comment: "Lunch"
+    )
+    create_transaction(
+      user: user,
+      account: other_account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
+      source_amount_cents: 900,
+      comment: "Coffee"
+    )
+    other_user = create(:user)
+    create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Food", category_type: :expense),
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 800,
+      comment: "Other Lunch"
+    )
+    raw_token = issue_token(user)
+
+    get api_v1_transactions_path, params: { account_id: matching_account.to_param }, headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ matching.to_param ], body.fetch("transactions").map { |item| item.fetch("id") }
+  end
+
+  test "filters transactions by prefixed category id" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    matching_category = create_category(user: user, name: "Food", category_type: :expense)
+    other_category = create_category(user: user, name: "Travel", category_type: :expense)
+    matching = create_transaction(
+      user: user,
+      account: account,
+      category: matching_category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 11:00:00"),
+      source_amount_cents: 1_200,
+      comment: "Lunch"
+    )
+    create_transaction(
+      user: user,
+      account: account,
+      category: other_category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
+      source_amount_cents: 9_000,
+      comment: "Flight"
+    )
+    raw_token = issue_token(user)
+
+    get api_v1_transactions_path, params: { transaction_category_id: matching_category.to_param }, headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ matching.to_param ], body.fetch("transactions").map { |item| item.fetch("id") }
+  end
+
+  test "filters transactions by prefixed tag id" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    matching_tag = create_tag(user: user, name: "Business")
+    other_tag = create_tag(user: user, name: "Personal")
+    matching = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 11:00:00"),
+      source_amount_cents: 1_200,
+      comment: "Lunch",
+      tags: [ matching_tag ]
+    )
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
+      source_amount_cents: 900,
+      comment: "Coffee",
+      tags: [ other_tag ]
+    )
+    raw_token = issue_token(user)
+
+    get api_v1_transactions_path, params: { tag_id: matching_tag.to_param }, headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ matching.to_param ], body.fetch("transactions").map { |item| item.fetch("id") }
+  end
+
   test "creates an expense transaction for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 5_000)
