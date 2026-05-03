@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   resource :reports, only: :show
   resource :user_preference, only: [ :show, :update ]
   resource :ledger_clearance, only: [ :new, :create ]
+  resources :api_tokens, only: [ :index, :create, :destroy ]
   resources :user_custom_exchange_rates, only: [ :index, :create, :destroy ]
   resources :data_exports, only: :create
   resources :transaction_categories, only: [ :index, :new, :create ]
