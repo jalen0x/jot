@@ -17,6 +17,7 @@ class LedgerClearance
       user.transaction_categories.kept.update_all(discarded_at: now, updated_at: now)
       user.transaction_tags.kept.update_all(discarded_at: now, updated_at: now)
       user.transaction_tag_groups.kept.update_all(discarded_at: now, updated_at: now)
+      user.user_custom_exchange_rates.kept.update_all(discarded_at: now, updated_at: now)
       user.accounts.kept.update_all(discarded_at: now, updated_at: now)
     end
   end

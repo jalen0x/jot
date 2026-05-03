@@ -744,6 +744,77 @@ ALTER SEQUENCE public.transactions_id_seq OWNED BY public.transactions.id;
 
 
 --
+-- Name: user_custom_exchange_rates; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_custom_exchange_rates (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    currency_code text NOT NULL,
+    rate_scaled bigint NOT NULL,
+    discarded_at timestamp(6) with time zone,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL,
+    CONSTRAINT user_custom_exchange_rates_currency_code_length CHECK ((char_length(currency_code) = 3)),
+    CONSTRAINT user_custom_exchange_rates_rate_scaled_positive CHECK ((rate_scaled > 0))
+);
+
+
+--
+-- Name: TABLE user_custom_exchange_rates; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.user_custom_exchange_rates IS 'User-owned custom exchange rates';
+
+
+--
+-- Name: COLUMN user_custom_exchange_rates.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_custom_exchange_rates.user_id IS 'Owner of this custom exchange rate';
+
+
+--
+-- Name: COLUMN user_custom_exchange_rates.currency_code; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_custom_exchange_rates.currency_code IS 'ISO 4217 currency code for this override';
+
+
+--
+-- Name: COLUMN user_custom_exchange_rates.rate_scaled; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_custom_exchange_rates.rate_scaled IS 'Exchange rate scaled by 100,000,000 relative to the user''s default currency';
+
+
+--
+-- Name: COLUMN user_custom_exchange_rates.discarded_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_custom_exchange_rates.discarded_at IS 'Soft deletion timestamp';
+
+
+--
+-- Name: user_custom_exchange_rates_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_custom_exchange_rates_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_custom_exchange_rates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_custom_exchange_rates_id_seq OWNED BY public.user_custom_exchange_rates.id;
+
+
+--
 -- Name: user_preferences; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -887,6 +958,13 @@ ALTER TABLE ONLY public.transactions ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: user_custom_exchange_rates id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_custom_exchange_rates ALTER COLUMN id SET DEFAULT nextval('public.user_custom_exchange_rates_id_seq'::regclass);
+
+
+--
 -- Name: user_preferences id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -970,6 +1048,14 @@ ALTER TABLE ONLY public.transaction_tags
 
 ALTER TABLE ONLY public.transactions
     ADD CONSTRAINT transactions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_custom_exchange_rates user_custom_exchange_rates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_custom_exchange_rates
+    ADD CONSTRAINT user_custom_exchange_rates_pkey PRIMARY KEY (id);
 
 
 --
@@ -1185,6 +1271,27 @@ CREATE INDEX index_transactions_on_user_id ON public.transactions USING btree (u
 
 
 --
+-- Name: index_user_custom_exchange_rates_on_active_owner_currency; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_user_custom_exchange_rates_on_active_owner_currency ON public.user_custom_exchange_rates USING btree (user_id, currency_code) WHERE (discarded_at IS NULL);
+
+
+--
+-- Name: index_user_custom_exchange_rates_on_discarded_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_custom_exchange_rates_on_discarded_at ON public.user_custom_exchange_rates USING btree (discarded_at);
+
+
+--
+-- Name: index_user_custom_exchange_rates_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_custom_exchange_rates_on_user_id ON public.user_custom_exchange_rates USING btree (user_id);
+
+
+--
 -- Name: index_user_preferences_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1249,6 +1356,14 @@ ALTER TABLE ONLY public.import_batches
 
 ALTER TABLE ONLY public.transaction_categories
     ADD CONSTRAINT fk_rails_4b9fac99aa FOREIGN KEY (parent_category_id) REFERENCES public.transaction_categories(id);
+
+
+--
+-- Name: user_custom_exchange_rates fk_rails_6b9003de2b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_custom_exchange_rates
+    ADD CONSTRAINT fk_rails_6b9003de2b FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -1354,6 +1469,7 @@ ALTER TABLE ONLY public.transactions
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260503140000'),
 ('20260503130000'),
 ('20260503120000'),
 ('20260503110000'),

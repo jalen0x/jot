@@ -35,6 +35,7 @@ class LedgerClearanceTest < ActiveSupport::TestCase
     category = create_category(user: user, name: "Utilities", category_type: :expense, parent_category: parent_category)
     tag_group = create_tag_group(user: user)
     tag = create_tag(user: user, tag_group: tag_group)
+    exchange_rate = UserCustomExchangeRate.create!(user: user, currency_code: "EUR", rate: "1.25")
     transaction = create_transaction(user: user, account: account, category: category)
     create_tagging(user: user, transaction: transaction, tag: tag)
     other_category = create_category(user: other_user, category_type: :expense)
@@ -51,6 +52,7 @@ class LedgerClearanceTest < ActiveSupport::TestCase
     assert_predicate parent_category.reload, :discarded?
     assert_predicate tag.reload, :discarded?
     assert_predicate tag_group.reload, :discarded?
+    assert_predicate exchange_rate.reload, :discarded?
     assert_predicate other_transaction.reload, :kept?
     assert_predicate other_account.reload, :kept?
     assert_predicate other_category.reload, :kept?
