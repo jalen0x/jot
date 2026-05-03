@@ -13,6 +13,19 @@
     </div>
   <% end %>
 
+
+  <% if @recovery_codes.present? %>
+    <div class="rounded-base border border-success bg-neutral-primary p-4 text-sm text-heading">
+      <p class="font-medium">Your recovery codes</p>
+      <p class="mt-1 text-body">Copy these codes now. Each code can be used once and will not be shown again.</p>
+      <div class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+        <% @recovery_codes.each do |recovery_code| %>
+          <code class="rounded-base bg-neutral-secondary-medium px-3 py-2 text-center text-sm text-heading"><%= recovery_code %></code>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
   <% if @two_factor_authentication %>
     <div class="bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs">
       <div class="space-y-2">
@@ -21,14 +34,25 @@
         <p class="text-body">Enabled <%= l(@two_factor_authentication.enabled_at, format: :long) %>.</p>
       </div>
 
-      <%= form_with url: two_factor_authentication_path, method: :delete, scope: :two_factor_authentication, class: "mt-6 max-w-md space-y-4" do |form| %>
-        <div>
-          <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
-          <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
-        </div>
+      <div class="mt-6 grid gap-6 lg:grid-cols-2">
+        <%= form_with url: two_factor_recovery_codes_path, scope: :two_factor_recovery_codes, class: "space-y-4" do |form| %>
+          <div>
+            <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
+            <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+          </div>
 
-        <%= form.submit "Disable two-factor authentication", class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-      <% end %>
+          <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Regenerating..." })) { "Regenerate recovery codes" } %>
+        <% end %>
+
+        <%= form_with url: two_factor_authentication_path, method: :delete, scope: :two_factor_authentication, class: "space-y-4" do |form| %>
+          <div>
+            <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
+            <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+          </div>
+
+          <%= form.submit "Disable two-factor authentication", class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+        <% end %>
+      </div>
     </div>
   <% else %>
     <div class="bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs">
