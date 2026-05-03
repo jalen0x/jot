@@ -28,6 +28,11 @@ Rails.application.routes.draw do
   resource :two_factor_authentication, only: [ :show, :create, :destroy ]
   resource :two_factor_challenge, only: [ :new, :create ]
   resource :two_factor_recovery_codes, only: :create
+  resource :application_lock, only: [ :show, :create, :destroy ] do
+    post :lock
+    get :unlock
+    post :unlock
+  end
   resource :ledger_clearance, only: [ :new, :create ]
   resources :api_tokens, only: [ :index, :create, :destroy ]
   resources :user_custom_exchange_rates, only: [ :index, :create, :destroy ]
