@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  devise_for :users, controllers: { omniauth_callbacks: "users/omniauth_callbacks" }
+  devise_for :users, controllers: { sessions: "users/sessions", omniauth_callbacks: "users/omniauth_callbacks" }
 
   if Rails.env.development?
     mount Lookbook::Engine, at: "/lookbook"
@@ -24,6 +24,7 @@ Rails.application.routes.draw do
   resource :reports, only: :show
   resource :user_preference, only: [ :show, :update ]
   resource :two_factor_authentication, only: [ :show, :create, :destroy ]
+  resource :two_factor_challenge, only: [ :new, :create ]
   resource :ledger_clearance, only: [ :new, :create ]
   resources :api_tokens, only: [ :index, :create, :destroy ]
   resources :user_custom_exchange_rates, only: [ :index, :create, :destroy ]
