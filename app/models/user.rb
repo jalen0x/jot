@@ -7,6 +7,8 @@ class User < ApplicationRecord
   has_many :transaction_tag_groups, dependent: :restrict_with_error
   has_many :transaction_tags, dependent: :restrict_with_error
   has_many :transaction_taggings, dependent: :restrict_with_error
+  has_many :transaction_templates, dependent: :restrict_with_error
+  has_many :transaction_template_taggings, dependent: :restrict_with_error
   has_many :import_batches, dependent: :restrict_with_error
   has_one :user_preference, dependent: :restrict_with_error
   has_many :user_custom_exchange_rates, dependent: :restrict_with_error
