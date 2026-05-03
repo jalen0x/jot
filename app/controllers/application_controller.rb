@@ -9,8 +9,9 @@ class ApplicationController < ActionController::Base
   private
 
   def require_application_unlock
-    return unless user_signed_in?
-    return unless current_user.application_lock_enabled?
+    user = warden.user(:user)
+    return if user.blank?
+    return unless user.application_lock_enabled?
     return if application_lock_unlocked?
     return if application_lock_unlock_request?
 
@@ -18,7 +19,7 @@ class ApplicationController < ActionController::Base
   end
 
   def application_lock_unlocked?
-    session[:application_lock_unlocked_user_id] == current_user.id
+    session[:application_lock_unlocked_user_id] == warden.user(:user)&.id
   end
 
   def mark_application_unlocked
