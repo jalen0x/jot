@@ -20,7 +20,7 @@ Rails.application.routes.draw do
       resources :transaction_categories, only: [ :index, :create ]
       resources :transaction_tag_groups, only: [ :index, :create ]
       resources :transaction_tags, only: [ :index, :create ]
-      resources :transaction_templates, only: [ :index, :create ]
+      resources :transaction_templates, only: [ :index, :create, :update, :destroy ]
       resources :transactions, only: [ :index, :create, :destroy ]
     end
   end
