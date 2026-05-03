@@ -5,6 +5,8 @@ class TransactionReversal
       return Result.new(deleted: false, transaction: transaction)
     end
 
+    transaction.pictures.purge if transaction.pictures.attached?
+
     ActiveRecord::Base.transaction do
       reverse_balances(transaction)
       transaction.discard!

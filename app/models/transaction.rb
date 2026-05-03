@@ -9,6 +9,7 @@ class Transaction < ApplicationRecord
   belongs_to :transaction_category, optional: true
   has_many :transaction_taggings, foreign_key: :transaction_id, dependent: :restrict_with_error, inverse_of: :ledger_transaction
   has_many :transaction_tags, through: :transaction_taggings
+  has_many_attached :pictures
 
   enum :transaction_kind, {
     balance_adjustment: 1,

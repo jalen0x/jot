@@ -18,7 +18,7 @@ class TransactionsController < ApplicationController
   # POST /transactions
   def create
     authorize Transaction
-    result = TransactionRecorder.new.record_transaction(user: current_user, attributes: transaction_params, tag_ids: transaction_tag_ids)
+    result = TransactionRecorder.new.record_transaction(user: current_user, attributes: transaction_params, tag_ids: transaction_tag_ids, picture_files: picture_files)
 
     if result.recorded?
       redirect_to transactions_path, notice: "Transaction recorded."
@@ -60,12 +60,17 @@ class TransactionsController < ApplicationController
       :destination_amount_cents,
       :hide_amount,
       :comment,
-      transaction_tag_ids: []
+      transaction_tag_ids: [],
+      pictures: []
     ])
   end
 
   def transaction_tag_ids
     Array(transaction_params[:transaction_tag_ids]).reject(&:blank?)
+  end
+
+  def picture_files
+    Array(transaction_params[:pictures]).reject(&:blank?)
   end
 
   def default_transaction_attributes

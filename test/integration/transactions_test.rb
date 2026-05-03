@@ -41,6 +41,7 @@ class TransactionsTest < ActionDispatch::IntegrationTest
         destination_amount_cents: "0",
         hide_amount: "0",
         comment: "Lunch",
+        pictures: [ uploaded_receipt ],
         transaction_tag_ids: [ tag.id.to_s ]
       }
     }
@@ -50,6 +51,8 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal "Lunch", transaction.comment
     assert_equal category, transaction.transaction_category
     assert_equal [ tag ], transaction.transaction_tags.to_a
+    assert_predicate transaction.pictures, :attached?
+    assert_equal [ "receipt.txt" ], transaction.pictures.map(&:filename).map(&:to_s)
     assert_equal 3_800, account.reload.balance_cents
   end
 
@@ -80,6 +83,10 @@ class TransactionsTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def uploaded_receipt
+    Rack::Test::UploadedFile.new(Rails.root.join("test/fixtures/files/receipt.txt"), "text/plain")
+  end
 
   def create_transaction(user:, comment:)
     account = create_account(user: user, balance_cents: 5_000)
