@@ -47,6 +47,20 @@ class TransactionReversalTest < ActiveSupport::TestCase
     assert_equal 1_000, destination.reload.balance_cents
   end
 
+
+  test "purges attached pictures when deleting a transaction" do
+    user = create(:user)
+    account = create_account(user: user, balance_cents: 3_800)
+    transaction = create_transaction(user: user, account: account, transaction_kind: :expense, source_amount_cents: 1_200)
+    transaction.pictures.attach(io: StringIO.new("receipt"), filename: "receipt.txt", content_type: "text/plain", identify: false)
+
+    result = TransactionReversal.new.delete_transaction(transaction: transaction)
+
+    assert_predicate result, :deleted?
+    assert_predicate transaction.reload, :discarded?
+    refute_predicate transaction.pictures, :attached?
+  end
+
   test "does not reverse an already discarded transaction twice" do
     user = create(:user)
     account = create_account(user: user, balance_cents: 3_500)

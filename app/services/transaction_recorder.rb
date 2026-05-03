@@ -1,5 +1,5 @@
 class TransactionRecorder
-  def record_transaction(user:, attributes:, tag_ids:)
+  def record_transaction(user:, attributes:, tag_ids:, picture_files: [])
     transaction = user.transactions.build(transaction_attributes(attributes))
     tags = assign_owned_records(user, transaction, attributes, tag_ids)
     validate_business_rules(transaction)
@@ -11,6 +11,7 @@ class TransactionRecorder
       tags.each do |tag|
         transaction.transaction_taggings.create!(user: user, transaction_tag: tag)
       end
+      transaction.pictures.attach(picture_attachables(picture_files))
       update_balances(transaction)
     end
 
@@ -71,6 +72,19 @@ class TransactionRecorder
   def validate_business_rules(transaction)
     validate_category_type(transaction)
     validate_transfer(transaction) if transaction.transfer?
+  end
+
+  def picture_attachables(picture_files)
+    Array(picture_files).reject(&:blank?).map do |file|
+      next file unless file.respond_to?(:tempfile)
+
+      {
+        io: file.tempfile,
+        filename: file.original_filename,
+        content_type: file.content_type,
+        identify: false
+      }
+    end
   end
 
   def validate_category_type(transaction)
