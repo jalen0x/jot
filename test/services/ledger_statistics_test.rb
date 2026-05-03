@@ -38,11 +38,45 @@ class LedgerStatisticsTest < ActiveSupport::TestCase
     assert_empty summary.category_totals
   end
 
+  test "returns signed account totals" do
+    user = create(:user)
+    checking = create_account(user: user, name: "Checking")
+    savings = create_account(user: user, name: "Savings")
+    salary = create_category(user: user, name: "Salary", category_type: :income)
+    food = create_category(user: user, name: "Food", category_type: :expense)
+    create_transaction(user: user, account: checking, category: salary, transaction_kind: :income, amount_cents: 5_000)
+    create_transaction(user: user, account: checking, category: food, transaction_kind: :expense, amount_cents: 1_200)
+    create_transaction(user: user, account: savings, category: food, transaction_kind: :expense, amount_cents: 300)
+
+    summary = LedgerStatistics.new.summarize_transactions(user: user, range: Time.zone.parse("2026-05-01")..Time.zone.parse("2026-05-31 23:59:59"))
+
+    assert_equal({ "Checking" => 3_800, "Savings" => -300 }, summary.account_totals.transform_values(&:itself))
+  end
+
+  test "applies existing ledger filters" do
+    user = create(:user)
+    matching_account = create_account(user: user, name: "Checking")
+    other_account = create_account(user: user, name: "Savings")
+    salary = create_category(user: user, name: "Salary", category_type: :income)
+    create_transaction(user: user, account: matching_account, category: salary, transaction_kind: :income, amount_cents: 5_000)
+    create_transaction(user: user, account: other_account, category: salary, transaction_kind: :income, amount_cents: 9_999)
+
+    summary = LedgerStatistics.new.summarize_transactions(
+      user: user,
+      range: Time.zone.parse("2026-05-01")..Time.zone.parse("2026-05-31 23:59:59"),
+      filters: { account_id: matching_account.to_param }
+    )
+
+    assert_equal 5_000, summary.income_cents
+    assert_equal({ "Salary" => 5_000 }, summary.category_totals.transform_values(&:itself))
+    assert_equal({ "Checking" => 5_000 }, summary.account_totals.transform_values(&:itself))
+  end
+
   private
 
-  def create_transaction(user:, transaction_kind:, amount_cents:, transacted_at: Time.zone.parse("2026-05-03 10:00:00"), category: nil)
+  def create_transaction(user:, transaction_kind:, amount_cents:, transacted_at: Time.zone.parse("2026-05-03 10:00:00"), category: nil, account: nil)
     category ||= create_category(user: user, name: transaction_kind.to_s.humanize, category_type: transaction_kind)
-    account = create_account(user: user)
+    account ||= create_account(user: user)
 
     Transaction.create!(
       user: user,
