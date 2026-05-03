@@ -21,4 +21,18 @@ class TransactionCategory < ApplicationRecord
   validates :name, presence: true
   validates :icon_key, numericality: { only_integer: true, greater_than: 0 }
   validates :color_hex, format: { with: /\A\h{6}\z/ }
+
+  def as_json(_options = {})
+    {
+      id: to_param,
+      name: name,
+      category_type: category_type,
+      parent_category_id: parent_category&.to_param,
+      display_order: display_order,
+      icon_key: icon_key,
+      color_hex: color_hex,
+      hidden: hidden,
+      comment: comment
+    }
+  end
 end
