@@ -1,3 +1,5 @@
+require "bcrypt"
+
 class ApplicationLock < ApplicationRecord
   belongs_to :user
 
