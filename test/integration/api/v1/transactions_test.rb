@@ -171,6 +171,49 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_match(/Transaction category is unavailable/i, response.body)
   end
 
+  test "deletes a transaction for the token owner" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking", balance_cents: 3_750)
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    transaction = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    raw_token = issue_token(user)
+
+    delete api_v1_transaction_path(transaction), headers: json_headers(raw_token)
+
+    assert_response :no_content
+    assert_empty response.body
+    assert_predicate transaction.reload, :discarded?
+    assert_equal 5_000, account.reload.balance_cents
+  end
+
+  test "does not delete another user's transaction" do
+    user = create(:user)
+    other_user = create(:user)
+    transaction = create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking", balance_cents: 3_750),
+      category: create_category(user: other_user, name: "Other Food", category_type: :expense),
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Other Lunch"
+    )
+    raw_token = issue_token(user)
+
+    delete api_v1_transaction_path(transaction), headers: json_headers(raw_token)
+
+    assert_response :not_found
+    refute_predicate transaction.reload, :discarded?
+  end
+
   private
 
   def issue_token(user)

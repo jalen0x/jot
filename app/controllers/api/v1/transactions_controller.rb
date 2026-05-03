@@ -19,6 +19,19 @@ class Api::V1::TransactionsController < ApiController
     end
   end
 
+  # DELETE /api/v1/transactions/:id
+  def destroy
+    transaction = policy_scope(Transaction).kept.find(params[:id])
+    authorize transaction
+    result = TransactionReversal.new.delete_transaction(transaction: transaction)
+
+    if result.deleted?
+      head :no_content
+    else
+      render json: { errors: result.transaction.errors.full_messages }, status: :unprocessable_content
+    end
+  end
+
   private
 
   def filter_params
