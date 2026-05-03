@@ -890,6 +890,67 @@ ALTER SEQUENCE public.two_factor_authentications_id_seq OWNED BY public.two_fact
 
 
 --
+-- Name: two_factor_recovery_codes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.two_factor_recovery_codes (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    code_digest text NOT NULL,
+    used_at timestamp(6) with time zone,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL
+);
+
+
+--
+-- Name: TABLE two_factor_recovery_codes; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.two_factor_recovery_codes IS 'User-owned one-time 2FA recovery code digests';
+
+
+--
+-- Name: COLUMN two_factor_recovery_codes.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.two_factor_recovery_codes.user_id IS 'Owner of this recovery code';
+
+
+--
+-- Name: COLUMN two_factor_recovery_codes.code_digest; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.two_factor_recovery_codes.code_digest IS 'BCrypt digest of the raw recovery code';
+
+
+--
+-- Name: COLUMN two_factor_recovery_codes.used_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.two_factor_recovery_codes.used_at IS 'Time this recovery code was consumed';
+
+
+--
+-- Name: two_factor_recovery_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.two_factor_recovery_codes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: two_factor_recovery_codes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.two_factor_recovery_codes_id_seq OWNED BY public.two_factor_recovery_codes.id;
+
+
+--
 -- Name: user_custom_exchange_rates; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1118,6 +1179,13 @@ ALTER TABLE ONLY public.two_factor_authentications ALTER COLUMN id SET DEFAULT n
 
 
 --
+-- Name: two_factor_recovery_codes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.two_factor_recovery_codes ALTER COLUMN id SET DEFAULT nextval('public.two_factor_recovery_codes_id_seq'::regclass);
+
+
+--
 -- Name: user_custom_exchange_rates id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1224,6 +1292,14 @@ ALTER TABLE ONLY public.transactions
 
 ALTER TABLE ONLY public.two_factor_authentications
     ADD CONSTRAINT two_factor_authentications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: two_factor_recovery_codes two_factor_recovery_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.two_factor_recovery_codes
+    ADD CONSTRAINT two_factor_recovery_codes_pkey PRIMARY KEY (id);
 
 
 --
@@ -1482,6 +1558,20 @@ CREATE UNIQUE INDEX index_two_factor_authentications_on_user_id ON public.two_fa
 
 
 --
+-- Name: index_two_factor_recovery_codes_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_two_factor_recovery_codes_on_user_id ON public.two_factor_recovery_codes USING btree (user_id);
+
+
+--
+-- Name: index_two_factor_recovery_codes_on_user_id_and_used_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_two_factor_recovery_codes_on_user_id_and_used_at ON public.two_factor_recovery_codes USING btree (user_id, used_at);
+
+
+--
 -- Name: index_user_custom_exchange_rates_on_active_owner_currency; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1567,6 +1657,14 @@ ALTER TABLE ONLY public.two_factor_authentications
 
 ALTER TABLE ONLY public.import_batches
     ADD CONSTRAINT fk_rails_12f3440250 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: two_factor_recovery_codes fk_rails_1b41033e31; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.two_factor_recovery_codes
+    ADD CONSTRAINT fk_rails_1b41033e31 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -1696,6 +1794,7 @@ ALTER TABLE ONLY public.transactions
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260503170000'),
 ('20260503160000'),
 ('20260503150000'),
 ('20260503140000'),
