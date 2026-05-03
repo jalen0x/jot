@@ -25,6 +25,75 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
     refute_includes account_json.keys, "user_id"
   end
 
+  test "creates an account for the token owner" do
+    user = create(:user)
+    create_account(user: user, name: "Cash", balance_cents: 0)
+    raw_token = issue_token(user)
+
+    post api_v1_accounts_path,
+      params: {
+        account: {
+          name: "Checking",
+          account_category: "checking_account",
+          account_structure: "single_account",
+          icon_key: "2",
+          color_hex: "#22c55e",
+          currency_code: "usd",
+          opening_balance_cents: "12300",
+          comment: "Main bank"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :created
+    account = user.accounts.where(name: "Checking").sole
+    assert_equal "checking_account", account.account_category
+    assert_equal "single_account", account.account_structure
+    assert_equal 2, account.icon_key
+    assert_equal "22C55E", account.color_hex
+    assert_equal "USD", account.currency_code
+    assert_equal 12_300, account.balance_cents
+    assert_equal 2, account.display_order
+
+    opening_balance = user.transactions.balance_adjustment.sole
+    assert_equal account, opening_balance.account
+    assert_equal 12_300, opening_balance.source_amount_cents
+
+    body = JSON.parse(response.body)
+    account_json = body.fetch("account")
+    assert_equal account.to_param, account_json.fetch("id")
+    assert_equal "Checking", account_json.fetch("name")
+    assert_equal 12_300, account_json.fetch("balance_cents")
+    refute_includes account_json.keys, "user_id"
+  end
+
+  test "rejects invalid account params" do
+    user = create(:user)
+    raw_token = issue_token(user)
+
+    post api_v1_accounts_path,
+      params: {
+        account: {
+          name: "",
+          account_category: "checking_account",
+          account_structure: "single_account",
+          icon_key: "2",
+          color_hex: "22C55E",
+          currency_code: "USD",
+          opening_balance_cents: "12300",
+          comment: "Main bank"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_empty user.accounts.where(account_category: :checking_account)
+    assert_empty user.transactions.balance_adjustment
+    assert_match(/Name/i, response.body)
+  end
+
   private
 
   def issue_token(user)
