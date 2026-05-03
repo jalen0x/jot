@@ -1,0 +1,66 @@
+<% content_for :title, "Transaction templates" %>
+
+<section class="flex flex-col gap-6">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Automation</p>
+      <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Transaction templates</h1>
+      <p class="mt-2 max-w-2xl text-sm text-body">Save reusable transaction shapes and scheduled ledger entries.</p>
+    </div>
+
+    <%= render(ButtonComponent.new(href: new_transaction_template_path)) { "New template" } %>
+  </div>
+
+  <% if @transaction_templates.any? %>
+    <ul class="grid gap-4 lg:grid-cols-2">
+      <% @transaction_templates.each do |template| %>
+        <li id="<%= dom_id(template) %>" class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 class="text-lg font-semibold text-heading"><%= template.name %></h2>
+              <p class="mt-1 text-sm text-body-subtle">
+                <%= template.template_kind.humanize %> · <%= template.transaction_kind.humanize %> · <%= template.account.name %>
+                <% if template.transaction_category.present? %>
+                  · <%= template.transaction_category.name %>
+                <% end %>
+              </p>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading"><%= template.source_amount_cents %> cents</span>
+              <%= button_to "Delete", transaction_template_path(template), method: :delete, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+            </div>
+          </div>
+
+          <% if template.scheduled? %>
+            <p class="mt-4 text-sm text-body">
+              Schedule: <%= template.schedule_frequency.humanize %>
+              <% if template.schedule_rule.present? %>
+                (<%= template.schedule_rule %>)
+              <% end %>
+              at minute <%= template.scheduled_at_minutes %>, UTC offset <%= template.timezone_utc_offset_minutes %>
+            </p>
+          <% end %>
+
+          <% if template.comment.present? %>
+            <p class="mt-4 text-sm text-body"><%= template.comment %></p>
+          <% end %>
+
+          <% if template.transaction_tags.any? %>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <% template.transaction_tags.each do |tag| %>
+                <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading"><%= tag.name %></span>
+              <% end %>
+            </div>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <div class="bg-neutral-primary-soft border border-default rounded-base p-8 text-center shadow-xs">
+      <h2 class="text-xl font-semibold text-heading">No transaction templates yet</h2>
+      <p class="mx-auto mt-2 max-w-xl text-sm text-body">Create a normal template for repeated manual entries or a scheduled template for automatic creation.</p>
+      <div class="mt-5"><%= render(ButtonComponent.new(href: new_transaction_template_path)) { "Create first template" } %></div>
+    </div>
+  <% end %>
+</section>

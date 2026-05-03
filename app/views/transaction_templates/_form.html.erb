@@ -1,0 +1,80 @@
+<%# locals: (transaction_template:, accounts:, transaction_categories:, transaction_tags:) %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+
+<%= form_with model: transaction_template, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
+  <% if transaction_template.errors.any? %>
+    <div class="mb-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
+      <p class="font-medium">Transaction template could not be saved.</p>
+      <ul class="mt-2 list-disc ps-5">
+        <% transaction_template.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= render FormField::InputComponent.new(form: form, field: :name, label: "Name", autofocus: true, required: true) %>
+
+  <div class="mb-4 grid gap-4 sm:grid-cols-2">
+    <div>
+      <%= form.label :template_kind, "Template kind", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.select :template_kind, TransactionTemplate.template_kinds.keys.map { |key| [ key.humanize, key ] }, {}, class: field_classes %>
+    </div>
+    <div>
+      <%= form.label :transaction_kind, "Transaction type", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.select :transaction_kind, TransactionTemplate.transaction_kinds.except("balance_adjustment").keys.map { |key| [ key.humanize, key ] }, {}, class: field_classes %>
+    </div>
+  </div>
+
+  <div class="mb-4 grid gap-4 sm:grid-cols-2">
+    <div>
+      <%= form.label :account_id, "Account", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.collection_select :account_id, accounts, :id, :name, { prompt: "Choose account" }, required: true, class: field_classes %>
+    </div>
+    <div>
+      <%= form.label :destination_account_id, "Destination account", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.collection_select :destination_account_id, accounts, :id, :name, { include_blank: "Not a transfer" }, class: field_classes %>
+    </div>
+  </div>
+
+  <div class="mb-4 grid gap-4 sm:grid-cols-3">
+    <div>
+      <%= form.label :transaction_category_id, "Category", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.collection_select :transaction_category_id, transaction_categories, :id, :name, { prompt: "Choose category" }, required: true, class: field_classes %>
+    </div>
+    <%= render FormField::InputComponent.new(form: form, field: :source_amount_cents, label: "Source cents", type: :number, required: true) %>
+    <%= render FormField::InputComponent.new(form: form, field: :destination_amount_cents, label: "Destination cents", type: :number) %>
+  </div>
+
+  <div class="mb-4">
+    <%= form.label :transaction_tag_ids, "Tags", class: "block mb-2 text-sm font-medium text-heading" %>
+    <%= form.collection_select :transaction_tag_ids, transaction_tags, :id, :name, {}, multiple: true, class: field_classes %>
+  </div>
+
+  <div class="mb-4 flex items-center">
+    <%= form.check_box :hide_amount, class: "w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft" %>
+    <%= form.label :hide_amount, "Hide amount", class: "select-none ms-2 text-sm font-medium text-heading" %>
+  </div>
+
+  <div class="mb-4 grid gap-4 sm:grid-cols-3">
+    <div>
+      <%= form.label :schedule_frequency, "Schedule frequency", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.select :schedule_frequency, TransactionTemplate.schedule_frequencies.keys.map { |key| [ key.humanize, key ] }, {}, class: field_classes %>
+    </div>
+    <%= render FormField::InputComponent.new(form: form, field: :schedule_rule, label: "Schedule rule", placeholder: "0, -1, 503") %>
+    <%= render FormField::InputComponent.new(form: form, field: :scheduled_at_minutes, label: "Scheduled minute", type: :number) %>
+  </div>
+
+  <div class="mb-4 grid gap-4 sm:grid-cols-3">
+    <%= render FormField::InputComponent.new(form: form, field: :schedule_start_on, label: "Start date", type: :date) %>
+    <%= render FormField::InputComponent.new(form: form, field: :schedule_end_on, label: "End date", type: :date) %>
+    <%= render FormField::InputComponent.new(form: form, field: :timezone_utc_offset_minutes, label: "UTC offset minutes", type: :number) %>
+  </div>
+
+  <%= render FormField::InputComponent.new(form: form, field: :comment, label: "Comment", type: :textarea) %>
+
+  <div class="flex items-center justify-end gap-3">
+    <%= render(ButtonComponent.new(variant: :secondary, href: transaction_templates_path)) { "Cancel" } %>
+    <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Saving..." })) { "Create template" } %>
+  </div>
+<% end %>

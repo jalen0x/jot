@@ -41,6 +41,7 @@ Rails.application.routes.draw do
   resources :user_custom_exchange_rates, only: [ :index, :create, :destroy ]
   resources :data_exports, only: :create
   resources :import_batches, only: [ :new, :create, :show ]
+  resources :transaction_templates, only: [ :index, :new, :create, :destroy ]
   resources :transaction_categories, only: [ :index, :new, :create ]
   resources :transaction_tag_groups, only: [ :index, :new, :create ]
   resources :transaction_tags, only: [ :new, :create ]
