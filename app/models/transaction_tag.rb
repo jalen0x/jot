@@ -7,6 +7,8 @@ class TransactionTag < ApplicationRecord
   belongs_to :transaction_tag_group, optional: true
   has_many :transaction_taggings, dependent: :restrict_with_error
   has_many :transactions, through: :transaction_taggings, source: :ledger_transaction
+  has_many :transaction_template_taggings, dependent: :restrict_with_error
+  has_many :transaction_templates, through: :transaction_template_taggings
 
   normalizes :name, with: ->(name) { name.to_s.strip }
 

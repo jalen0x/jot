@@ -741,6 +741,270 @@ ALTER SEQUENCE public.transaction_tags_id_seq OWNED BY public.transaction_tags.i
 
 
 --
+-- Name: transaction_template_taggings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.transaction_template_taggings (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    transaction_template_id bigint NOT NULL,
+    transaction_tag_id bigint NOT NULL,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL
+);
+
+
+--
+-- Name: TABLE transaction_template_taggings; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.transaction_template_taggings IS 'Join table between transaction templates and tags';
+
+
+--
+-- Name: COLUMN transaction_template_taggings.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_template_taggings.user_id IS 'Owner of this template tagging';
+
+
+--
+-- Name: COLUMN transaction_template_taggings.transaction_template_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_template_taggings.transaction_template_id IS 'Tagged transaction template';
+
+
+--
+-- Name: COLUMN transaction_template_taggings.transaction_tag_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_template_taggings.transaction_tag_id IS 'Applied transaction tag';
+
+
+--
+-- Name: transaction_template_taggings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.transaction_template_taggings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: transaction_template_taggings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.transaction_template_taggings_id_seq OWNED BY public.transaction_template_taggings.id;
+
+
+--
+-- Name: transaction_templates; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.transaction_templates (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    account_id bigint NOT NULL,
+    destination_account_id bigint,
+    transaction_category_id bigint,
+    template_kind integer NOT NULL,
+    transaction_kind integer NOT NULL,
+    name text NOT NULL,
+    display_order integer DEFAULT 0 NOT NULL,
+    source_amount_cents integer DEFAULT 0 NOT NULL,
+    destination_amount_cents integer DEFAULT 0 NOT NULL,
+    hide_amount boolean DEFAULT false NOT NULL,
+    comment text DEFAULT ''::text NOT NULL,
+    schedule_frequency integer DEFAULT 0 NOT NULL,
+    schedule_rule text DEFAULT ''::text NOT NULL,
+    schedule_start_on date,
+    schedule_end_on date,
+    scheduled_at_minutes integer DEFAULT 0 NOT NULL,
+    timezone_utc_offset_minutes integer DEFAULT 0 NOT NULL,
+    hidden boolean DEFAULT false NOT NULL,
+    discarded_at timestamp(6) with time zone,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL,
+    CONSTRAINT transaction_templates_destination_account_differs CHECK (((destination_account_id IS NULL) OR (destination_account_id <> account_id))),
+    CONSTRAINT transaction_templates_schedule_frequency_valid CHECK ((schedule_frequency = ANY (ARRAY[0, 1, 2, 3, 4]))),
+    CONSTRAINT transaction_templates_scheduled_at_minutes_range CHECK (((scheduled_at_minutes >= 0) AND (scheduled_at_minutes <= 1439))),
+    CONSTRAINT transaction_templates_template_kind_valid CHECK ((template_kind = ANY (ARRAY[1, 2]))),
+    CONSTRAINT transaction_templates_timezone_offset_range CHECK (((timezone_utc_offset_minutes >= '-720'::integer) AND (timezone_utc_offset_minutes <= 840))),
+    CONSTRAINT transaction_templates_transaction_kind_valid CHECK ((transaction_kind = ANY (ARRAY[1, 2, 3, 4])))
+);
+
+
+--
+-- Name: TABLE transaction_templates; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.transaction_templates IS 'User-owned transaction templates and schedules';
+
+
+--
+-- Name: COLUMN transaction_templates.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.user_id IS 'Owner of this template';
+
+
+--
+-- Name: COLUMN transaction_templates.account_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.account_id IS 'Source account for generated transactions';
+
+
+--
+-- Name: COLUMN transaction_templates.destination_account_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.destination_account_id IS 'Destination account for transfer templates';
+
+
+--
+-- Name: COLUMN transaction_templates.transaction_category_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.transaction_category_id IS 'Category for generated transactions';
+
+
+--
+-- Name: COLUMN transaction_templates.template_kind; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.template_kind IS 'Template kind code: normal or scheduled';
+
+
+--
+-- Name: COLUMN transaction_templates.transaction_kind; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.transaction_kind IS 'Generated transaction kind code';
+
+
+--
+-- Name: COLUMN transaction_templates.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.name IS 'Human-readable template name';
+
+
+--
+-- Name: COLUMN transaction_templates.display_order; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.display_order IS 'User-controlled display order';
+
+
+--
+-- Name: COLUMN transaction_templates.source_amount_cents; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.source_amount_cents IS 'Source amount in cents';
+
+
+--
+-- Name: COLUMN transaction_templates.destination_amount_cents; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.destination_amount_cents IS 'Destination amount in cents for transfers';
+
+
+--
+-- Name: COLUMN transaction_templates.hide_amount; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.hide_amount IS 'Whether generated transaction amount is hidden';
+
+
+--
+-- Name: COLUMN transaction_templates.comment; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.comment IS 'Optional generated transaction note';
+
+
+--
+-- Name: COLUMN transaction_templates.schedule_frequency; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.schedule_frequency IS 'Schedule frequency code';
+
+
+--
+-- Name: COLUMN transaction_templates.schedule_rule; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.schedule_rule IS 'Frequency-specific schedule rule';
+
+
+--
+-- Name: COLUMN transaction_templates.schedule_start_on; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.schedule_start_on IS 'First date this schedule may run';
+
+
+--
+-- Name: COLUMN transaction_templates.schedule_end_on; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.schedule_end_on IS 'Last date this schedule may run';
+
+
+--
+-- Name: COLUMN transaction_templates.scheduled_at_minutes; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.scheduled_at_minutes IS 'Minute of local day to run scheduled template';
+
+
+--
+-- Name: COLUMN transaction_templates.timezone_utc_offset_minutes; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.timezone_utc_offset_minutes IS 'Template timezone UTC offset in minutes';
+
+
+--
+-- Name: COLUMN transaction_templates.hidden; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.hidden IS 'Whether the template is hidden in normal lists';
+
+
+--
+-- Name: COLUMN transaction_templates.discarded_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transaction_templates.discarded_at IS 'Soft deletion timestamp';
+
+
+--
+-- Name: transaction_templates_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.transaction_templates_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: transaction_templates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.transaction_templates_id_seq OWNED BY public.transaction_templates.id;
+
+
+--
 -- Name: transactions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1225,6 +1489,20 @@ ALTER TABLE ONLY public.transaction_tags ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: transaction_template_taggings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_template_taggings ALTER COLUMN id SET DEFAULT nextval('public.transaction_template_taggings_id_seq'::regclass);
+
+
+--
+-- Name: transaction_templates id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_templates ALTER COLUMN id SET DEFAULT nextval('public.transaction_templates_id_seq'::regclass);
+
+
+--
 -- Name: transactions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1344,6 +1622,22 @@ ALTER TABLE ONLY public.transaction_taggings
 
 ALTER TABLE ONLY public.transaction_tags
     ADD CONSTRAINT transaction_tags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: transaction_template_taggings transaction_template_taggings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_template_taggings
+    ADD CONSTRAINT transaction_template_taggings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: transaction_templates transaction_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_templates
+    ADD CONSTRAINT transaction_templates_pkey PRIMARY KEY (id);
 
 
 --
@@ -1472,6 +1766,13 @@ CREATE INDEX index_import_batches_on_user_id ON public.import_batches USING btre
 
 
 --
+-- Name: index_template_taggings_on_template_and_tag; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_template_taggings_on_template_and_tag ON public.transaction_template_taggings USING btree (transaction_template_id, transaction_tag_id);
+
+
+--
 -- Name: index_transaction_categories_on_discarded_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1574,6 +1875,76 @@ CREATE INDEX index_transaction_tags_on_transaction_tag_group_id ON public.transa
 --
 
 CREATE INDEX index_transaction_tags_on_user_id ON public.transaction_tags USING btree (user_id);
+
+
+--
+-- Name: index_transaction_template_taggings_on_transaction_tag_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_template_taggings_on_transaction_tag_id ON public.transaction_template_taggings USING btree (transaction_tag_id);
+
+
+--
+-- Name: index_transaction_template_taggings_on_transaction_template_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_template_taggings_on_transaction_template_id ON public.transaction_template_taggings USING btree (transaction_template_id);
+
+
+--
+-- Name: index_transaction_template_taggings_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_template_taggings_on_user_id ON public.transaction_template_taggings USING btree (user_id);
+
+
+--
+-- Name: index_transaction_templates_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_templates_on_account_id ON public.transaction_templates USING btree (account_id);
+
+
+--
+-- Name: index_transaction_templates_on_destination_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_templates_on_destination_account_id ON public.transaction_templates USING btree (destination_account_id);
+
+
+--
+-- Name: index_transaction_templates_on_discarded_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_templates_on_discarded_at ON public.transaction_templates USING btree (discarded_at);
+
+
+--
+-- Name: index_transaction_templates_on_owner_kind_order; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_templates_on_owner_kind_order ON public.transaction_templates USING btree (user_id, template_kind, display_order);
+
+
+--
+-- Name: index_transaction_templates_on_schedule_lookup; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_templates_on_schedule_lookup ON public.transaction_templates USING btree (discarded_at, template_kind, schedule_frequency, schedule_start_on, schedule_end_on);
+
+
+--
+-- Name: index_transaction_templates_on_transaction_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_templates_on_transaction_category_id ON public.transaction_templates USING btree (transaction_category_id);
+
+
+--
+-- Name: index_transaction_templates_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transaction_templates_on_user_id ON public.transaction_templates USING btree (user_id);
 
 
 --
@@ -1735,11 +2106,27 @@ ALTER TABLE ONLY public.import_batches
 
 
 --
+-- Name: transaction_template_taggings fk_rails_1666aa3e82; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_template_taggings
+    ADD CONSTRAINT fk_rails_1666aa3e82 FOREIGN KEY (transaction_tag_id) REFERENCES public.transaction_tags(id);
+
+
+--
 -- Name: two_factor_recovery_codes fk_rails_1b41033e31; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.two_factor_recovery_codes
     ADD CONSTRAINT fk_rails_1b41033e31 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: transaction_template_taggings fk_rails_2fe1eca187; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_template_taggings
+    ADD CONSTRAINT fk_rails_2fe1eca187 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -1756,6 +2143,22 @@ ALTER TABLE ONLY public.application_locks
 
 ALTER TABLE ONLY public.transaction_categories
     ADD CONSTRAINT fk_rails_4b9fac99aa FOREIGN KEY (parent_category_id) REFERENCES public.transaction_categories(id);
+
+
+--
+-- Name: transaction_templates fk_rails_52511449d0; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_templates
+    ADD CONSTRAINT fk_rails_52511449d0 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: transaction_template_taggings fk_rails_693dd307f2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_template_taggings
+    ADD CONSTRAINT fk_rails_693dd307f2 FOREIGN KEY (transaction_template_id) REFERENCES public.transaction_templates(id);
 
 
 --
@@ -1788,6 +2191,14 @@ ALTER TABLE ONLY public.transaction_taggings
 
 ALTER TABLE ONLY public.transaction_taggings
     ADD CONSTRAINT fk_rails_85aa95e074 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: transaction_templates fk_rails_97ebc054e3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_templates
+    ADD CONSTRAINT fk_rails_97ebc054e3 FOREIGN KEY (transaction_category_id) REFERENCES public.transaction_categories(id);
 
 
 --
@@ -1863,11 +2274,27 @@ ALTER TABLE ONLY public.transaction_taggings
 
 
 --
+-- Name: transaction_templates fk_rails_f592def69f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_templates
+    ADD CONSTRAINT fk_rails_f592def69f FOREIGN KEY (destination_account_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: transactions fk_rails_f7070c25b3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.transactions
     ADD CONSTRAINT fk_rails_f7070c25b3 FOREIGN KEY (destination_account_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: transaction_templates fk_rails_fd7985cecd; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transaction_templates
+    ADD CONSTRAINT fk_rails_fd7985cecd FOREIGN KEY (account_id) REFERENCES public.accounts(id);
 
 
 --
@@ -1877,6 +2304,7 @@ ALTER TABLE ONLY public.transactions
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260503190000'),
 ('20260503180000'),
 ('20260503170000'),
 ('20260503160000'),
