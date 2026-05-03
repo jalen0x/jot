@@ -9,4 +9,12 @@ class TransactionTagGroup < ApplicationRecord
   normalizes :name, with: ->(name) { name.to_s.strip }
 
   validates :name, presence: true
+
+  def as_json(_options = {})
+    {
+      id: to_param,
+      name: name,
+      display_order: display_order
+    }
+  end
 end
