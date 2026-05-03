@@ -10,4 +10,7 @@ class User < ApplicationRecord
   has_one :user_preference, dependent: :restrict_with_error
   has_many :user_custom_exchange_rates, dependent: :restrict_with_error
   has_many :api_tokens, dependent: :restrict_with_error
+  has_one :two_factor_authentication, dependent: :destroy
+
+  def two_factor_enabled? = two_factor_authentication.present?
 end
