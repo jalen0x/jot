@@ -7,7 +7,7 @@ class TwoFactorChallengesController < ApplicationController
 
   # POST /two_factor_challenge
   def create
-    if @pending_user.two_factor_authentication.verify_otp(two_factor_challenge_params[:otp_code])
+    if valid_two_factor_code?(two_factor_challenge_params[:otp_code])
       session.delete(:pending_two_factor_user_id)
       sign_in(:user, @pending_user)
       redirect_to after_sign_in_path_for(@pending_user), notice: "Signed in successfully."
@@ -25,6 +25,18 @@ class TwoFactorChallengesController < ApplicationController
 
     session.delete(:pending_two_factor_user_id)
     redirect_to new_user_session_path, alert: "Sign in to continue."
+  end
+
+  def valid_two_factor_code?(code)
+    @pending_user.two_factor_authentication.verify_otp(code) || consume_recovery_code(code)
+  end
+
+  def consume_recovery_code(code)
+    recovery_code = @pending_user.two_factor_recovery_codes.unused.find do |candidate|
+      candidate.matches_code?(code)
+    end
+
+    recovery_code&.consume!(code)
   end
 
   def two_factor_challenge_params

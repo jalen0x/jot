@@ -30,13 +30,15 @@ class TwoFactorAuthenticationsController < ApplicationController
       return
     end
 
-    current_user.create_two_factor_authentication!(
-      otp_secret: session[:pending_two_factor_secret],
-      enabled_at: Time.current
+    @recovery_codes = TwoFactorAuthenticationEnabler.new.enable(
+      user: current_user,
+      otp_secret: session[:pending_two_factor_secret]
     )
     session.delete(:pending_two_factor_secret)
+    load_two_factor_authentication
+    flash.now[:notice] = "Two-factor authentication enabled."
 
-    redirect_to two_factor_authentication_path, notice: "Two-factor authentication enabled."
+    render :show, status: :created
   end
 
   # DELETE /two_factor_authentication
@@ -56,7 +58,10 @@ class TwoFactorAuthenticationsController < ApplicationController
       return
     end
 
-    @two_factor_authentication.destroy!
+    TwoFactorAuthentication.transaction do
+      current_user.two_factor_recovery_codes.destroy_all
+      @two_factor_authentication.destroy!
+    end
 
     redirect_to two_factor_authentication_path, notice: "Two-factor authentication disabled."
   end
