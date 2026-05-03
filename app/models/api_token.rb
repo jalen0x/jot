@@ -12,6 +12,10 @@ class ApiToken < ApplicationRecord
 
   scope :active, -> { kept.where("expires_at IS NULL OR expires_at > ?", Time.current) }
 
+  def self.authenticate(raw_token)
+    active.find_each.find { |api_token| api_token.matches_token?(raw_token) }
+  end
+
   def active?
     !discarded? && (expires_at.blank? || expires_at.future?)
   end
