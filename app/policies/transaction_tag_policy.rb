@@ -1,4 +1,5 @@
 class TransactionTagPolicy < ApplicationPolicy
+  def index? = user.present?
   def new? = create?
   def create? = user.present?
 
