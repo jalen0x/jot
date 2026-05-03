@@ -44,6 +44,32 @@ class TransactionTemplate < ApplicationRecord
   validates :destination_account, presence: true, if: :transfer?
   validate :destination_account_differs_from_source
 
+  def as_json(_options = {})
+    {
+      id: to_param,
+      template_kind: template_kind,
+      transaction_kind: transaction_kind,
+      name: name,
+      account_id: account.to_param,
+      destination_account_id: destination_account&.to_param,
+      transaction_category_id: transaction_category&.to_param,
+      source_amount_cents: source_amount_cents,
+      destination_amount_cents: destination_amount_cents,
+      hide_amount: hide_amount,
+      comment: comment,
+      schedule_frequency: schedule_frequency,
+      schedule_rule: schedule_rule,
+      schedule_start_on: schedule_start_on&.iso8601,
+      schedule_end_on: schedule_end_on&.iso8601,
+      scheduled_at_minutes: scheduled_at_minutes,
+      timezone_utc_offset_minutes: timezone_utc_offset_minutes,
+      last_generated_on: last_generated_on&.iso8601,
+      display_order: display_order,
+      hidden: hidden,
+      transaction_tag_ids: transaction_tags.map(&:to_param)
+    }
+  end
+
   private
 
   def destination_account_differs_from_source
