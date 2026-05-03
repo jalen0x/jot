@@ -1,0 +1,25 @@
+<% content_for :title, "Unlock Application" %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+
+<section class="mx-auto max-w-md space-y-8">
+  <div class="space-y-3 text-center">
+    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Locked</p>
+    <h1 class="text-3xl font-semibold tracking-tight text-heading">Unlock application</h1>
+    <p class="text-body">Enter your six-digit PIN to continue.</p>
+  </div>
+
+  <%= form_with scope: :application_lock, url: unlock_application_lock_path, class: "rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs space-y-5" do |form| %>
+    <div>
+      <%= form.label :pin_code, "PIN code", class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.password_field :pin_code, required: true, autofocus: true, inputmode: "numeric", pattern: "\\d{6}", maxlength: 6, autocomplete: "one-time-code", class: field_classes %>
+    </div>
+
+    <div class="flex justify-end">
+      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Unlocking..." })) { "Unlock" } %>
+    </div>
+  <% end %>
+
+  <div class="flex justify-center">
+    <%= button_to "Sign out instead", destroy_user_session_path, method: :delete, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+  </div>
+</section>
