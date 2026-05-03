@@ -76,6 +76,8 @@ class ApplicationLocksTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to application_lock_path
     assert_nil user.reload.application_lock
+    follow_redirect!
+    assert_match(/Not enabled/i, response.body)
   end
 
   private

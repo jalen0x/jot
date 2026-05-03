@@ -5,7 +5,7 @@ class ApplicationLocksController < ApplicationController
   # GET /application_lock
   def show
     authorize :application_lock
-    @application_lock = current_user.application_lock || current_user.build_application_lock
+    @application_lock = current_user.application_lock_enabled? ? current_user.application_lock : current_user.build_application_lock
   end
 
   # POST /application_lock
@@ -13,7 +13,7 @@ class ApplicationLocksController < ApplicationController
     authorize :application_lock
     permitted = application_lock_params
 
-    if current_user.application_lock.present?
+    if current_user.application_lock_enabled?
       @application_lock = current_user.application_lock
       redirect_to application_lock_path, alert: "Application lock is already enabled."
     elsif !current_user.valid_password?(permitted[:current_password])
@@ -54,7 +54,7 @@ class ApplicationLocksController < ApplicationController
   def lock
     authorize :application_lock
 
-    if current_user.application_lock.blank?
+    if !current_user.application_lock_enabled?
       redirect_to application_lock_path, alert: "Application lock is not enabled."
     else
       clear_application_unlock
