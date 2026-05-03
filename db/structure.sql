@@ -161,6 +161,91 @@ ALTER SEQUENCE public.accounts_id_seq OWNED BY public.accounts.id;
 
 
 --
+-- Name: api_tokens; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.api_tokens (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    name text NOT NULL,
+    token_digest text NOT NULL,
+    last_used_at timestamp(6) with time zone,
+    expires_at timestamp(6) with time zone,
+    discarded_at timestamp(6) with time zone,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL
+);
+
+
+--
+-- Name: TABLE api_tokens; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.api_tokens IS 'User-owned API token digests';
+
+
+--
+-- Name: COLUMN api_tokens.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.api_tokens.user_id IS 'Owner of this API token';
+
+
+--
+-- Name: COLUMN api_tokens.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.api_tokens.name IS 'User-facing token name';
+
+
+--
+-- Name: COLUMN api_tokens.token_digest; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.api_tokens.token_digest IS 'BCrypt digest of the raw token';
+
+
+--
+-- Name: COLUMN api_tokens.last_used_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.api_tokens.last_used_at IS 'Last successful authentication time';
+
+
+--
+-- Name: COLUMN api_tokens.expires_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.api_tokens.expires_at IS 'Optional expiration time';
+
+
+--
+-- Name: COLUMN api_tokens.discarded_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.api_tokens.discarded_at IS 'Soft deletion timestamp';
+
+
+--
+-- Name: api_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.api_tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: api_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.api_tokens_id_seq OWNED BY public.api_tokens.id;
+
+
+--
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -916,6 +1001,13 @@ ALTER TABLE ONLY public.accounts ALTER COLUMN id SET DEFAULT nextval('public.acc
 
 
 --
+-- Name: api_tokens id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_tokens ALTER COLUMN id SET DEFAULT nextval('public.api_tokens_id_seq'::regclass);
+
+
+--
 -- Name: import_batches id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -984,6 +1076,14 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 ALTER TABLE ONLY public.accounts
     ADD CONSTRAINT accounts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: api_tokens api_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_tokens
+    ADD CONSTRAINT api_tokens_pkey PRIMARY KEY (id);
 
 
 --
@@ -1100,6 +1200,34 @@ CREATE INDEX index_accounts_on_parent_account_id ON public.accounts USING btree 
 --
 
 CREATE INDEX index_accounts_on_user_id ON public.accounts USING btree (user_id);
+
+
+--
+-- Name: index_api_tokens_on_discarded_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_api_tokens_on_discarded_at ON public.api_tokens USING btree (discarded_at);
+
+
+--
+-- Name: index_api_tokens_on_expires_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_api_tokens_on_expires_at ON public.api_tokens USING btree (expires_at);
+
+
+--
+-- Name: index_api_tokens_on_owner_discarded_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_api_tokens_on_owner_discarded_at ON public.api_tokens USING btree (user_id, discarded_at);
+
+
+--
+-- Name: index_api_tokens_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_api_tokens_on_user_id ON public.api_tokens USING btree (user_id);
 
 
 --
@@ -1447,6 +1575,14 @@ ALTER TABLE ONLY public.transaction_tags
 
 
 --
+-- Name: api_tokens fk_rails_f16b5e0447; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_tokens
+    ADD CONSTRAINT fk_rails_f16b5e0447 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: transaction_taggings fk_rails_f277d342d3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1469,6 +1605,7 @@ ALTER TABLE ONLY public.transactions
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260503150000'),
 ('20260503140000'),
 ('20260503130000'),
 ('20260503120000'),
