@@ -1,14 +1,15 @@
 class LedgerStatistics
-  def summarize_transactions(user:, range:)
-    transactions = user.transactions.kept.includes(:transaction_category).where(transacted_at: range)
-    income_cents = transactions.income.sum(:source_amount_cents)
-    expense_cents = transactions.expense.sum(:source_amount_cents)
+  def summarize_transactions(user:, range:, filters: {})
+    transactions = LedgerQuery.new.list_transactions(user: user, filters: filters).where(transacted_at: range).to_a
+    income_cents = transactions.select(&:income?).sum(&:source_amount_cents)
+    expense_cents = transactions.select(&:expense?).sum(&:source_amount_cents)
 
     Result.new(
       income_cents: income_cents,
       expense_cents: expense_cents,
       net_cents: income_cents - expense_cents,
-      category_totals: category_totals(transactions)
+      category_totals: category_totals(transactions),
+      account_totals: account_totals(transactions)
     )
   end
 
@@ -20,21 +21,37 @@ class LedgerStatistics
     transactions.each do |transaction|
       next unless transaction.income? || transaction.expense?
 
-      amount = transaction.income? ? transaction.source_amount_cents : -transaction.source_amount_cents
-      totals[transaction.transaction_category.name] += amount
+      totals[transaction.transaction_category.name] += signed_amount(transaction)
     end
 
     totals
   end
 
-  class Result
-    attr_reader :income_cents, :expense_cents, :net_cents, :category_totals
+  def account_totals(transactions)
+    totals = Hash.new(0)
 
-    def initialize(income_cents:, expense_cents:, net_cents:, category_totals:)
+    transactions.each do |transaction|
+      next unless transaction.income? || transaction.expense?
+
+      totals[transaction.account.name] += signed_amount(transaction)
+    end
+
+    totals
+  end
+
+  def signed_amount(transaction)
+    transaction.income? ? transaction.source_amount_cents : -transaction.source_amount_cents
+  end
+
+  class Result
+    attr_reader :income_cents, :expense_cents, :net_cents, :category_totals, :account_totals
+
+    def initialize(income_cents:, expense_cents:, net_cents:, category_totals:, account_totals:)
       @income_cents = income_cents
       @expense_cents = expense_cents
       @net_cents = net_cents
       @category_totals = category_totals
+      @account_totals = account_totals
     end
   end
 end
