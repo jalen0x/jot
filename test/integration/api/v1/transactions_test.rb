@@ -101,6 +101,76 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal [ income.to_param ], body.fetch("transactions").map { |item| item.fetch("id") }
   end
 
+  test "creates an expense transaction for the token owner" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking", balance_cents: 5_000)
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    tag = create_tag(user: user, name: "Meals")
+    raw_token = issue_token(user)
+
+    post api_v1_transactions_path,
+      params: {
+        transaction: {
+          transaction_kind: "expense",
+          account_id: account.to_param,
+          transaction_category_id: category.to_param,
+          transacted_at: "2026-05-03 12:00:00",
+          timezone_utc_offset_minutes: "0",
+          source_amount_cents: "1250",
+          destination_amount_cents: "0",
+          hide_amount: "false",
+          comment: "Lunch",
+          transaction_tag_ids: [ tag.to_param ]
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :created
+    transaction = user.transactions.where(comment: "Lunch").sole
+    assert_equal 3_750, account.reload.balance_cents
+    assert_equal [ tag ], transaction.transaction_tags.to_a
+
+    body = JSON.parse(response.body)
+    transaction_json = body.fetch("transaction")
+    assert_equal transaction.to_param, transaction_json.fetch("id")
+    assert_equal account.to_param, transaction_json.fetch("account_id")
+    assert_equal category.to_param, transaction_json.fetch("transaction_category_id")
+    assert_equal [ tag.to_param ], transaction_json.fetch("transaction_tag_ids")
+    refute_includes transaction_json.keys, "user_id"
+  end
+
+  test "rejects another user's account and transaction category" do
+    user = create(:user)
+    other_user = create(:user)
+    other_account = create_account(user: other_user, name: "Other Checking", balance_cents: 5_000)
+    other_category = create_category(user: other_user, name: "Other Food", category_type: :expense)
+    raw_token = issue_token(user)
+
+    post api_v1_transactions_path,
+      params: {
+        transaction: {
+          transaction_kind: "expense",
+          account_id: other_account.to_param,
+          transaction_category_id: other_category.to_param,
+          transacted_at: "2026-05-03 12:00:00",
+          timezone_utc_offset_minutes: "0",
+          source_amount_cents: "1250",
+          destination_amount_cents: "0",
+          hide_amount: "false",
+          comment: "Lunch"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_empty user.transactions.where(comment: "Lunch")
+    assert_equal 5_000, other_account.reload.balance_cents
+    assert_match(/Account is unavailable/i, response.body)
+    assert_match(/Transaction category is unavailable/i, response.body)
+  end
+
   private
 
   def issue_token(user)
@@ -114,7 +184,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     }
   end
 
-  def create_account(user:, name:)
+  def create_account(user:, name:, balance_cents: 0)
     Account.create!(
       user: user,
       name: name,
@@ -123,7 +193,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
       icon_key: 1,
       color_hex: "22C55E",
       currency_code: "USD",
-      balance_cents: 0,
+      balance_cents: balance_cents,
       display_order: 1
     )
   end

@@ -18,7 +18,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :accounts, only: :index
       resources :transaction_categories, only: [ :index, :create ]
-      resources :transactions, only: :index
+      resources :transactions, only: [ :index, :create ]
     end
   end
 
