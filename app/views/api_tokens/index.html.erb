@@ -1,0 +1,80 @@
+<% content_for :title, "API Tokens" %>
+
+<section class="space-y-8">
+  <div class="max-w-3xl space-y-3">
+    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Security</p>
+    <h1 class="text-3xl font-semibold tracking-tight text-heading">API tokens</h1>
+    <p class="text-body">Issue tokens for future API access. Raw tokens are shown once and stored only as digests.</p>
+  </div>
+
+  <% if @issued_token.present? %>
+    <div class="rounded-base border border-success bg-neutral-primary p-4 text-sm text-heading">
+      <p class="font-medium">Your new API token</p>
+      <p class="mt-1 text-body">Copy this token now. It will not be shown again.</p>
+      <code class="mt-3 block overflow-x-auto rounded-base bg-neutral-secondary-medium p-3 text-sm text-heading"><%= @issued_token %></code>
+    </div>
+  <% end %>
+
+  <%= form_with model: @api_token, url: api_tokens_path, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
+    <% if @api_token.errors.any? %>
+      <div class="mb-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
+        <p class="font-medium">API token could not be issued.</p>
+        <ul class="mt-2 list-disc ps-5">
+          <% @api_token.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="grid gap-4 lg:grid-cols-3">
+      <div>
+        <%= form.label :name, "Name", class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.text_field :name, required: true, placeholder: "CLI", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+      </div>
+      <div>
+        <%= form.label :expires_in_days, "Expires in days", class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.number_field :expires_in_days, min: 0, placeholder: "Blank for no expiry", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+      </div>
+      <div>
+        <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+      </div>
+    </div>
+
+    <div class="mt-5 flex justify-end">
+      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Issuing..." })) { "Issue token" } %>
+    </div>
+  <% end %>
+
+  <div class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+    <table class="w-full text-left text-sm text-body">
+      <thead class="border-b border-default bg-neutral-secondary-medium text-xs uppercase text-body-subtle">
+        <tr>
+          <th scope="col" class="px-5 py-3">Name</th>
+          <th scope="col" class="px-5 py-3">Expires</th>
+          <th scope="col" class="px-5 py-3">Last used</th>
+          <th scope="col" class="px-5 py-3 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if @api_tokens.any? %>
+          <% @api_tokens.each do |api_token| %>
+            <tr class="border-b border-default last:border-0">
+              <td class="px-5 py-4 font-medium text-heading"><%= api_token.name %></td>
+              <td class="px-5 py-4"><%= api_token.expires_at ? l(api_token.expires_at, format: :long) : "Never" %></td>
+              <td class="px-5 py-4"><%= api_token.last_used_at ? l(api_token.last_used_at, format: :long) : "Never" %></td>
+              <td class="px-5 py-4 text-right">
+                <%= button_to "Revoke", api_token_path(api_token), method: :delete, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr>
+            <td colspan="4" class="px-5 py-8 text-center text-body-subtle">No active API tokens.</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
