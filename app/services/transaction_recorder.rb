@@ -45,7 +45,7 @@ class TransactionRecorder
   def find_owned(scope, id, transaction, field)
     return if id.blank?
 
-    scope.find(id)
+    scope.find(decoded_id(scope, id))
   rescue ActiveRecord::RecordNotFound
     transaction.errors.add(field, "is unavailable")
     nil
@@ -55,9 +55,17 @@ class TransactionRecorder
     requested_ids = Array(tag_ids).reject(&:blank?).map(&:to_s).uniq
     return [] if requested_ids.empty?
 
-    tags = user.transaction_tags.kept.where(id: requested_ids).to_a
+    tags = requested_ids.filter_map do |id|
+      user.transaction_tags.kept.find(decoded_id(user.transaction_tags.kept, id))
+    rescue ActiveRecord::RecordNotFound
+      nil
+    end
     transaction.errors.add(:transaction_tags, "include unavailable tags") if tags.size != requested_ids.size
     tags
+  end
+
+  def decoded_id(scope, id)
+    scope.klass.decode_prefix_id(id) || id
   end
 
   def validate_business_rules(transaction)

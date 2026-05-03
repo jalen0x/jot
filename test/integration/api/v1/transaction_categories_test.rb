@@ -32,6 +32,63 @@ class ApiV1TransactionCategoriesTest < ActionDispatch::IntegrationTest
     refute_includes child_json.keys, "user_id"
   end
 
+  test "creates a transaction category for the token owner" do
+    user = create(:user)
+    parent = create_category(user: user, name: "Food", category_type: :expense, display_order: 1)
+    create_category(user: user, name: "Lunch", category_type: :expense, parent_category: parent, display_order: 1)
+    raw_token = issue_token(user)
+
+    post api_v1_transaction_categories_path,
+      params: {
+        transaction_category: {
+          name: "Dining",
+          category_type: "expense",
+          parent_category_id: parent.to_param,
+          icon_key: "2",
+          color_hex: "#f97316",
+          comment: "Meals"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :created
+    category = user.transaction_categories.where(name: "Dining").sole
+    assert_equal parent, category.parent_category
+    assert_equal 2, category.display_order
+    assert_equal "F97316", category.color_hex
+
+    body = JSON.parse(response.body)
+    category_json = body.fetch("transaction_category")
+    assert_equal category.to_param, category_json.fetch("id")
+    assert_equal parent.to_param, category_json.fetch("parent_category_id")
+    refute_includes category_json.keys, "user_id"
+  end
+
+  test "rejects another user's parent category" do
+    user = create(:user)
+    other_parent = create_category(user: create(:user), name: "Other Food", category_type: :expense, display_order: 1)
+    raw_token = issue_token(user)
+
+    post api_v1_transaction_categories_path,
+      params: {
+        transaction_category: {
+          name: "Dining",
+          category_type: "expense",
+          parent_category_id: other_parent.to_param,
+          icon_key: "2",
+          color_hex: "F97316",
+          comment: "Meals"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_empty user.transaction_categories.where(name: "Dining")
+    assert_match(/Parent category is unavailable/i, response.body)
+  end
+
   private
 
   def issue_token(user)

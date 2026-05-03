@@ -6,4 +6,38 @@ class Api::V1::TransactionCategoriesController < ApiController
 
     render json: { transaction_categories: categories.map(&:as_json) }
   end
+
+  # POST /api/v1/transaction_categories
+  def create
+    authorize TransactionCategory
+    category = current_user.transaction_categories.build(category_params.except(:parent_category_id))
+    category.parent_category = parent_category_for(category)
+    category.display_order = next_display_order(category.parent_category)
+
+    if category.errors.empty? && category.save
+      render json: { transaction_category: category.as_json }, status: :created
+    else
+      render json: { errors: category.errors.full_messages }, status: :unprocessable_content
+    end
+  end
+
+  private
+
+  def category_params
+    @category_params ||= params.expect(transaction_category: [ :name, :category_type, :parent_category_id, :icon_key, :color_hex, :comment ])
+  end
+
+  def parent_category_for(category)
+    parent_category_id = category_params[:parent_category_id]
+    return if parent_category_id.blank?
+
+    current_user.transaction_categories.kept.find(TransactionCategory.decode_prefix_id(parent_category_id) || parent_category_id)
+  rescue ActiveRecord::RecordNotFound
+    category.errors.add(:parent_category, "is unavailable")
+    nil
+  end
+
+  def next_display_order(parent_category)
+    current_user.transaction_categories.kept.where(parent_category: parent_category).maximum(:display_order).to_i + 1
+  end
 end

@@ -48,6 +48,28 @@ class TransactionRecorderTest < ActiveSupport::TestCase
     assert_equal 3_800, account.reload.balance_cents
   end
 
+  test "records a transaction with prefixed tag ids" do
+    user = create(:user)
+    account = create_account(user: user, balance_cents: 5_000)
+    category = create_category(user: user, category_type: :expense)
+    tag = create_tag(user: user, name: "Meals")
+
+    result = TransactionRecorder.new.record_transaction(
+      user: user,
+      attributes: transaction_attributes(
+        transaction_kind: "expense",
+        account_id: account.id.to_s,
+        transaction_category_id: category.id.to_s,
+        source_amount_cents: "1200"
+      ),
+      tag_ids: [ tag.to_param ]
+    )
+
+    assert_predicate result, :recorded?
+    assert_equal [ tag ], result.transaction.transaction_tags.to_a
+    assert_equal 3_800, account.reload.balance_cents
+  end
+
   test "records same-currency transfer and updates both account balances" do
     user = create(:user)
     source = create_account(user: user, name: "Checking", balance_cents: 5_000)
