@@ -23,6 +23,7 @@ Rails.application.routes.draw do
   resource :dashboard, only: :show
   resource :reports, only: :show
   resource :user_preference, only: [ :show, :update ]
+  resource :two_factor_authentication, only: [ :show, :create, :destroy ]
   resource :ledger_clearance, only: [ :new, :create ]
   resources :api_tokens, only: [ :index, :create, :destroy ]
   resources :user_custom_exchange_rates, only: [ :index, :create, :destroy ]

@@ -1,0 +1,67 @@
+<% content_for :title, "Two-Factor Authentication" %>
+
+<section class="space-y-8">
+  <div class="max-w-3xl space-y-3">
+    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Security</p>
+    <h1 class="text-3xl font-semibold tracking-tight text-heading">Two-factor authentication</h1>
+    <p class="text-body">Add a six-digit authenticator app code to your password sign-in.</p>
+  </div>
+
+  <% if @error_message.present? %>
+    <div class="rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
+      <p class="font-medium"><%= @error_message %></p>
+    </div>
+  <% end %>
+
+  <% if @two_factor_authentication %>
+    <div class="bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs">
+      <div class="space-y-2">
+        <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Enabled</p>
+        <h2 class="text-xl font-semibold text-heading">Authenticator codes are required at sign-in.</h2>
+        <p class="text-body">Enabled <%= l(@two_factor_authentication.enabled_at, format: :long) %>.</p>
+      </div>
+
+      <%= form_with url: two_factor_authentication_path, method: :delete, scope: :two_factor_authentication, class: "mt-6 max-w-md space-y-4" do |form| %>
+        <div>
+          <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
+          <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+        </div>
+
+        <%= form.submit "Disable two-factor authentication", class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs">
+      <div class="grid gap-6 lg:grid-cols-[1fr_1.25fr]">
+        <div class="space-y-4">
+          <h2 class="text-xl font-semibold text-heading">Set up your authenticator app</h2>
+          <p class="text-body">Add this setup key to your authenticator app, then enter the current six-digit code to enable 2FA.</p>
+          <div>
+            <p class="text-sm font-medium text-heading">Setup key</p>
+            <code class="mt-2 block overflow-x-auto rounded-base bg-neutral-secondary-medium p-3 text-sm text-heading"><%= @setup_secret %></code>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-heading">Provisioning URI</p>
+            <code class="mt-2 block overflow-x-auto rounded-base bg-neutral-secondary-medium p-3 text-xs text-heading"><%= @provisioning_uri %></code>
+          </div>
+        </div>
+
+        <%= form_with url: two_factor_authentication_path, scope: :two_factor_authentication, class: "space-y-4" do |form| %>
+          <div>
+            <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
+            <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+          </div>
+
+          <div>
+            <%= form.label :otp_code, "Verification code", class: "mb-2 block text-sm font-medium text-heading" %>
+            <%= form.text_field :otp_code, required: true, inputmode: "numeric", autocomplete: "one-time-code", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+          </div>
+
+          <div class="flex justify-end">
+            <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Enabling..." })) { "Enable two-factor authentication" } %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</section>
