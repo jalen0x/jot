@@ -34,4 +34,17 @@ class Account < ApplicationRecord
   validates :icon_key, numericality: { only_integer: true, greater_than: 0 }
   validates :color_hex, format: { with: /\A\h{6}\z/ }
   validates :currency_code, format: { with: /\A[A-Z]{3}\z/ }
+
+  def as_json(_options = {})
+    {
+      id: to_param,
+      name: name,
+      account_category: account_category,
+      account_structure: account_structure,
+      currency_code: currency_code,
+      balance_cents: balance_cents,
+      parent_account_id: parent_account&.to_param,
+      hidden: hidden
+    }
+  end
 end
