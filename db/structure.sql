@@ -246,6 +246,59 @@ ALTER SEQUENCE public.api_tokens_id_seq OWNED BY public.api_tokens.id;
 
 
 --
+-- Name: application_locks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.application_locks (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    pin_digest text NOT NULL,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL
+);
+
+
+--
+-- Name: TABLE application_locks; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.application_locks IS 'User-owned application lock PIN digests';
+
+
+--
+-- Name: COLUMN application_locks.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.application_locks.user_id IS 'Owner of this application lock';
+
+
+--
+-- Name: COLUMN application_locks.pin_digest; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.application_locks.pin_digest IS 'BCrypt digest of the application lock PIN';
+
+
+--
+-- Name: application_locks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.application_locks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: application_locks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.application_locks_id_seq OWNED BY public.application_locks.id;
+
+
+--
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1130,6 +1183,13 @@ ALTER TABLE ONLY public.api_tokens ALTER COLUMN id SET DEFAULT nextval('public.a
 
 
 --
+-- Name: application_locks id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.application_locks ALTER COLUMN id SET DEFAULT nextval('public.application_locks_id_seq'::regclass);
+
+
+--
 -- Name: import_batches id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1220,6 +1280,14 @@ ALTER TABLE ONLY public.accounts
 
 ALTER TABLE ONLY public.api_tokens
     ADD CONSTRAINT api_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: application_locks application_locks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.application_locks
+    ADD CONSTRAINT application_locks_pkey PRIMARY KEY (id);
 
 
 --
@@ -1380,6 +1448,13 @@ CREATE INDEX index_api_tokens_on_owner_discarded_at ON public.api_tokens USING b
 --
 
 CREATE INDEX index_api_tokens_on_user_id ON public.api_tokens USING btree (user_id);
+
+
+--
+-- Name: index_application_locks_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_application_locks_on_user_id ON public.application_locks USING btree (user_id);
 
 
 --
@@ -1668,6 +1743,14 @@ ALTER TABLE ONLY public.two_factor_recovery_codes
 
 
 --
+-- Name: application_locks fk_rails_3e7754d4df; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.application_locks
+    ADD CONSTRAINT fk_rails_3e7754d4df FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: transaction_categories fk_rails_4b9fac99aa; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1794,6 +1877,7 @@ ALTER TABLE ONLY public.transactions
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260503180000'),
 ('20260503170000'),
 ('20260503160000'),
 ('20260503150000'),
