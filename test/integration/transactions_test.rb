@@ -22,6 +22,50 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_select "li", text: /Other Groceries/i, count: 0
   end
 
+  test "lists transaction pictures with remove controls" do
+    user = create(:user)
+    transaction = create_transaction(user: user, comment: "Groceries")
+    transaction.pictures.attach(io: StringIO.new("receipt"), filename: "receipt.txt", content_type: "text/plain", identify: false)
+    attachment = transaction.pictures.attachments.sole
+
+    sign_in user
+    get transactions_path
+
+    assert_response :success
+    assert_select "li", text: /receipt\.txt/i
+    assert_select "form[action='#{transaction_picture_path(transaction, attachment)}'] button", text: /remove picture/i
+  end
+
+  test "removes one transaction picture for current user" do
+    user = create(:user)
+    transaction = create_transaction(user: user, comment: "Lunch")
+    transaction.pictures.attach(io: StringIO.new("receipt"), filename: "receipt.txt", content_type: "text/plain", identify: false)
+    attachment = transaction.pictures.attachments.sole
+    blob = attachment.blob
+    sign_in user
+
+    delete transaction_picture_path(transaction, attachment)
+
+    assert_redirected_to transactions_path
+    assert_not_predicate transaction.reload.pictures, :attached?
+    refute_predicate transaction, :discarded?
+    assert_not ActiveStorage::Blob.exists?(blob.id)
+  end
+
+  test "does not remove another user's transaction picture" do
+    user = create(:user)
+    other_user = create(:user)
+    transaction = create_transaction(user: other_user, comment: "Other Lunch")
+    transaction.pictures.attach(io: StringIO.new("receipt"), filename: "receipt.txt", content_type: "text/plain", identify: false)
+    attachment = transaction.pictures.attachments.sole
+    sign_in user
+
+    delete transaction_picture_path(transaction, attachment)
+
+    assert_response :not_found
+    assert_predicate transaction.reload.pictures, :attached?
+  end
+
   test "creates an expense for current user" do
     user = create(:user)
     account = create_account(user: user, balance_cents: 5_000)
