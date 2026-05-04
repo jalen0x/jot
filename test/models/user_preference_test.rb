@@ -33,6 +33,15 @@ class UserPreferenceTest < ActiveSupport::TestCase
     assert_match(/user_preferences_date_format_supported/i, ex.message)
   end
 
+  test "database rejects missing default account references" do
+    preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
+
+    ex = assert_raises(ActiveRecord::StatementInvalid) do
+      preference.update_column(:default_account_id, -1)
+    end
+    assert_match(/foreign key|fk_rails/i, ex.message)
+  end
+
   test "allows only one preference record per user" do
     user = create(:user)
     UserPreference.create!(user: user, default_currency_code: "USD")

@@ -1651,6 +1651,7 @@ CREATE TABLE public.user_preferences (
     updated_at timestamp(6) with time zone NOT NULL,
     locale text DEFAULT 'en'::text NOT NULL,
     date_format text DEFAULT 'year_month_day'::text NOT NULL,
+    default_account_id bigint,
     CONSTRAINT user_preferences_date_format_supported CHECK ((date_format = ANY (ARRAY['year_month_day'::text, 'month_day_year'::text, 'day_month_year'::text]))),
     CONSTRAINT user_preferences_default_currency_code_length CHECK ((char_length(default_currency_code) = 3)),
     CONSTRAINT user_preferences_locale_supported CHECK ((locale = ANY (ARRAY['en'::text, 'zh-CN'::text])))
@@ -1690,6 +1691,13 @@ COMMENT ON COLUMN public.user_preferences.locale IS 'I18n locale used for signed
 --
 
 COMMENT ON COLUMN public.user_preferences.date_format IS 'Preferred display order for signed-in date text';
+
+
+--
+-- Name: COLUMN user_preferences.default_account_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_preferences.default_account_id IS 'User account selected by default on new transaction forms';
 
 
 --
@@ -2496,6 +2504,13 @@ CREATE INDEX index_user_custom_exchange_rates_on_user_id ON public.user_custom_e
 
 
 --
+-- Name: index_user_preferences_on_default_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_preferences_on_default_account_id ON public.user_preferences USING btree (default_account_id);
+
+
+--
 -- Name: index_user_preferences_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2643,6 +2658,14 @@ ALTER TABLE ONLY public.transaction_taggings
 
 
 --
+-- Name: user_preferences fk_rails_7d770cf6c2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_preferences
+    ADD CONSTRAINT fk_rails_7d770cf6c2 FOREIGN KEY (default_account_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: transaction_taggings fk_rails_85aa95e074; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2785,6 +2808,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260505050000'),
 ('20260505040000'),
 ('20260505030000'),
 ('20260504103000'),
