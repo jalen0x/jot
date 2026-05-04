@@ -10,7 +10,9 @@ class DataExport
     "Source Amount Cents",
     "Destination Amount Cents",
     "Tags",
-    "Comment"
+    "Comment",
+    "Latitude",
+    "Longitude"
   ].freeze
 
   def transactions_csv(user:)
@@ -35,7 +37,9 @@ class DataExport
       transaction.source_amount_cents,
       transaction.destination_amount_cents,
       transaction.transaction_tags.map(&:name).join("; "),
-      transaction.comment
+      transaction.comment,
+      transaction.geo_latitude&.to_s,
+      transaction.geo_longitude&.to_s
     ]
   end
 end
