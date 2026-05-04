@@ -25,7 +25,7 @@
       </div>
 
       <% if current_user.application_lock_enabled? %>
-        <%= button_to "Lock now", lock_application_lock_path, method: :post, class: "text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+        <%= button_to "Lock now", application_lock_session_path, method: :delete, class: "text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
       <% end %>
     </div>
   </div>

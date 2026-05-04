@@ -22,9 +22,7 @@ class ApplicationController < ActionController::Base
     return if user.blank?
     return unless user.application_lock_enabled?
     return if application_lock_unlocked?
-    return if application_lock_unlock_request?
-
-    redirect_to unlock_application_lock_path, alert: "Unlock your application to continue."
+    redirect_to new_application_lock_session_path, alert: "Unlock your application to continue."
   end
 
   def application_lock_unlocked?
@@ -37,9 +35,5 @@ class ApplicationController < ActionController::Base
 
   def clear_application_unlock
     session.delete(:application_lock_unlocked_user_id)
-  end
-
-  def application_lock_unlock_request?
-    controller_path == "application_locks" && action_name == "unlock"
   end
 end
