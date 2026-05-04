@@ -22,7 +22,7 @@ class TransactionTemplateUpdater
   private
 
   def template_attributes(attributes)
-    {
+    template_attributes = {
       template_kind: attributes[:template_kind],
       transaction_kind: attributes[:transaction_kind],
       name: attributes[:name],
@@ -38,6 +38,8 @@ class TransactionTemplateUpdater
       scheduled_at_minutes: attributes[:scheduled_at_minutes].to_i,
       timezone_utc_offset_minutes: attributes[:timezone_utc_offset_minutes].to_i
     }
+    template_attributes[:display_order] = attributes[:display_order] if attributes.key?(:display_order)
+    template_attributes
   end
 
   def assign_owned_records(template, attributes, tag_ids)
