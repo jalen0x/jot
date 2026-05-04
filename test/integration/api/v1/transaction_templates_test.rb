@@ -266,6 +266,7 @@ class ApiV1TransactionTemplatesTest < ActionDispatch::IntegrationTest
           source_amount_cents: "120000",
           destination_amount_cents: "0",
           hide_amount: "true",
+          hidden: "true",
           comment: "  Monthly rent  ",
           schedule_frequency: "monthly",
           schedule_rule: "-1",
@@ -286,6 +287,7 @@ class ApiV1TransactionTemplatesTest < ActionDispatch::IntegrationTest
     assert_equal updated_category, template.transaction_category
     assert_equal [ updated_tag ], template.transaction_tags.to_a
     assert_equal 1, template.display_order
+    assert_equal true, template.hidden
     assert_predicate template, :scheduled?
     assert_predicate template, :monthly?
     assert_equal Date.new(2026, 5, 1), template.schedule_start_on
@@ -296,6 +298,7 @@ class ApiV1TransactionTemplatesTest < ActionDispatch::IntegrationTest
     body = JSON.parse(response.body)
     template_json = body.fetch("transaction_template")
     assert_equal template.to_param, template_json.fetch("id")
+    assert_equal true, template_json.fetch("hidden")
     assert_equal [ updated_tag.to_param ], template_json.fetch("transaction_tag_ids")
   end
 
