@@ -16,6 +16,7 @@ class TransactionImporterTest < ActiveSupport::TestCase
     assert_equal "Client lunch", transaction.comment
     assert_equal [ "Business" ], transaction.transaction_tags.map(&:name)
     assert_equal 480, transaction.timezone_utc_offset_minutes
+    assert_equal true, transaction.hide_amount
     assert_equal BigDecimal("37.7749"), transaction.geo_latitude
     assert_equal BigDecimal("-122.4194"), transaction.geo_longitude
     assert_equal 3_800, account.reload.balance_cents
@@ -38,8 +39,8 @@ class TransactionImporterTest < ActiveSupport::TestCase
 
   def csv_for(comment:)
     <<~CSV
-      Transacted At,Timezone UTC Offset Minutes,Type,Account,Destination Account,Category,Source Amount Cents,Destination Amount Cents,Tags,Comment,Latitude,Longitude
-      2026-05-03T10:00:00Z,480,expense,Cash,,Food,1200,0,Business,#{comment},37.7749,-122.4194
+      Transacted At,Timezone UTC Offset Minutes,Type,Account,Destination Account,Category,Source Amount Cents,Destination Amount Cents,Tags,Hide Amount,Comment,Latitude,Longitude
+      2026-05-03T10:00:00Z,480,expense,Cash,,Food,1200,0,Business,true,#{comment},37.7749,-122.4194
     CSV
   end
 
