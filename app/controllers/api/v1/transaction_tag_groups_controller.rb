@@ -19,6 +19,27 @@ class Api::V1::TransactionTagGroupsController < ApiController
     end
   end
 
+  # PATCH/PUT /api/v1/transaction_tag_groups/:id
+  def update
+    tag_group = scoped_tag_group
+    authorize tag_group
+
+    if tag_group.update(tag_group_params)
+      render json: { transaction_tag_group: tag_group.as_json }
+    else
+      render json: { errors: tag_group.errors.full_messages }, status: :unprocessable_content
+    end
+  end
+
+  # DELETE /api/v1/transaction_tag_groups/:id
+  def destroy
+    tag_group = scoped_tag_group
+    authorize tag_group
+    tag_group.discard!
+
+    head :no_content
+  end
+
   private
 
   def tag_group_params
@@ -27,5 +48,9 @@ class Api::V1::TransactionTagGroupsController < ApiController
 
   def next_display_order
     current_user.transaction_tag_groups.kept.maximum(:display_order).to_i + 1
+  end
+
+  def scoped_tag_group
+    policy_scope(TransactionTagGroup).kept.find(params[:id])
   end
 end
