@@ -196,6 +196,69 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
     refute_includes account_json.keys, "user_id"
   end
 
+  test "creates a child account under the token owner's parent account" do
+    user = create(:user)
+    parent = create_account(user: user, name: "Savings", balance_cents: 0)
+    existing_child = create_account(user: user, name: "Emergency Fund", balance_cents: 0)
+    existing_child.update!(parent_account: parent, display_order: 1)
+    raw_token = issue_token(user)
+
+    post api_v1_accounts_path,
+      params: {
+        account: {
+          name: "Vacation Savings",
+          account_category: "savings_account",
+          account_structure: "single_account",
+          parent_account_id: parent.to_param,
+          icon_key: "2",
+          color_hex: "#22c55e",
+          currency_code: "usd",
+          opening_balance_cents: "12300",
+          comment: "Trip fund"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :created
+    account = user.accounts.where(name: "Vacation Savings").sole
+    assert_equal parent, account.parent_account
+    assert_equal 2, account.display_order
+    assert_equal 12_300, account.balance_cents
+
+    account_json = JSON.parse(response.body).fetch("account")
+    assert_equal parent.to_param, account_json.fetch("parent_account_id")
+    assert_equal 2, account_json.fetch("display_order")
+  end
+
+  test "rejects another user's parent account" do
+    user = create(:user)
+    parent = create_account(user: create(:user), name: "Other Savings", balance_cents: 0)
+    raw_token = issue_token(user)
+
+    post api_v1_accounts_path,
+      params: {
+        account: {
+          name: "Vacation Savings",
+          account_category: "savings_account",
+          account_structure: "single_account",
+          parent_account_id: parent.to_param,
+          icon_key: "2",
+          color_hex: "#22c55e",
+          currency_code: "usd",
+          opening_balance_cents: "12300",
+          comment: "Trip fund"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_empty user.accounts.where(name: "Vacation Savings")
+    assert_empty user.transactions.balance_adjustment
+    assert_match(/Parent account/i, response.body)
+  end
+
   test "updates an account for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 12_300)
