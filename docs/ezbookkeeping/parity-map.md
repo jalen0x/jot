@@ -30,6 +30,7 @@
 | Insights explorers | Phase 2 | `InsightExplorer` |
 | Data export | Phase 3 | `DataExport` |
 | Data import | Phase 3 | `ImportBatch`, parser jobs, `TransactionImporter` |
+| Data management statistics | Phase 3 | `DataStatistics` |
 | Data clearing | Phase 3 | `LedgerClearance` |
 | User display settings | Phase 4 | `UserPreference` or selected `User` columns |
 | Custom exchange rates | Phase 4 | `UserCustomExchangeRate` |
