@@ -45,6 +45,18 @@ class Api::V1::TransactionsController < ApiController
     end
   end
 
+  # POST /api/v1/transactions/batch_delete
+  def batch_delete
+    authorize Transaction
+    result = TransactionBatchDeleter.new.delete_transactions(transactions: batch_delete_transactions)
+
+    if result.deleted?
+      head :no_content
+    else
+      render json: { errors: result.transaction.errors.full_messages }, status: :unprocessable_content
+    end
+  end
+
   private
 
   def filter_params
@@ -74,5 +86,15 @@ class Api::V1::TransactionsController < ApiController
 
   def scoped_transaction
     policy_scope(Transaction).kept.find(params[:id])
+  end
+
+  def batch_delete_transactions
+    transaction_ids.map do |id|
+      policy_scope(Transaction).kept.find(Transaction.decode_prefix_id(id) || id)
+    end
+  end
+
+  def transaction_ids
+    Array(params.permit(transaction_ids: [])[:transaction_ids]).reject(&:blank?).map(&:to_s).uniq
   end
 end
