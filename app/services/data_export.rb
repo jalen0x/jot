@@ -11,6 +11,7 @@ class DataExport
     "Source Amount Cents",
     "Destination Amount Cents",
     "Tags",
+    "Hide Amount",
     "Comment",
     "Latitude",
     "Longitude"
@@ -39,6 +40,7 @@ class DataExport
       transaction.source_amount_cents,
       transaction.destination_amount_cents,
       transaction.transaction_tags.map(&:name).join("; "),
+      transaction.hide_amount,
       transaction.comment,
       transaction.geo_latitude&.to_s,
       transaction.geo_longitude&.to_s

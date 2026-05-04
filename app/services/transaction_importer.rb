@@ -35,7 +35,7 @@ class TransactionImporter
         timezone_utc_offset_minutes: row["Timezone UTC Offset Minutes"] || "0",
         source_amount_cents: row.fetch("Source Amount Cents"),
         destination_amount_cents: row.fetch("Destination Amount Cents"),
-        hide_amount: "0",
+        hide_amount: row["Hide Amount"] || "0",
         comment: row["Comment"],
         geo_latitude: row["Latitude"],
         geo_longitude: row["Longitude"]
