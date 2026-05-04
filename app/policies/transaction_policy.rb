@@ -9,6 +9,7 @@ class TransactionPolicy < ApplicationPolicy
   def batch_update_category? = user.present?
   def batch_add_tags? = user.present?
   def batch_remove_tags? = user.present?
+  def batch_clear_tags? = user.present?
 
   class Scope < ApplicationPolicy::Scope
     def resolve

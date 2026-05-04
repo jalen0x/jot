@@ -88,6 +88,14 @@ class Api::V1::TransactionsController < ApiController
     head :no_content
   end
 
+  # POST /api/v1/transactions/batch_clear_tags
+  def batch_clear_tags
+    authorize Transaction
+    TransactionBatchTagClearer.new.clear_tags(transactions: batch_update_transactions)
+
+    head :no_content
+  end
+
   private
 
   def filter_params

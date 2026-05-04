@@ -839,6 +839,81 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal [ tag ], transaction.reload.transaction_tags.order(:id).to_a
   end
 
+  test "batch clears tags from transactions for the token owner" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    meals_tag = create_tag(user: user, name: "Meals")
+    business_tag = create_tag(user: user, name: "Business")
+    lunch = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch",
+      tags: [ meals_tag, business_tag ]
+    )
+    coffee = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 13:00:00"),
+      source_amount_cents: 500,
+      comment: "Coffee",
+      tags: [ meals_tag ]
+    )
+    raw_token = issue_token(user)
+
+    post batch_clear_tags_api_v1_transactions_path,
+      params: { transaction_ids: [ lunch.to_param, coffee.to_param ] },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :no_content
+    assert_empty response.body
+    assert_empty lunch.reload.transaction_tags
+    assert_empty coffee.reload.transaction_tags
+  end
+
+  test "does not batch clear tags when one transaction is unavailable" do
+    user = create(:user)
+    other_user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    tag = create_tag(user: user, name: "Meals")
+    transaction = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch",
+      tags: [ tag ]
+    )
+    other_transaction = create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Food", category_type: :expense),
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 500,
+      comment: "Other Lunch"
+    )
+    raw_token = issue_token(user)
+
+    post batch_clear_tags_api_v1_transactions_path,
+      params: { transaction_ids: [ transaction.to_param, other_transaction.to_param ] },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :not_found
+    assert_equal [ tag ], transaction.reload.transaction_tags.order(:id).to_a
+  end
+
   test "deletes a transaction for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 3_750)

@@ -26,6 +26,7 @@ Rails.application.routes.draw do
         post :batch_update_category, on: :collection
         post :batch_add_tags, on: :collection
         post :batch_remove_tags, on: :collection
+        post :batch_clear_tags, on: :collection
         resources :pictures, controller: "transaction_pictures", only: [ :index, :create, :destroy ]
       end
     end
