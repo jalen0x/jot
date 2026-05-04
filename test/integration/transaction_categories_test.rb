@@ -95,6 +95,30 @@ class TransactionCategoriesTest < ActionDispatch::IntegrationTest
     refute_predicate category, :hidden?
   end
 
+  test "deletes a category for current user" do
+    user = create(:user)
+    category = create_category(user: user, name: "Groceries")
+    sign_in user
+
+    delete transaction_category_path(category)
+
+    assert_response :see_other
+    assert_redirected_to transaction_categories_path
+    assert_predicate category.reload, :discarded?
+  end
+
+  test "does not delete another user's category" do
+    user = create(:user)
+    other_user = create(:user)
+    category = create_category(user: other_user, name: "Other Groceries")
+    sign_in user
+
+    delete transaction_category_path(category)
+
+    assert_response :not_found
+    assert_predicate category.reload, :kept?
+  end
+
   private
 
   def create_category(user:, name:)
