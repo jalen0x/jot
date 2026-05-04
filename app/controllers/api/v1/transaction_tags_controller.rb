@@ -7,6 +7,14 @@ class Api::V1::TransactionTagsController < ApiController
     render json: { transaction_tags: tags.map(&:as_json) }
   end
 
+  # GET /api/v1/transaction_tags/:id
+  def show
+    tag = scoped_tag
+    authorize tag
+
+    render json: { transaction_tag: tag.as_json }
+  end
+
   # POST /api/v1/transaction_tags
   def create
     authorize TransactionTag

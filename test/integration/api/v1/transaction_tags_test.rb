@@ -28,6 +28,37 @@ class ApiV1TransactionTagsTest < ActionDispatch::IntegrationTest
     refute_includes tag_json.keys, "user_id"
   end
 
+  test "shows one transaction tag for the token owner" do
+    user = create(:user)
+    group = create_tag_group(user: user, name: "Food", display_order: 1)
+    tag = create_tag(user: user, name: "Meals", display_order: 1, transaction_tag_group: group)
+    raw_token = issue_token(user)
+
+    get api_v1_transaction_tag_path(tag), headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ "transaction_tag" ], body.keys
+    tag_json = body.fetch("transaction_tag")
+    assert_equal tag.to_param, tag_json.fetch("id")
+    assert_equal "Meals", tag_json.fetch("name")
+    assert_equal group.to_param, tag_json.fetch("transaction_tag_group_id")
+    assert_equal 1, tag_json.fetch("display_order")
+    assert_equal false, tag_json.fetch("hidden")
+    refute_includes tag_json.keys, "user_id"
+  end
+
+  test "does not show another user's transaction tag" do
+    user = create(:user)
+    other_user = create(:user)
+    tag = create_tag(user: other_user, name: "Other", display_order: 1)
+    raw_token = issue_token(user)
+
+    get api_v1_transaction_tag_path(tag), headers: json_headers(raw_token)
+
+    assert_response :not_found
+  end
+
   test "creates a transaction tag for the token owner" do
     user = create(:user)
     group = create_tag_group(user: user, name: "Food", display_order: 1)
