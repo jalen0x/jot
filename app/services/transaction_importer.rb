@@ -36,7 +36,9 @@ class TransactionImporter
         source_amount_cents: row.fetch("Source Amount Cents"),
         destination_amount_cents: row.fetch("Destination Amount Cents"),
         hide_amount: "0",
-        comment: row["Comment"]
+        comment: row["Comment"],
+        geo_latitude: row["Latitude"],
+        geo_longitude: row["Longitude"]
       },
       tag_ids: tag_ids
     )
