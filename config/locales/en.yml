@@ -21,6 +21,8 @@ en:
       date_format_help: "Used when displaying transaction dates."
       locale: "Language"
       locale_help: "Used for signed-in interface text."
+      number_format: "Number format"
+      number_format_help: "Used for decimal and digit-grouping symbols."
       cancel: "Cancel"
       save: "Save preferences"
       saving: "Saving..."
@@ -31,6 +33,9 @@ en:
         year_month_day: "YYYY-MM-DD"
         month_day_year: "MM/DD/YYYY"
         day_month_year: "DD/MM/YYYY"
+      number_formats:
+        western: "1,234.56"
+        decimal_comma: "1.234,56"
     update:
       updated: "Preferences updated."
   users:

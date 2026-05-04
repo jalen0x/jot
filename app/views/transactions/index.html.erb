@@ -77,7 +77,7 @@
 
             <div class="text-right">
               <p class="text-base font-semibold text-heading">
-                <%= number_to_currency(transaction.source_amount_cents / 100.0, unit: "") %> <%= transaction.account.currency_code %>
+                <%= number_to_currency(transaction.source_amount_cents / 100.0, { unit: "" }.merge(@amount_format_options)) %> <%= transaction.account.currency_code %>
               </p>
               <p class="mt-1 text-sm text-body-subtle"><%= transaction.transaction_kind.humanize %></p>
             </div>

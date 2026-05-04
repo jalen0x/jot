@@ -42,6 +42,26 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_select "li", text: /05\/03\/2026 10:00/
   end
 
+  test "lists transaction amounts using the signed-in user's number format" do
+    user = create(:user)
+    transaction = create_transaction(user: user, comment: "Groceries")
+    transaction.update!(source_amount_cents: 123_456)
+    sign_in user
+
+    patch user_preference_path, params: {
+      user_preference: {
+        default_currency_code: "USD",
+        date_format: "year_month_day",
+        locale: "en",
+        number_format: "decimal_comma"
+      }
+    }
+    get transactions_path
+
+    assert_response :success
+    assert_select "li", text: /1\.234,56 USD/
+  end
+
   test "lists transaction location when present" do
     user = create(:user)
     transaction = create_transaction(user: user, comment: "Coffee")

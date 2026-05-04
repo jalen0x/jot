@@ -33,6 +33,15 @@ class UserPreferenceTest < ActiveSupport::TestCase
     assert_match(/user_preferences_date_format_supported/i, ex.message)
   end
 
+  test "database rejects unsupported number formats" do
+    preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
+
+    ex = assert_raises(ActiveRecord::StatementInvalid) do
+      preference.update_column(:number_format, "thin_space")
+    end
+    assert_match(/user_preferences_number_format_supported/i, ex.message)
+  end
+
   test "database rejects missing default account references" do
     preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
 
