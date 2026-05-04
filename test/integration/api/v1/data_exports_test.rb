@@ -40,6 +40,19 @@ class ApiV1DataExportsTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
+  test "rejects unsupported export formats" do
+    user = create(:user)
+    raw_token = issue_token(user)
+
+    post api_v1_data_exports_path,
+      params: { file_format: "xlsx" },
+      headers: csv_headers(raw_token)
+
+    assert_response :unprocessable_content
+    body = JSON.parse(response.body)
+    assert_equal [ "File format must be csv or tsv" ], body.fetch("errors")
+  end
+
   private
 
   def issue_token(user)

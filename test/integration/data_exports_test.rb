@@ -38,6 +38,16 @@ class DataExportsTest < ActionDispatch::IntegrationTest
     assert_equal [ "Client lunch" ], rows.map { |row| row["Comment"] }
   end
 
+  test "rejects unsupported export formats" do
+    user = create(:user)
+    sign_in user
+
+    post data_exports_path, params: { file_format: "xlsx" }
+
+    assert_response :unprocessable_content
+    assert_match(/File format must be csv or tsv/, response.body)
+  end
+
   private
 
   def create_transaction(user:, comment:)
