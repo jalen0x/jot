@@ -280,6 +280,79 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_match(/valid ISO 8601 dates/i, response.body)
   end
 
+  test "returns transaction trends for the token owner" do
+    user = create(:user)
+    other_user = create(:user)
+    matching_account = create_account(user: user, name: "Checking")
+    other_account = create_account(user: user, name: "Savings")
+    income_category = create_category(user: user, name: "Salary", category_type: :income)
+    expense_category = create_category(user: user, name: "Food", category_type: :expense)
+    create_transaction(
+      user: user,
+      account: matching_account,
+      category: income_category,
+      transaction_kind: :income,
+      transacted_at: Time.zone.parse("2026-05-01 09:00:00"),
+      source_amount_cents: 5_000,
+      comment: "Paycheck"
+    )
+    create_transaction(
+      user: user,
+      account: matching_account,
+      category: expense_category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
+      source_amount_cents: 1_200,
+      comment: "Lunch"
+    )
+    create_transaction(
+      user: user,
+      account: other_account,
+      category: income_category,
+      transaction_kind: :income,
+      transacted_at: Time.zone.parse("2026-05-01 11:00:00"),
+      source_amount_cents: 9_999,
+      comment: "Other Account Paycheck"
+    )
+    create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Salary", category_type: :income),
+      transaction_kind: :income,
+      transacted_at: Time.zone.parse("2026-05-01 09:00:00"),
+      source_amount_cents: 7_777,
+      comment: "Other Paycheck"
+    )
+    raw_token = issue_token(user)
+
+    get trends_api_v1_transactions_path,
+      params: { start_date: "2026-05-01", end_date: "2026-05-03", aggregation: "day", account_id: matching_account.to_param },
+      headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ "trends" ], body.keys
+    trends = body.fetch("trends")
+    assert_equal "day", trends.fetch("aggregation")
+    assert_equal [
+      { "starts_on" => "2026-05-01", "income_cents" => 5_000, "expense_cents" => 0, "net_cents" => 5_000 },
+      { "starts_on" => "2026-05-02", "income_cents" => 0, "expense_cents" => 0, "net_cents" => 0 },
+      { "starts_on" => "2026-05-03", "income_cents" => 0, "expense_cents" => 1_200, "net_cents" => -1_200 }
+    ], trends.fetch("buckets")
+  end
+
+  test "rejects invalid transaction trend aggregation" do
+    user = create(:user)
+    raw_token = issue_token(user)
+
+    get trends_api_v1_transactions_path,
+      params: { start_date: "2026-05-01", end_date: "2026-05-03", aggregation: "week" },
+      headers: json_headers(raw_token)
+
+    assert_response :unprocessable_content
+    assert_match(/Aggregation must be day or month/i, response.body)
+  end
+
   test "filters transactions by kind" do
     user = create(:user)
     account = create_account(user: user, name: "Checking")

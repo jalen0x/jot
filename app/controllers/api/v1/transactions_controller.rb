@@ -25,6 +25,18 @@ class Api::V1::TransactionsController < ApiController
     render json: { errors: [ "Start date and end date must be valid ISO 8601 dates" ] }, status: :unprocessable_content
   end
 
+  # GET /api/v1/transactions/trends
+  def trends
+    authorize Transaction
+    trends = LedgerTrends.new.build_transaction_trends(user: current_user, range: statistics_range, aggregation: trends_aggregation, filters: filter_params)
+
+    render json: { trends: trends_json(trends) }
+  rescue Date::Error
+    render json: { errors: [ "Start date and end date must be valid ISO 8601 dates" ] }, status: :unprocessable_content
+  rescue ArgumentError
+    render json: { errors: [ "Aggregation must be day or month" ] }, status: :unprocessable_content
+  end
+
   # GET /api/v1/transactions/:id
   def show
     transaction = scoped_transaction
@@ -180,6 +192,24 @@ class Api::V1::TransactionsController < ApiController
       net_cents: summary.net_cents,
       category_totals: summary.category_totals,
       account_totals: summary.account_totals
+    }
+  end
+
+  def trends_aggregation
+    params[:aggregation].presence || "day"
+  end
+
+  def trends_json(trends)
+    {
+      aggregation: trends.aggregation,
+      buckets: trends.buckets.map do |bucket|
+        {
+          starts_on: bucket.starts_on.iso8601,
+          income_cents: bucket.income_cents,
+          expense_cents: bucket.expense_cents,
+          net_cents: bucket.net_cents
+        }
+      end
     }
   end
 

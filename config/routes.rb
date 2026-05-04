@@ -24,6 +24,7 @@ Rails.application.routes.draw do
       resources :transactions, only: [ :index, :show, :create, :update, :destroy ] do
         get :count, on: :collection
         get :statistics, on: :collection
+        get :trends, on: :collection
         post :batch_delete, on: :collection
         post :batch_update_category, on: :collection
         post :batch_update_account, on: :collection

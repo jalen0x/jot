@@ -2,6 +2,7 @@ class TransactionPolicy < ApplicationPolicy
   def index? = user.present?
   def count? = user.present?
   def statistics? = user.present?
+  def trends? = user.present?
   def show? = owns_record?
   def new? = create?
   def create? = user.present?
