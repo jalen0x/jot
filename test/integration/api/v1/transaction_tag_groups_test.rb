@@ -81,17 +81,19 @@ class ApiV1TransactionTagGroupsTest < ActionDispatch::IntegrationTest
     raw_token = issue_token(user)
 
     patch api_v1_transaction_tag_group_path(tag_group),
-      params: { transaction_tag_group: { name: "Subscriptions" } },
+      params: { transaction_tag_group: { name: "Subscriptions", display_order: "5" } },
       headers: json_headers(raw_token),
       as: :json
 
     assert_response :success
-    assert_equal "Subscriptions", tag_group.reload.name
+    tag_group.reload
+    assert_equal "Subscriptions", tag_group.name
+    assert_equal 5, tag_group.display_order
 
     group_json = JSON.parse(response.body).fetch("transaction_tag_group")
     assert_equal tag_group.to_param, group_json.fetch("id")
     assert_equal "Subscriptions", group_json.fetch("name")
-    assert_equal 1, group_json.fetch("display_order")
+    assert_equal 5, group_json.fetch("display_order")
     refute_includes group_json.keys, "user_id"
   end
 
