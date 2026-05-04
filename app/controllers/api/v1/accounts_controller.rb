@@ -7,6 +7,14 @@ class Api::V1::AccountsController < ApiController
     render json: { accounts: accounts.map(&:as_json) }
   end
 
+  # GET /api/v1/accounts/:id
+  def show
+    account = scoped_account
+    authorize account
+
+    render json: { account: account.as_json }
+  end
+
   # POST /api/v1/accounts
   def create
     authorize Account

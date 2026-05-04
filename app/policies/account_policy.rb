@@ -1,5 +1,6 @@
 class AccountPolicy < ApplicationPolicy
   def index? = user.present?
+  def show? = owns_record?
   def new? = create?
   def create? = user.present?
   def update? = owns_record?
