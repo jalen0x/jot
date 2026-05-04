@@ -54,7 +54,7 @@ class Api::V1::TransactionTagsController < ApiController
   private
 
   def tag_params
-    @tag_params ||= params.expect(transaction_tag: [ :name, :transaction_tag_group_id, :hidden ])
+    @tag_params ||= params.expect(transaction_tag: [ :name, :transaction_tag_group_id, :hidden, :display_order ])
   end
 
   def tag_group_for(tag)

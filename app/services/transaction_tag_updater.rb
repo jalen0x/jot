@@ -13,10 +13,12 @@ class TransactionTagUpdater
   private
 
   def tag_attributes(attributes)
-    {
+    tag_attributes = {
       name: attributes[:name],
       hidden: ActiveModel::Type::Boolean.new.cast(attributes[:hidden])
     }
+    tag_attributes[:display_order] = attributes[:display_order] if attributes.key?(:display_order)
+    tag_attributes
   end
 
   def transaction_tag_group_for(tag, group_id)
