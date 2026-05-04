@@ -11,4 +11,14 @@ class ImportBatch < ApplicationRecord
   }
 
   validates :raw_csv, presence: true
+
+  def as_json(_options = {})
+    {
+      id: to_param,
+      source_filename: source_filename,
+      status: status,
+      imported_count: imported_count,
+      error_message: error_message
+    }
+  end
 end
