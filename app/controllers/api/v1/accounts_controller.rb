@@ -80,7 +80,8 @@ class Api::V1::AccountsController < ApiController
       :color_hex,
       :currency_code,
       :comment,
-      :hidden
+      :hidden,
+      :display_order
     ])
   end
 
