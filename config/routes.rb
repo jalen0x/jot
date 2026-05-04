@@ -34,6 +34,7 @@ Rails.application.routes.draw do
       resource :data_statistics, only: :show
       resources :data_exports, only: :create
       resources :import_batches, only: [ :show, :create ]
+      resources :receipt_recognitions, only: [ :show, :create ]
       resources :ledger_clearances, only: :create
       resources :insight_explorers, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_categories, only: [ :index, :show, :create, :update, :destroy ]
