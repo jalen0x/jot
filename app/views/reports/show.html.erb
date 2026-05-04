@@ -78,12 +78,14 @@
       <h2 class="text-lg font-semibold text-heading">Category totals</h2>
     </div>
 
-    <% if @summary.category_totals.any? %>
+    <% if @summary.category_amounts.any? %>
       <ul class="divide-y divide-default">
-        <% @summary.category_totals.each do |name, amount_cents| %>
+        <% @summary.category_amounts.each do |amount| %>
           <li class="flex items-center justify-between px-5 py-4">
-            <span class="font-medium text-heading"><%= name %></span>
-            <span class="text-sm font-semibold text-heading"><%= number_to_currency(amount_cents / 100.0, unit: "") %></span>
+            <span class="font-medium text-heading"><%= amount.name %></span>
+            <span class="text-sm font-semibold text-heading">
+              <%= number_to_currency(amount.amount_cents / 100.0, unit: "") %> <%= amount.currency_code %>
+            </span>
           </li>
         <% end %>
       </ul>

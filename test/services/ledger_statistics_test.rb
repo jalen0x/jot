@@ -40,6 +40,12 @@ class LedgerStatisticsTest < ActiveSupport::TestCase
       { currency_code: "CNY", income_cents: 700, expense_cents: 0, net_cents: 700 },
       { currency_code: "USD", income_cents: 5_000, expense_cents: 1_200, net_cents: 3_800 }
     ], summary.amounts.map { |amount| { currency_code: amount.currency_code, income_cents: amount.income_cents, expense_cents: amount.expense_cents, net_cents: amount.net_cents } }
+    assert_respond_to summary, :category_amounts
+    assert_equal [
+      { name: "Food", currency_code: "USD", amount_cents: -1_200 },
+      { name: "Salary", currency_code: "CNY", amount_cents: 700 },
+      { name: "Salary", currency_code: "USD", amount_cents: 5_000 }
+    ], summary.category_amounts.map { |amount| { name: amount.name, currency_code: amount.currency_code, amount_cents: amount.amount_cents } }
   end
 
   test "ignores transfers and discarded transactions" do
