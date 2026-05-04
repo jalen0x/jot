@@ -32,6 +32,38 @@ class ApiV1TransactionCategoriesTest < ActionDispatch::IntegrationTest
     refute_includes child_json.keys, "user_id"
   end
 
+  test "shows one transaction category for the token owner" do
+    user = create(:user)
+    parent = create_category(user: user, name: "Food", category_type: :expense, display_order: 1)
+    category = create_category(user: user, name: "Dining", category_type: :expense, parent_category: parent, display_order: 2)
+    raw_token = issue_token(user)
+
+    get api_v1_transaction_category_path(category), headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ "transaction_category" ], body.keys
+    category_json = body.fetch("transaction_category")
+    assert_equal category.to_param, category_json.fetch("id")
+    assert_equal "Dining", category_json.fetch("name")
+    assert_equal "expense", category_json.fetch("category_type")
+    assert_equal parent.to_param, category_json.fetch("parent_category_id")
+    assert_equal 2, category_json.fetch("display_order")
+    assert_equal false, category_json.fetch("hidden")
+    refute_includes category_json.keys, "user_id"
+  end
+
+  test "does not show another user's transaction category" do
+    user = create(:user)
+    other_user = create(:user)
+    category = create_category(user: other_user, name: "Other", category_type: :expense, display_order: 1)
+    raw_token = issue_token(user)
+
+    get api_v1_transaction_category_path(category), headers: json_headers(raw_token)
+
+    assert_response :not_found
+  end
+
   test "creates a transaction category for the token owner" do
     user = create(:user)
     parent = create_category(user: user, name: "Food", category_type: :expense, display_order: 1)
