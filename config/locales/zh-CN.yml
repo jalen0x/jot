@@ -41,3 +41,22 @@ zh-CN:
   oauth:
     github: "GitHub"
     sign_in_with: "使用 %{provider} 登录"
+  user_preferences:
+    show:
+      title: "偏好设置"
+      eyebrow: "设置"
+      heading: "偏好设置"
+      description: "选择新账本记录使用的默认值。"
+      save_failed: "偏好设置无法保存。"
+      default_currency_code: "默认货币代码"
+      default_currency_help: "作为新账户表单的初始货币。"
+      locale: "语言"
+      locale_help: "用于登录后的界面文本。"
+      cancel: "取消"
+      save: "保存偏好设置"
+      saving: "保存中..."
+      locales:
+        en: "英语"
+        zh-CN: "简体中文"
+    update:
+      updated: "偏好设置已更新。"

@@ -13,7 +13,7 @@ class UserPreferencesController < ApplicationController
     @user_preference = find_or_build_preference
 
     if @user_preference.update(user_preference_params)
-      redirect_to user_preference_path, notice: "Preferences updated."
+      redirect_to user_preference_path, notice: t(".updated")
     else
       render :show, status: :unprocessable_content
     end
@@ -26,6 +26,6 @@ class UserPreferencesController < ApplicationController
   end
 
   def user_preference_params
-    params.expect(user_preference: [ :default_currency_code ])
+    params.expect(user_preference: [ :default_currency_code, :locale ])
   end
 end

@@ -23,6 +23,23 @@ class UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal "EUR", user.reload.user_preference.default_currency_code
   end
 
+  test "updates the signed-in user's locale and applies it to later web requests" do
+    user = create(:user)
+    sign_in user
+
+    patch user_preference_path, params: {
+      user_preference: {
+        default_currency_code: "usd",
+        locale: "zh-CN"
+      }
+    }
+
+    assert_redirected_to user_preference_path
+    follow_redirect!
+    assert_response :success
+    assert_match(/偏好设置/, response.body)
+  end
+
   test "renders validation errors for an invalid currency" do
     user = create(:user)
     sign_in user
