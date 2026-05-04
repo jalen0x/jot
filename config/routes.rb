@@ -20,6 +20,7 @@ Rails.application.routes.draw do
       end
       resource :user_preference, only: [ :show, :update ]
       resource :user_profile, only: [ :show, :update ]
+      resource :user_avatar, only: [ :create, :destroy ]
       resource :system_version, only: :show
       resource :exchange_rate_catalog, only: :show
       resource :application_lock, only: [ :show, :create, :destroy ]
