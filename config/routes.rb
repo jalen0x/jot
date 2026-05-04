@@ -81,7 +81,7 @@ Rails.application.routes.draw do
   resources :transaction_categories, only: [ :index, :new, :create ]
   resources :transaction_tag_groups, only: [ :index, :new, :create ]
   resources :transaction_tags, only: [ :new, :create ]
-  resources :transactions, only: [ :index, :new, :create, :destroy ] do
+  resources :transactions, only: [ :index, :new, :create, :edit, :update, :destroy ] do
     resources :pictures, controller: "transaction_pictures", only: :destroy
   end
   resources :accounts, only: [ :index, :new, :create ]

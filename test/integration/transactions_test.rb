@@ -156,6 +156,91 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal 3_800, account.reload.balance_cents
   end
 
+  test "updates an expense for current user" do
+    user = create(:user)
+    old_account = create_account(user: user, balance_cents: 3_750, name: "Checking")
+    new_account = create_account(user: user, balance_cents: 10_000, name: "Savings")
+    old_category = create_category(user: user, category_type: :expense, name: "Food")
+    new_category = create_category(user: user, category_type: :expense, name: "Travel")
+    old_tag = create_tag(user: user, name: "Old")
+    new_tag = create_tag(user: user, name: "New")
+    transaction = create_transaction(
+      user: user,
+      account: old_account,
+      category: old_category,
+      comment: "Lunch",
+      source_amount_cents: 1_250,
+      tags: [ old_tag ]
+    )
+    sign_in user
+
+    get edit_transaction_path(transaction)
+    assert_response :success
+    assert_select "h1", text: /edit transaction/i
+
+    patch transaction_path(transaction), params: {
+      transaction: {
+        transaction_kind: "expense",
+        account_id: new_account.id.to_s,
+        destination_account_id: "",
+        transaction_category_id: new_category.id.to_s,
+        transacted_at: "2026-05-04 13:00:00",
+        timezone_utc_offset_minutes: "0",
+        source_amount_cents: "2000",
+        destination_amount_cents: "0",
+        hide_amount: "1",
+        comment: "Flight",
+        geo_latitude: "37.7749",
+        geo_longitude: "-122.4194",
+        transaction_tag_ids: [ new_tag.id.to_s ]
+      }
+    }
+
+    assert_redirected_to transactions_path
+    assert_equal 5_000, old_account.reload.balance_cents
+    assert_equal 8_000, new_account.reload.balance_cents
+    assert_equal new_account, transaction.reload.account
+    assert_equal new_category, transaction.transaction_category
+    assert_equal "Flight", transaction.comment
+    assert_equal [ new_tag ], transaction.transaction_tags.to_a
+    assert_equal BigDecimal("37.7749"), transaction.geo_latitude
+    assert_equal BigDecimal("-122.4194"), transaction.geo_longitude
+  end
+
+  test "does not update another user's transaction" do
+    user = create(:user)
+    other_user = create(:user)
+    other_account = create_account(user: other_user, balance_cents: 3_750, name: "Other Checking")
+    other_category = create_category(user: other_user, category_type: :expense, name: "Other Food")
+    transaction = create_transaction(
+      user: other_user,
+      account: other_account,
+      category: other_category,
+      comment: "Other Lunch",
+      source_amount_cents: 1_250
+    )
+    sign_in user
+
+    patch transaction_path(transaction), params: {
+      transaction: {
+        transaction_kind: "expense",
+        account_id: other_account.id.to_s,
+        destination_account_id: "",
+        transaction_category_id: other_category.id.to_s,
+        transacted_at: "2026-05-04 13:00:00",
+        timezone_utc_offset_minutes: "0",
+        source_amount_cents: "2000",
+        destination_amount_cents: "0",
+        hide_amount: "0",
+        comment: "Changed"
+      }
+    }
+
+    assert_response :not_found
+    assert_equal "Other Lunch", transaction.reload.comment
+    assert_equal 3_750, other_account.reload.balance_cents
+  end
+
   test "defaults the new transaction account from the signed-in user's preference" do
     user = create(:user)
     create_account(user: user, balance_cents: 0, name: "Cash")
@@ -208,21 +293,23 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     Rack::Test::UploadedFile.new(Rails.root.join("test/fixtures/files/receipt.txt"), "text/plain")
   end
 
-  def create_transaction(user:, comment:)
-    account = create_account(user: user, balance_cents: 5_000)
-    category = create_category(user: user, category_type: :expense)
+  def create_transaction(user:, comment:, account: nil, category: nil, source_amount_cents: 1000, tags: [])
+    account ||= create_account(user: user, balance_cents: 5_000)
+    category ||= create_category(user: user, category_type: :expense)
 
-    Transaction.create!(
+    transaction = Transaction.create!(
       user: user,
       account: account,
       transaction_category: category,
       transaction_kind: :expense,
       transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
       timezone_utc_offset_minutes: 0,
-      source_amount_cents: 1000,
+      source_amount_cents: source_amount_cents,
       destination_amount_cents: 0,
       comment: comment
     )
+    tags.each { |tag| TransactionTagging.create!(user: user, ledger_transaction: transaction, transaction_tag: tag) }
+    transaction
   end
 
   def create_account(user:, balance_cents:, name: "Cash")
@@ -239,10 +326,10 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     )
   end
 
-  def create_category(user:, category_type:)
+  def create_category(user:, category_type:, name: category_type.to_s.humanize)
     TransactionCategory.create!(
       user: user,
-      name: category_type.to_s.humanize,
+      name: name,
       category_type: category_type,
       icon_key: 1,
       color_hex: "F97316",
