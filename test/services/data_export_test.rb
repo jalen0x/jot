@@ -6,25 +6,26 @@ class DataExportTest < ActiveSupport::TestCase
     user = create(:user)
     other_user = create(:user)
     tag = create_tag(user: user, name: "Business")
-    transaction = create_transaction(user: user, comment: "Client lunch", geo_latitude: 37.7749, geo_longitude: -122.4194)
+    transaction = create_transaction(user: user, comment: "Client lunch", timezone_utc_offset_minutes: 480, geo_latitude: 37.7749, geo_longitude: -122.4194)
     TransactionTagging.create!(user: user, ledger_transaction: transaction, transaction_tag: tag)
     create_transaction(user: other_user, comment: "Other lunch")
 
     csv = DataExport.new.transactions_csv(user: user)
     rows = CSV.parse(csv, headers: true)
 
-    assert_equal [ "Transacted At", "Type", "Account", "Destination Account", "Category", "Source Amount Cents", "Destination Amount Cents", "Tags", "Comment", "Latitude", "Longitude" ], rows.headers
+    assert_equal [ "Transacted At", "Timezone UTC Offset Minutes", "Type", "Account", "Destination Account", "Category", "Source Amount Cents", "Destination Amount Cents", "Tags", "Comment", "Latitude", "Longitude" ], rows.headers
     assert_equal 1, rows.length
     assert_equal "Client lunch", rows[0]["Comment"]
     assert_equal "Business", rows[0]["Tags"]
     assert_equal "expense", rows[0]["Type"]
+    assert_equal "480", rows[0]["Timezone UTC Offset Minutes"]
     assert_equal "37.7749", rows[0]["Latitude"]
     assert_equal "-122.4194", rows[0]["Longitude"]
   end
 
   private
 
-  def create_transaction(user:, comment:, geo_latitude: nil, geo_longitude: nil)
+  def create_transaction(user:, comment:, timezone_utc_offset_minutes: 0, geo_latitude: nil, geo_longitude: nil)
     account = create_account(user: user, name: "Cash")
     category = create_category(user: user, name: "Food", category_type: :expense)
 
@@ -34,7 +35,7 @@ class DataExportTest < ActiveSupport::TestCase
       transaction_category: category,
       transaction_kind: :expense,
       transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
-      timezone_utc_offset_minutes: 0,
+      timezone_utc_offset_minutes: timezone_utc_offset_minutes,
       source_amount_cents: 1200,
       destination_amount_cents: 0,
       comment: comment,

@@ -32,7 +32,7 @@ class TransactionImporter
         destination_account_id: destination_account&.id.to_s,
         transaction_category_id: category.id.to_s,
         transacted_at: row.fetch("Transacted At"),
-        timezone_utc_offset_minutes: "0",
+        timezone_utc_offset_minutes: row["Timezone UTC Offset Minutes"] || "0",
         source_amount_cents: row.fetch("Source Amount Cents"),
         destination_amount_cents: row.fetch("Destination Amount Cents"),
         hide_amount: "0",
