@@ -22,6 +22,7 @@ Rails.application.routes.draw do
       resources :transaction_tags, only: [ :index, :create, :update, :destroy ]
       resources :transaction_templates, only: [ :index, :create, :update, :destroy ]
       resources :transactions, only: [ :index, :show, :create, :update, :destroy ] do
+        get :count, on: :collection
         post :batch_delete, on: :collection
         post :batch_update_category, on: :collection
         post :batch_update_account, on: :collection

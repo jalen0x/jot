@@ -7,6 +7,14 @@ class Api::V1::TransactionsController < ApiController
     render json: { transactions: transactions.map(&:as_json) }
   end
 
+  # GET /api/v1/transactions/count
+  def count
+    authorize Transaction
+    count = LedgerQuery.new.list_transactions(user: current_user, filters: filter_params).count
+
+    render json: { count: count }
+  end
+
   # GET /api/v1/transactions/:id
   def show
     transaction = scoped_transaction
