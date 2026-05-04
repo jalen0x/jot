@@ -65,6 +65,72 @@ class ApiV1TransactionCategoriesTest < ActionDispatch::IntegrationTest
     refute_includes category_json.keys, "user_id"
   end
 
+  test "updates a transaction category for the token owner" do
+    user = create(:user)
+    old_parent = create_category(user: user, name: "Food", category_type: :expense, display_order: 1)
+    new_parent = create_category(user: user, name: "Travel", category_type: :expense, display_order: 2)
+    category = create_category(user: user, name: "Dining", category_type: :expense, parent_category: old_parent, display_order: 3)
+    raw_token = issue_token(user)
+
+    patch api_v1_transaction_category_path(category),
+      params: {
+        transaction_category: {
+          name: "Flights",
+          category_type: "expense",
+          parent_category_id: new_parent.to_param,
+          icon_key: "3",
+          color_hex: "#22c55e",
+          comment: "Air travel",
+          hidden: "true"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :success
+    category.reload
+    assert_equal "Flights", category.name
+    assert_equal "expense", category.category_type
+    assert_equal new_parent, category.parent_category
+    assert_equal 3, category.icon_key
+    assert_equal "22C55E", category.color_hex
+    assert_equal "Air travel", category.comment
+    assert_equal true, category.hidden
+
+    category_json = JSON.parse(response.body).fetch("transaction_category")
+    assert_equal category.to_param, category_json.fetch("id")
+    assert_equal "Flights", category_json.fetch("name")
+    assert_equal new_parent.to_param, category_json.fetch("parent_category_id")
+    assert_equal true, category_json.fetch("hidden")
+    refute_includes category_json.keys, "user_id"
+  end
+
+  test "unparents a transaction category" do
+    user = create(:user)
+    parent = create_category(user: user, name: "Food", category_type: :expense, display_order: 1)
+    category = create_category(user: user, name: "Dining", category_type: :expense, parent_category: parent, display_order: 2)
+    raw_token = issue_token(user)
+
+    patch api_v1_transaction_category_path(category),
+      params: {
+        transaction_category: {
+          name: "Dining",
+          category_type: "expense",
+          parent_category_id: "",
+          icon_key: "1",
+          color_hex: "F97316",
+          comment: "",
+          hidden: "false"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :success
+    assert_nil category.reload.parent_category
+    assert_nil JSON.parse(response.body).fetch("transaction_category").fetch("parent_category_id")
+  end
+
   test "rejects another user's parent category" do
     user = create(:user)
     other_parent = create_category(user: create(:user), name: "Other Food", category_type: :expense, display_order: 1)
@@ -87,6 +153,82 @@ class ApiV1TransactionCategoriesTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_content
     assert_empty user.transaction_categories.where(name: "Dining")
     assert_match(/Parent category is unavailable/i, response.body)
+  end
+
+  test "rejects another user's parent category on update" do
+    user = create(:user)
+    category = create_category(user: user, name: "Dining", category_type: :expense, display_order: 1)
+    other_parent = create_category(user: create(:user), name: "Other Food", category_type: :expense, display_order: 1)
+    raw_token = issue_token(user)
+
+    patch api_v1_transaction_category_path(category),
+      params: {
+        transaction_category: {
+          name: "Dining",
+          category_type: "expense",
+          parent_category_id: other_parent.to_param,
+          icon_key: "1",
+          color_hex: "F97316",
+          comment: "Meals",
+          hidden: "false"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_nil category.reload.parent_category
+    assert_match(/Parent category is unavailable/i, response.body)
+  end
+
+  test "does not update another user's transaction category" do
+    user = create(:user)
+    other_user = create(:user)
+    category = create_category(user: other_user, name: "Other", category_type: :expense, display_order: 1)
+    raw_token = issue_token(user)
+
+    patch api_v1_transaction_category_path(category),
+      params: {
+        transaction_category: {
+          name: "Changed",
+          category_type: "expense",
+          parent_category_id: "",
+          icon_key: "2",
+          color_hex: "22C55E",
+          comment: "Changed",
+          hidden: "true"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :not_found
+    assert_equal "Other", category.reload.name
+    assert_equal false, category.hidden
+  end
+
+  test "deletes a transaction category for the token owner" do
+    user = create(:user)
+    category = create_category(user: user, name: "Dining", category_type: :expense, display_order: 1)
+    raw_token = issue_token(user)
+
+    delete api_v1_transaction_category_path(category), headers: json_headers(raw_token)
+
+    assert_response :no_content
+    assert_empty response.body
+    assert_predicate category.reload, :discarded?
+  end
+
+  test "does not delete another user's transaction category" do
+    user = create(:user)
+    other_user = create(:user)
+    category = create_category(user: other_user, name: "Other", category_type: :expense, display_order: 1)
+    raw_token = issue_token(user)
+
+    delete api_v1_transaction_category_path(category), headers: json_headers(raw_token)
+
+    assert_response :not_found
+    refute_predicate category.reload, :discarded?
   end
 
   private
