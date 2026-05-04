@@ -1163,7 +1163,7 @@ Expected: commit is created only if lint produced edits.
 
 ## Self-Review Checklist
 
-- Spec coverage: Implements the next Phase 1 seam for `TransactionRecorder`, normal transaction category assignment, transaction taggings, account balance updates, and a scoped transaction list. Dashboard, deletion/reversal, editing, advanced filters, reports, imports, settings, attachments, schedules, API, AI, and MCP remain outside this slice.
+- Spec coverage: Implements the next Phase 1 seam for `TransactionRecorder`, normal transaction category assignment, transaction taggings, account balance updates, and a scoped transaction list. Dashboard, deletion/reversal, editing, advanced filters, reports, imports, settings, attachments, schedules, API, and AI remain outside this slice. MCP is excluded from the Rails rewrite scope.
 - Placeholder scan: every step has concrete files, code, commands, and expected outcomes.
 - Type consistency: uses `transaction_kind`, `transaction_category_id`, `source_amount_cents`, `destination_amount_cents`, `transaction_tag_ids`, and existing `ledger_transaction` tagging association consistently.
 - Source alignment: Rails intentionally stores transfers as one row with `destination_account_id` rather than ezBookkeeping's paired transfer-out/transfer-in rows; account balance effects still match source rules for income, expense, and same-currency transfers.

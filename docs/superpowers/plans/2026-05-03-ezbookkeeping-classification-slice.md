@@ -1169,6 +1169,6 @@ Expected: commit is created only if lint produced edits.
 
 ## Self-Review Checklist
 
-- Spec coverage: This plan implements Phase 1 `TransactionCategory`, `TransactionTagGroup`, `TransactionTag`, and `TransactionTagging`; transaction recording, dashboard, imports, reports, settings, security, attachments, schedules, API, AI, and MCP remain outside this slice.
+- Spec coverage: This plan implements Phase 1 `TransactionCategory`, `TransactionTagGroup`, `TransactionTag`, and `TransactionTagging`; transaction recording, dashboard, imports, reports, settings, security, attachments, schedules, API, and AI remain outside this slice. MCP is excluded from the Rails rewrite scope.
 - Placeholder scan: each file has concrete code, test commands, and expected outcomes; no step depends on unspecified behavior.
 - Type consistency: category fields use `category_type`, `icon_key`, `color_hex`, `display_order`; tag fields use `transaction_tag_group_id`; join fields use `transaction_id` and `transaction_tag_id` across migration, models, controllers, views, and tests.

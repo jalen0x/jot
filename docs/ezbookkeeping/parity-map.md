@@ -7,6 +7,12 @@
 - Source API endpoint count from `cmd/webserver.go`: 107 total API endpoints, including 102 `apiV1Route` endpoints.
 - Source frontend routes: desktop and mobile route files under `src/router`.
 
+## Scope Decisions
+
+- Rails is a complete rewrite, not a compatibility adapter for the Go/Vue app.
+- Do not preserve legacy `.json` URLs, camelCase params, `success/result` envelopes, or old frontend contracts.
+- Do not implement MCP. Machine access is through the Rails-native API and the separate `jotctl` CLI.
+
 ## Rails Phases
 
 | Source capability | Rails phase | Rails artifact |
@@ -36,6 +42,6 @@
 | Geo locations and maps | Phase 6 | transaction location columns and map adapters |
 | PWA and responsive mobile UI | Phase 6 | Rails views/assets |
 | Transaction templates and schedules | Phase 7 | `TransactionTemplate`, recurring job |
-| Legacy JSON API | Phase 8 | `Api::V1` adapter controllers |
+| Rails-native JSON API | Phase 8 | `Api::V1` resource controllers with top-level JSON keys |
 | LLM receipt recognition | Phase 8 | recognition job/result resources |
-| MCP support | Phase 8 | API-token-backed MCP adapter |
+| MCP support | Excluded | Not part of the Rails rewrite scope |

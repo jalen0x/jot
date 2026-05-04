@@ -11,10 +11,10 @@
 本设计基于本地源项目证据，不依赖外部文档：
 
 - 产品功能来自 `/Users/Jalen/code/ezbookkeeping/README.md`：自托管、轻量、桌面/移动 UI、PWA、暗色模式、AI 收据识别、MCP、两级账户和分类、交易图片、位置、周期交易、筛选/统计/分析、多语言、多币种、汇率、时区、2FA、OIDC、登录限制、应用锁、数据导入导出。
-- Rails 目标仓库当前状态：`config/routes.rb` 只有 Devise、Lookbook、health check 和 `root "home#show"`；`db/structure.sql` 只有 Rails metadata 和 `users` 表；没有记账领域模型。
+- Rails 目标仓库当前状态会随切片推进；以代码和阶段计划为准，不以后续已过期的早期状态描述作为完成证据。
 - 源项目持久化模型来自 `/Users/Jalen/code/ezbookkeeping/cmd/database.go` 的 `SyncStructs`：`User`、`TwoFactor`、`TwoFactorRecoveryCode`、`TokenRecord`、`Account`、`Transaction`、`TransactionCategory`、`TransactionTagGroup`、`TransactionTag`、`TransactionTagIndex`、`TransactionTemplate`、`TransactionPictureInfo`、`UserCustomExchangeRate`、`UserApplicationCloudSetting`、`UserExternalAuth`、`InsightsExplorer`。
 - 源项目主要 API 来自 `/Users/Jalen/code/ezbookkeeping/cmd/webserver.go`：认证、tokens、用户资料、头像、外部认证、云设置、2FA、数据统计/清理/导出、账户、交易、交易图片、分类、标签组、标签、交易模板、insights explorers、LLM 收据识别、汇率、版本。
-- 源项目 AI/CLI 能力边界来自 `/Users/Jalen/code/ezbookkeeping/skills/ezbookkeeping/scripts/ebktools.sh`：tokens、accounts、transaction categories、transaction tags、transactions、exchange rates、server version。
+- 源项目 AI/CLI 能力边界来自 `/Users/Jalen/code/ezbookkeeping/skills/ezbookkeeping/scripts/ebktools.sh`：tokens、accounts、transaction categories、transaction tags、transactions、exchange rates、server version。Rails 重写不复用旧 CLI 名称或协议；后续机器访问走 Rails-native API 和 `jotctl`。
 
 ## Success Criteria
 
@@ -23,9 +23,9 @@
 1. Rails 应用可以独立运行、部署和维护，不再依赖 Go 服务或 Vue SPA 才能完成核心产品流程。
 2. 用户可以完成 ezBookkeeping 的核心工作：注册/登录、创建账户、创建分类和标签、记录收入/支出/转账/余额调整、筛选交易、查看统计、导入导出数据、配置用户偏好和安全设置。
 3. Rails 数据模型保护核心财务完整性：金额使用 integer cents；所有用户数据 scoped to user；核心外键、唯一性、枚举/状态约束由数据库兜底；无 `default_scope`。
-4. 外部 I/O 不在 controller request path 内直接执行：汇率源、地图代理、OIDC、邮件、对象存储、LLM、MCP 和导入解析的慢任务通过 jobs/adapters 或明确例外实现。
+4. 外部 I/O 不在 controller request path 内直接执行：汇率源、地图代理、OIDC、邮件、对象存储、LLM 和导入解析的慢任务通过 jobs/adapters 或明确例外实现。
 5. Rails UI 使用 SSR + Hotwire 为默认交互模型，使用现有 ViewComponent 和 Flowbite semantic color classes；避免复制 Vue SPA 架构。
-6. API 兼容仅在有实际客户端或迁移需要时作为适配层实现；Rails canonical routes 仍以 resource-oriented URL 为主。
+6. JSON API 使用 Rails-native、resource-oriented URL、snake_case params 和 top-level JSON keys；不实现旧 ezBookkeeping `.json` URL 或旧前端兼容层。
 7. 每个阶段有窄范围测试和验证门槛；不能用“已有大量实现”或“测试全绿”代替未覆盖需求的验收。
 
 ## Product Decomposition
@@ -180,7 +180,7 @@ Rails choices:
 - Keep Devise as primary authentication.
 - Use existing GitHub OmniAuth only until additional OIDC providers are explicitly required.
 - Add 2FA via a Rails-native implementation when phase starts; do not preserve Go token internals.
-- Session/token management uses Rails/Devise concepts first. API tokens and MCP tokens become explicit `ApiToken` records if public/API access is required.
+- Session/token management uses Rails/Devise concepts first. API tokens become explicit `ApiToken` records when machine access is required.
 - Application lock is a separate current-user security resource, not a second login system hidden in controllers.
 
 Routes:
@@ -233,7 +233,7 @@ Verification:
 - Service tests for daily, weekly, monthly, yearly schedules, start/end boundaries, and duplicate prevention.
 - Job tests prove failed schedules are visible/retryable.
 
-### Phase 8: API, AI, MCP, And Advanced Integrations
+### Phase 8: API, AI, And Advanced Integrations
 
 目标是在 Rails 产品可用后覆盖机器接口和 AI 功能。
 
@@ -242,25 +242,24 @@ API strategy:
 - Rails canonical routes are resource-oriented HTML/Hotwire routes.
 - JSON API lives under `namespace :api do; namespace :v1 do ... end end` and uses top-level response keys.
 - API authentication starts with the simplest sufficient strategy for the actual client: Devise session for internal Ajax, HTTP token for service clients, and JWT/OAuth only if a public API requirement exists.
-- Legacy ezBookkeeping endpoint compatibility is an adapter layer only if existing clients must keep working. It should not dictate internal Rails routes or models.
+- Do not implement legacy ezBookkeeping endpoint compatibility. Do not add `.json` legacy routes, camelCase params, or `success/result` response envelopes.
+- Codex and other local automation should use the separate `jotctl` CLI when a shell tool is useful.
 
-AI and MCP strategy:
+AI strategy:
 
 - Receipt image recognition is external LLM I/O: Controller -> Job -> persisted recognition result -> Turbo/Action Cable update.
-- MCP server support is added only after API token and resource authorization boundaries are implemented.
-- MCP tool definitions map to approved service methods. Do not store executable tool handlers in database rows.
+- MCP is excluded from the Rails rewrite scope. Do not add MCP token kinds, MCP routes, MCP resources, or MCP tool definitions.
 
 Verification:
 
 - API integration tests for authentication, content negotiation, response shape, and user scoping.
 - Job tests for LLM request lifecycle, failure status, retry/no-retry behavior, and absence of open DB transactions during external calls.
-- MCP tests only after tool/resource contract is documented.
 
 ## Data Model Principles
 
 - Use Postgres constraints as the integrity source of truth: `null:` and `comment:` on every migration column, foreign keys, check constraints, and unique indexes.
 - Use lookup tables when values may expand or need metadata. Use Rails enums only for hardcoded workflow choices that are stable.
-- Use `has_prefix_id` for models exposed in URLs or public JSON unless a phase explicitly implements a legacy compatibility adapter.
+- Use `has_prefix_id` for models exposed in URLs or public JSON.
 - Use `discarded_at` and the `discard` gem for soft-deletable user-owned ledger models; do not add `default_scope` manually.
 - Money is integer cents. Exchange-rate factors use integer scaled values only when precision rules require it.
 - JSONB is allowed for display/config snapshots and import raw rows, but not for ownership, money, workflow status, permissions, or frequently queried ledger facts.
@@ -277,7 +276,7 @@ Verification:
 
 ## Routing Principles
 
-- Add canonical resource routes before any vanity or compatibility URL.
+- Add canonical resource routes before any vanity URL.
 - Query params handle filtering, sorting, search, tab, and date state.
 - Custom actions are exceptions. Prefer named resources such as `data_exports#create`, `ledger_clearance#create`, or `transaction_imports#create` over action-focused routes.
 - Do not deeply nest resources. User ownership is loaded through `current_user`, not `/users/:user_id/...` routes.
@@ -306,17 +305,17 @@ Minimum gates by change type:
 3. After each slice, migrate only the data needed for that slice and verify user flows in Rails.
 4. Keep source Go/Vue project read-only as behavioral reference during rewrite.
 5. Cut over only when Rails covers the user-visible workflows in the chosen release scope and migration validation passes.
-6. Delete obsolete compatibility adapters when no active client or migration path needs them.
+6. Delete obsolete adapters and source-only scaffolding when Rails owns the selected production workflow.
 
 ## Open Decisions
 
 These need explicit decisions before their implementation phases, but they do not block Phase 0 or Phase 1 planning:
 
-- Whether Rails must preserve legacy numeric IDs in public JSON, or can expose prefixed Rails IDs only.
+- Rails exposes prefixed Rails IDs in public JSON. Legacy numeric IDs are migration-only inputs.
 - Which import formats are required for first production cutover.
 - Which exchange-rate providers matter for this deployment.
 - Whether OIDC beyond GitHub is required, and which providers must be supported.
-- Whether MCP is a production requirement or an advanced post-cutover integration.
+- MCP is not a Rails rewrite requirement.
 - Whether the first Rails UI must match source desktop/mobile layouts exactly or can be Rails-native responsive UI with equivalent functionality.
 
 ## First Implementation Plan To Write After This Design

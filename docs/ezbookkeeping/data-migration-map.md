@@ -5,7 +5,7 @@
 - Rails is the new source of truth after cutover.
 - Financial amounts migrate into integer cents.
 - User-owned rows must map to a Rails `users.id` owner before ledger rows are imported.
-- Legacy numeric IDs may be stored in `legacy_source_id` columns only during migration phases that need reconciliation.
+- Legacy numeric IDs are migration-only inputs. Public URLs and JSON expose Rails prefixed IDs.
 - Import scripts must create Rails rows through the same services used by the UI when business effects matter.
 
 ## Source Model Mapping
@@ -15,7 +15,7 @@
 | User | User plus selected preferences | 4/5 | Devise already owns authentication fields. Profile/display fields move after Phase 1. |
 | TwoFactor | TwoFactorAuthentication records | 5 | Rebuild using Rails-native 2FA; do not copy Go token semantics blindly. |
 | TwoFactorRecoveryCode | 2FA recovery code records | 5 | Migrate only if same 2FA implementation supports the stored format. |
-| TokenRecord | Rails sessions or ApiToken | 5/8 | Public API and MCP tokens become explicit records when required. |
+| TokenRecord | Rails sessions or ApiToken | 5/8 | Public API tokens become explicit records when required. MCP token semantics are not migrated. |
 | Account | accounts | 1 | Preserve hierarchy, category, currency, hidden state, balance, sort order. |
 | Transaction | transactions | 1 | Preserve type, account references, time, amounts, comment, location when columns exist. |
 | TransactionCategory | transaction_categories | 1 | Preserve hierarchy, type, icon, color, hidden state, sort order. |

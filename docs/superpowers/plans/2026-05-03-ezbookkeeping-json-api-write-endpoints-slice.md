@@ -127,6 +127,6 @@ Expected: clean working tree.
 ## Self-Review
 
 - Spec coverage: extends the Phase 8 JSON API seam with write access for the same resources already exposed by read endpoints, while keeping API auth, content negotiation, current-user scoping, and top-level response keys.
-- Scope control: does not implement legacy source paths, update/delete endpoints, batch mutation, pagination, pictures, geo location, or MCP adapters.
+- Scope control: does not implement legacy source paths, update/delete endpoints, batch mutation, pagination, pictures, geo location, or MCP support. MCP is excluded from the Rails rewrite scope.
 - Placeholder scan: no TODO/TBD placeholders remain.
 - Type consistency: route helpers, controller names, response keys, and params consistently use `transaction_category`, `transaction_categories`, `transaction`, and `transactions`.

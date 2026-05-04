@@ -384,7 +384,7 @@ Expected: commit is created only if lint produced edits.
 
 ## Self-Review Checklist
 
-- Spec coverage: Implements the Phase 1 `TransactionReversal#delete_transaction` seam for soft deletion and balance reversal. Editing, batch deletion, transaction pictures, reconciliation, reports, imports, settings, schedules, API, AI, and MCP remain outside this slice.
+- Spec coverage: Implements the Phase 1 `TransactionReversal#delete_transaction` seam for soft deletion and balance reversal. Editing, batch deletion, transaction pictures, reconciliation, reports, imports, settings, schedules, API, and AI remain outside this slice. MCP is excluded from the Rails rewrite scope.
 - Placeholder scan: every step has concrete files, code, commands, and expected outcomes.
 - Type consistency: uses existing `discard` soft-delete semantics and existing single-row transfer fields `destination_account_id` / `destination_amount_cents`.
 - Source alignment: mirrors ezBookkeeping balance reversal rules for income, expense, and transfer; Rails does not need to delete a paired transfer-in row because transfers are represented as one row in the Rails rewrite.

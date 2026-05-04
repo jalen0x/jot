@@ -108,6 +108,6 @@ Expected: clean working tree.
 ## Self-Review
 
 - Spec coverage: extends the Phase 8 JSON API seam with delete access for transactions while preserving existing balance reversal rules and user scoping.
-- Scope control: does not implement legacy ezBookkeeping `.json` paths, update endpoints, batch mutation, account/category/tag deletion, pagination, pictures, geo location, or MCP adapters.
+- Scope control: does not implement legacy ezBookkeeping `.json` paths, update endpoints, batch mutation, account/category/tag deletion, pagination, pictures, geo location, or MCP support. MCP is excluded from the Rails rewrite scope.
 - Placeholder scan: no TODO/TBD placeholders remain.
 - Type consistency: route helper, controller action, response status, and service call all use existing `Transaction` and `TransactionReversal` concepts.

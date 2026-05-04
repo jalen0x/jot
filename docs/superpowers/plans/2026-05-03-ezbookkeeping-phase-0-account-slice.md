@@ -323,6 +323,12 @@ Create `docs/ezbookkeeping/parity-map.md`:
 - Source API endpoint count from `cmd/webserver.go`: 102.
 - Source frontend routes: desktop and mobile route files under `src/router`.
 
+## Scope Decisions
+
+- Rails is a complete rewrite, not a compatibility adapter for the Go/Vue app.
+- Do not preserve legacy `.json` URLs, camelCase params, `success/result` envelopes, or old frontend contracts.
+- Do not implement MCP. Machine access is through the Rails-native API and the separate `jotctl` CLI.
+
 ## Rails Phases
 
 | Source capability | Rails phase | Rails artifact |
@@ -352,9 +358,9 @@ Create `docs/ezbookkeeping/parity-map.md`:
 | Geo locations and maps | Phase 6 | transaction location columns and map adapters |
 | PWA and responsive mobile UI | Phase 6 | Rails views/assets |
 | Transaction templates and schedules | Phase 7 | `TransactionTemplate`, recurring job |
-| Legacy JSON API | Phase 8 | `Api::V1` adapter controllers |
+| Rails-native JSON API | Phase 8 | `Api::V1` resource controllers with top-level JSON keys |
 | LLM receipt recognition | Phase 8 | recognition job/result resources |
-| MCP support | Phase 8 | API-token-backed MCP adapter |
+| MCP support | Excluded | Not part of the Rails rewrite scope |
 ```
 
 - [ ] **Step 4: Add the migration map document**
@@ -369,7 +375,7 @@ Create `docs/ezbookkeeping/data-migration-map.md`:
 - Rails is the new source of truth after cutover.
 - Financial amounts migrate into integer cents.
 - User-owned rows must map to a Rails `users.id` owner before ledger rows are imported.
-- Legacy numeric IDs may be stored in `legacy_source_id` columns only during migration phases that need reconciliation.
+- Legacy numeric IDs are migration-only inputs. Public URLs and JSON expose Rails prefixed IDs.
 - Import scripts must create Rails rows through the same services used by the UI when business effects matter.
 
 ## Source Model Mapping
@@ -379,7 +385,7 @@ Create `docs/ezbookkeeping/data-migration-map.md`:
 | User | User plus selected preferences | 4/5 | Devise already owns authentication fields. Profile/display fields move after Phase 1. |
 | TwoFactor | TwoFactorAuthentication records | 5 | Rebuild using Rails-native 2FA; do not copy Go token semantics blindly. |
 | TwoFactorRecoveryCode | 2FA recovery code records | 5 | Migrate only if same 2FA implementation supports the stored format. |
-| TokenRecord | Rails sessions or ApiToken | 5/8 | Public API and MCP tokens become explicit records when required. |
+| TokenRecord | Rails sessions or ApiToken | 5/8 | Public API tokens become explicit records when required. MCP token semantics are not migrated. |
 | Account | accounts | 1 | Preserve hierarchy, category, currency, hidden state, balance, sort order. |
 | Transaction | transactions | 1 | Preserve type, account references, time, amounts, comment, location when columns exist. |
 | TransactionCategory | transaction_categories | 1 | Preserve hierarchy, type, icon, color, hidden state, sort order. |
@@ -1317,6 +1323,6 @@ Expected: commit is created only if lint produced edits.
 
 ## Self-Review Checklist
 
-- Spec coverage: This plan implements Phase 0 inventory/docs and starts Phase 1 with accounts plus opening-balance transactions. Categories, tags, full transaction recording, dashboard, imports, reports, settings, security, attachments, schedules, API, AI, and MCP remain intentionally outside this first implementation plan.
+- Spec coverage: This plan implements Phase 0 inventory/docs and starts Phase 1 with accounts plus opening-balance transactions. Categories, tags, full transaction recording, dashboard, imports, reports, settings, security, attachments, schedules, API, and AI remain intentionally outside this first implementation plan. MCP is excluded from the Rails rewrite scope.
 - Placeholder scan: no task asks the implementer to invent unnamed behavior; every new file has concrete content.
 - Type consistency: account fields use `account_category`, `account_structure`, `balance_cents`; transaction fields use `transaction_kind`, `source_amount_cents`, and `destination_amount_cents` across migration, models, services, views, and tests.
