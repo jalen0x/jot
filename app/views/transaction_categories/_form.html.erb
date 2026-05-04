@@ -1,4 +1,4 @@
-<%# locals: (transaction_category:) %>
+<%# locals: (transaction_category:, submit_label: "Create category", submitting_label: "Saving...") %>
 <% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
 
 <%= form_with model: transaction_category, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
@@ -27,10 +27,14 @@
     <%= render FormField::InputComponent.new(form: form, field: :color_hex, label: "Color", placeholder: "F97316", required: true) %>
   </div>
 
+  <% if transaction_category.persisted? %>
+    <%= render FormField::CheckboxComponent.new(form: form, field: :hidden, label: "Hidden") %>
+  <% end %>
+
   <%= render FormField::InputComponent.new(form: form, field: :comment, label: "Comment", type: :textarea) %>
 
   <div class="flex items-center justify-end gap-3">
     <%= render(ButtonComponent.new(variant: :secondary, href: transaction_categories_path)) { "Cancel" } %>
-    <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Saving..." })) { "Create category" } %>
+    <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: submitting_label })) { submit_label } %>
   </div>
 <% end %>

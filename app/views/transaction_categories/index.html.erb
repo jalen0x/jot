@@ -28,6 +28,10 @@
           <% if category.comment.present? %>
             <p class="mt-4 text-sm text-body"><%= category.comment %></p>
           <% end %>
+
+          <div class="mt-4 flex justify-end">
+            <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_category_path(category))) { "Edit" } %>
+          </div>
         </li>
       <% end %>
     </ul>
