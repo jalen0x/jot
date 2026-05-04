@@ -35,12 +35,33 @@ class TransactionImporterTest < ActiveSupport::TestCase
     assert_empty user.transactions
   end
 
+  test "imports balance adjustment rows without categories" do
+    user = create(:user)
+    account = create_account(user: user, name: "Cash", balance_cents: 0)
+    batch = ImportBatch.create!(user: user, source_filename: "transactions.csv", raw_csv: balance_adjustment_csv)
+
+    TransactionImporter.new.import_transactions(import_batch: batch)
+
+    assert_predicate batch.reload, :imported?
+    transaction = user.transactions.sole
+    assert_predicate transaction, :balance_adjustment?
+    assert_nil transaction.transaction_category
+    assert_equal 5_000, account.reload.balance_cents
+  end
+
   private
 
   def csv_for(comment:)
     <<~CSV
       Transacted At,Timezone UTC Offset Minutes,Type,Account,Destination Account,Category,Source Amount Cents,Destination Amount Cents,Tags,Hide Amount,Comment,Latitude,Longitude
       2026-05-03T10:00:00Z,480,expense,Cash,,Food,1200,0,Business,true,#{comment},37.7749,-122.4194
+    CSV
+  end
+
+  def balance_adjustment_csv
+    <<~CSV
+      Transacted At,Timezone UTC Offset Minutes,Type,Account,Destination Account,Category,Source Amount Cents,Destination Amount Cents,Tags,Hide Amount,Comment,Latitude,Longitude
+      2026-05-03T10:00:00Z,0,balance_adjustment,Cash,,,5000,0,,false,Opening balance,,
     CSV
   end
 

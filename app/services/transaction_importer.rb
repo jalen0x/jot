@@ -19,18 +19,19 @@ class TransactionImporter
   private
 
   def record_row(user, row)
+    transaction_kind = row.fetch("Type")
     account = find_account(user, row.fetch("Account"))
     destination_account = row["Destination Account"].present? ? find_account(user, row["Destination Account"]) : nil
-    category = find_category(user, row.fetch("Category"))
+    category = transaction_kind == "balance_adjustment" ? nil : find_category(user, row.fetch("Category"))
     tag_ids = tag_ids(user, row["Tags"])
 
     result = TransactionRecorder.new.record_transaction(
       user: user,
       attributes: {
-        transaction_kind: row.fetch("Type"),
+        transaction_kind: transaction_kind,
         account_id: account.id.to_s,
         destination_account_id: destination_account&.id.to_s,
-        transaction_category_id: category.id.to_s,
+        transaction_category_id: category&.id&.to_s,
         transacted_at: row.fetch("Transacted At"),
         timezone_utc_offset_minutes: row["Timezone UTC Offset Minutes"] || "0",
         source_amount_cents: row.fetch("Source Amount Cents"),

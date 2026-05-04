@@ -124,6 +124,8 @@ class TransactionRecorder
 
   def update_balances(transaction)
     case transaction.transaction_kind
+    when "balance_adjustment"
+      transaction.account.update!(balance_cents: transaction.account.balance_cents + transaction.source_amount_cents)
     when "income"
       transaction.account.update!(balance_cents: transaction.account.balance_cents + transaction.source_amount_cents)
     when "expense"

@@ -24,6 +24,27 @@ class DataExportTest < ActiveSupport::TestCase
     assert_equal "-122.4194", rows[0]["Longitude"]
   end
 
+  test "exports balance adjustments without a category" do
+    user = create(:user)
+    account = create_account(user: user, name: "Cash")
+    Transaction.create!(
+      user: user,
+      account: account,
+      transaction_kind: :balance_adjustment,
+      transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
+      timezone_utc_offset_minutes: 0,
+      source_amount_cents: 5_000,
+      destination_amount_cents: 0
+    )
+
+    csv = DataExport.new.transactions_csv(user: user)
+    rows = CSV.parse(csv, headers: true)
+
+    assert_equal 1, rows.length
+    assert_equal "balance_adjustment", rows[0]["Type"]
+    assert_nil rows[0]["Category"]
+  end
+
   private
 
   def create_transaction(user:, comment:, timezone_utc_offset_minutes: 0, hide_amount: false, geo_latitude: nil, geo_longitude: nil)
