@@ -103,6 +103,30 @@ class AccountsTest < ActionDispatch::IntegrationTest
     assert_equal 50_000, account.balance_cents
   end
 
+  test "deletes an account for current user" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking", balance_cents: 12_300)
+    sign_in user
+
+    delete account_path(account)
+
+    assert_response :see_other
+    assert_redirected_to accounts_path
+    assert_predicate account.reload, :discarded?
+  end
+
+  test "does not delete another user's account" do
+    user = create(:user)
+    other_user = create(:user)
+    account = create_account(user: other_user, name: "Other Checking", balance_cents: 50_000)
+    sign_in user
+
+    delete account_path(account)
+
+    assert_response :not_found
+    assert_predicate account.reload, :kept?
+  end
+
   private
 
   def create_account(user:, name:, balance_cents: 0)

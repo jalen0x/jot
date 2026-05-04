@@ -29,8 +29,9 @@
             <p class="mt-4 text-sm text-body"><%= account.comment %></p>
           <% end %>
 
-          <div class="mt-4 flex justify-end">
+          <div class="mt-4 flex justify-end gap-2">
             <%= render(ButtonComponent.new(variant: :secondary, href: edit_account_path(account))) { "Edit" } %>
+            <%= button_to "Delete", account_path(account), method: :delete, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
           </div>
         </li>
       <% end %>
