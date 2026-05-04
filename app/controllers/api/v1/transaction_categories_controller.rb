@@ -7,6 +7,14 @@ class Api::V1::TransactionCategoriesController < ApiController
     render json: { transaction_categories: categories.map(&:as_json) }
   end
 
+  # GET /api/v1/transaction_categories/:id
+  def show
+    category = scoped_category
+    authorize category
+
+    render json: { transaction_category: category.as_json }
+  end
+
   # POST /api/v1/transaction_categories
   def create
     authorize TransactionCategory

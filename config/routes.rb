@@ -17,7 +17,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :accounts, only: [ :index, :show, :create, :update, :destroy ]
-      resources :transaction_categories, only: [ :index, :create, :update, :destroy ]
+      resources :transaction_categories, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_tag_groups, only: [ :index, :create, :update, :destroy ]
       resources :transaction_tags, only: [ :index, :create, :update, :destroy ]
       resources :transaction_templates, only: [ :index, :create, :update, :destroy ]
