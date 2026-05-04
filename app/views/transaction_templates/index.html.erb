@@ -27,7 +27,9 @@
             </div>
 
             <div class="flex items-center gap-2">
-              <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading"><%= template.source_amount_cents %> cents</span>
+              <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
+                <%= number_to_currency(template.source_amount_cents / 100.0, unit: "") %> <%= template.account.currency_code %>
+              </span>
               <%= button_to "Delete", transaction_template_path(template), method: :delete, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
             </div>
           </div>
