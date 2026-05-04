@@ -19,6 +19,7 @@ Rails.application.routes.draw do
         resource :reconciliation_statement, only: :show, controller: "account_reconciliation_statements"
       end
       resource :user_preference, only: [ :show, :update ]
+      resource :system_version, only: :show
       resource :exchange_rate_catalog, only: :show
       resource :application_lock, only: [ :show, :create, :destroy ]
       resource :two_factor_setup, only: :create
