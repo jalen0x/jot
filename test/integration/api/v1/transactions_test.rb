@@ -769,6 +769,104 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal 10_000, new_account.reload.balance_cents
   end
 
+  test "moves all transactions between accounts for the token owner" do
+    user = create(:user)
+    from_account = create_account(user: user, name: "Checking", balance_cents: 4_500)
+    to_account = create_account(user: user, name: "Savings", balance_cents: 2_000)
+    other_account = create_account(user: user, name: "Brokerage", balance_cents: 20_000)
+    expense_category = create_category(user: user, name: "Food", category_type: :expense)
+    transfer_category = create_category(user: user, name: "Move", category_type: :transfer)
+    expense = create_transaction(
+      user: user,
+      account: from_account,
+      category: expense_category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    incoming_transfer = create_transaction(
+      user: user,
+      account: other_account,
+      destination_account: from_account,
+      category: transfer_category,
+      transaction_kind: :transfer,
+      transacted_at: Time.zone.parse("2026-05-04 13:00:00"),
+      source_amount_cents: 2_000,
+      destination_amount_cents: 2_000,
+      comment: "Refund"
+    )
+    raw_token = issue_token(user)
+
+    post move_between_accounts_api_v1_transactions_path,
+      params: { from_account_id: from_account.to_param, to_account_id: to_account.to_param },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :no_content
+    assert_empty response.body
+    assert_equal to_account, expense.reload.account
+    assert_equal other_account, incoming_transfer.reload.account
+    assert_equal to_account, incoming_transfer.destination_account
+    assert_equal 3_750, from_account.reload.balance_cents
+    assert_equal 2_750, to_account.reload.balance_cents
+    assert_equal 20_000, other_account.reload.balance_cents
+  end
+
+  test "does not move transactions when the target account is unavailable" do
+    user = create(:user)
+    other_user = create(:user)
+    from_account = create_account(user: user, name: "Checking", balance_cents: 4_500)
+    other_account = create_account(user: other_user, name: "Other Savings", balance_cents: 10_000)
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    transaction = create_transaction(
+      user: user,
+      account: from_account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    raw_token = issue_token(user)
+
+    post move_between_accounts_api_v1_transactions_path,
+      params: { from_account_id: from_account.to_param, to_account_id: other_account.to_param },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :not_found
+    assert_equal from_account, transaction.reload.account
+    assert_equal 4_500, from_account.reload.balance_cents
+    assert_equal 10_000, other_account.reload.balance_cents
+  end
+
+  test "does not move transactions when source and target accounts match" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking", balance_cents: 4_500)
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    transaction = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    raw_token = issue_token(user)
+
+    post move_between_accounts_api_v1_transactions_path,
+      params: { from_account_id: account.to_param, to_account_id: account.to_param },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_match(/From account must differ from to account/i, response.body)
+    assert_equal account, transaction.reload.account
+    assert_equal 4_500, account.reload.balance_cents
+  end
+
   test "batch adds tags to transactions for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking")

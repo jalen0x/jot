@@ -8,6 +8,7 @@ class TransactionPolicy < ApplicationPolicy
   def batch_delete? = user.present?
   def batch_update_category? = user.present?
   def batch_update_account? = user.present?
+  def move_between_accounts? = user.present?
   def batch_add_tags? = user.present?
   def batch_remove_tags? = user.present?
   def batch_clear_tags? = user.present?
