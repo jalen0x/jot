@@ -14,6 +14,19 @@ class ImportBatchesTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_user_session_path
   end
 
+  test "new page describes supported import formats" do
+    user = create(:user)
+    sign_in user
+
+    get new_import_batch_path
+
+    assert_response :success
+    assert_select "h1", text: /import transactions/i
+    assert_select "p", text: /Paste CSV or TSV/i
+    assert_select "label", text: /CSV or TSV/i
+    assert_select "a[href='#{data_management_path}']", text: /Cancel/i
+  end
+
   test "creates and processes an import batch" do
     user = create(:user)
     create_account(user: user, name: "Cash", balance_cents: 5_000)

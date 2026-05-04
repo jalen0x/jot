@@ -4,7 +4,7 @@
   <div class="mb-6">
     <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
     <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Import transactions</h1>
-    <p class="mt-2 text-sm text-body">Paste CSV exported from this Rails ledger.</p>
+    <p class="mt-2 text-sm text-body">Paste CSV or TSV exported from this Rails ledger.</p>
   </div>
 
   <%= form_with model: @import_batch, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
@@ -19,11 +19,11 @@
       </div>
     <% end %>
 
-    <%= render FormField::InputComponent.new(form: form, field: :source_filename, label: "Source filename", placeholder: "transactions.csv") %>
-    <%= render FormField::InputComponent.new(form: form, field: :raw_csv, label: "CSV", type: :textarea, required: true) %>
+    <%= render FormField::InputComponent.new(form: form, field: :source_filename, label: "Source filename", placeholder: "transactions.csv or transactions.tsv") %>
+    <%= render FormField::InputComponent.new(form: form, field: :raw_csv, label: "CSV or TSV", type: :textarea, required: true) %>
 
     <div class="flex justify-end gap-3">
-      <%= render(ButtonComponent.new(variant: :secondary, href: reports_path)) { "Cancel" } %>
+      <%= render(ButtonComponent.new(variant: :secondary, href: data_management_path)) { "Cancel" } %>
       <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Starting..." })) { "Start import" } %>
     </div>
   <% end %>
