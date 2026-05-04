@@ -5,6 +5,7 @@ class TransactionsController < ApplicationController
   def index
     authorize Transaction
     @transactions = LedgerQuery.new.list_transactions(user: current_user, filters: filter_params)
+    @transaction_datetime_format = transaction_datetime_format
     load_filter_collections
   end
 
@@ -95,5 +96,9 @@ class TransactionsController < ApplicationController
     @filter_accounts = current_user.accounts.kept.order(:display_order, :name)
     @filter_categories = current_user.transaction_categories.kept.order(:category_type, :display_order, :name)
     @filter_tags = current_user.transaction_tags.kept.order(:display_order, :name)
+  end
+
+  def transaction_datetime_format
+    current_user.user_preference&.datetime_format || UserPreference.datetime_format_for(UserPreference::DEFAULT_DATE_FORMAT)
   end
 end

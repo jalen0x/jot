@@ -24,6 +24,24 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_select "li", text: /Other Groceries/i, count: 0
   end
 
+  test "lists transaction dates using the signed-in user's date format" do
+    user = create(:user)
+    create_transaction(user: user, comment: "Groceries")
+    sign_in user
+
+    patch user_preference_path, params: {
+      user_preference: {
+        default_currency_code: "USD",
+        locale: "en",
+        date_format: "month_day_year"
+      }
+    }
+    get transactions_path
+
+    assert_response :success
+    assert_select "li", text: /05\/03\/2026 10:00/
+  end
+
   test "lists transaction location when present" do
     user = create(:user)
     transaction = create_transaction(user: user, comment: "Coffee")

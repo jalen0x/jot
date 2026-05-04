@@ -1650,6 +1650,8 @@ CREATE TABLE public.user_preferences (
     created_at timestamp(6) with time zone NOT NULL,
     updated_at timestamp(6) with time zone NOT NULL,
     locale text DEFAULT 'en'::text NOT NULL,
+    date_format text DEFAULT 'year_month_day'::text NOT NULL,
+    CONSTRAINT user_preferences_date_format_supported CHECK ((date_format = ANY (ARRAY['year_month_day'::text, 'month_day_year'::text, 'day_month_year'::text]))),
     CONSTRAINT user_preferences_default_currency_code_length CHECK ((char_length(default_currency_code) = 3)),
     CONSTRAINT user_preferences_locale_supported CHECK ((locale = ANY (ARRAY['en'::text, 'zh-CN'::text])))
 );
@@ -1681,6 +1683,13 @@ COMMENT ON COLUMN public.user_preferences.default_currency_code IS 'ISO 4217 def
 --
 
 COMMENT ON COLUMN public.user_preferences.locale IS 'I18n locale used for signed-in interface text';
+
+
+--
+-- Name: COLUMN user_preferences.date_format; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_preferences.date_format IS 'Preferred display order for signed-in date text';
 
 
 --
@@ -2776,6 +2785,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260505040000'),
 ('20260505030000'),
 ('20260504103000'),
 ('20260504100000'),

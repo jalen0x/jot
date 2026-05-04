@@ -15,6 +15,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     user_preference_json = body.fetch("user_preference")
     assert_equal "EUR", user_preference_json.fetch("default_currency_code")
     assert_equal "en", user_preference_json["locale"]
+    assert_equal "year_month_day", user_preference_json["date_format"]
     refute_includes user_preference_json.keys, "user_id"
   end
 
@@ -23,7 +24,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     raw_token = issue_token(user)
 
     patch api_v1_user_preference_path,
-      params: { user_preference: { default_currency_code: "cad", locale: "zh-CN" } },
+      params: { user_preference: { default_currency_code: "cad", locale: "zh-CN", date_format: "day_month_year" } },
       headers: json_headers(raw_token),
       as: :json
 
@@ -33,6 +34,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     user_preference_json = JSON.parse(response.body).fetch("user_preference")
     assert_equal "CAD", user_preference_json.fetch("default_currency_code")
     assert_equal "zh-CN", user_preference_json["locale"]
+    assert_equal "day_month_year", user_preference_json["date_format"]
   end
 
   test "rejects invalid user preference updates" do
@@ -62,6 +64,20 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_content
     assert_match(/Locale/i, response.body)
+  end
+
+  test "rejects unsupported date format updates" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD")
+    raw_token = issue_token(user)
+
+    patch api_v1_user_preference_path,
+      params: { user_preference: { default_currency_code: "usd", locale: "en", date_format: "iso_week" } },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_match(/Date format/i, response.body)
   end
 
   private

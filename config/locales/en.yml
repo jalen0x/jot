@@ -14,6 +14,8 @@ en:
       save_failed: "Preferences could not be saved."
       default_currency_code: "Default currency code"
       default_currency_help: "Used as the starting currency on new account forms."
+      date_format: "Date format"
+      date_format_help: "Used when displaying transaction dates."
       locale: "Language"
       locale_help: "Used for signed-in interface text."
       cancel: "Cancel"
@@ -22,6 +24,10 @@ en:
       locales:
         en: "English"
         zh-CN: "Simplified Chinese"
+      date_formats:
+        year_month_day: "YYYY-MM-DD"
+        month_day_year: "MM/DD/YYYY"
+        day_month_year: "DD/MM/YYYY"
     update:
       updated: "Preferences updated."
   users:

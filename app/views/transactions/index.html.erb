@@ -47,7 +47,7 @@
             <div>
               <h2 class="text-lg font-semibold text-heading"><%= transaction.comment.presence || transaction.transaction_kind.humanize %></h2>
               <p class="mt-1 text-sm text-body-subtle">
-                <%= l(transaction.transacted_at, format: :long) %> · <%= transaction.account.name %> · <%= transaction.transaction_category.name %>
+                <%= l(transaction.transacted_at, format: @transaction_datetime_format) %> · <%= transaction.account.name %> · <%= transaction.transaction_category.name %>
               </p>
               <% if transaction.geo_latitude.present? && transaction.geo_longitude.present? %>
                 <p class="mt-1 text-sm text-body-subtle"><%= transaction.geo_latitude %>, <%= transaction.geo_longitude %></p>
