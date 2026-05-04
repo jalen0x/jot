@@ -14,7 +14,18 @@
   <div class="grid gap-4 md:grid-cols-3">
     <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
       <p class="text-sm font-medium text-body-subtle">Total balance</p>
-      <p class="mt-2 text-3xl font-semibold text-heading"><%= number_to_currency(@summary.total_balance_cents / 100.0, unit: "") %></p>
+      <div class="mt-2 space-y-1">
+        <% if @summary.account_balances.any? %>
+          <% @summary.account_balances.each do |balance| %>
+            <p class="text-3xl font-semibold text-heading">
+              <%= number_to_currency(balance.balance_cents / 100.0, unit: "") %>
+              <span class="text-base font-medium text-body-subtle"><%= balance.currency_code %></span>
+            </p>
+          <% end %>
+        <% else %>
+          <p class="text-3xl font-semibold text-heading"><%= number_to_currency(0, unit: "") %></p>
+        <% end %>
+      </div>
     </div>
     <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
       <p class="text-sm font-medium text-body-subtle">Accounts</p>
