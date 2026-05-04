@@ -14,6 +14,7 @@
 
 - Create `app/services/transaction_tag_updater.rb`: update tag name, hidden flag, and optional group with ownership validation.
 - Modify `app/controllers/api/v1/transaction_tags_controller.rb`: add `update` and `destroy` actions.
+- Modify `app/policies/transaction_tag_policy.rb`: authorize update/destroy for owned tags.
 - Modify `config/routes.rb`: include `:update` and `:destroy` for API transaction tags.
 - Modify `test/integration/api/v1/transaction_tags_test.rb`: cover update, ungroup, destroy, cross-user update/delete, and another user's group rejection.
 
@@ -279,10 +280,11 @@ Expected: still FAIL because controller/routes are not wired.
 
 ---
 
-### Task 3: Wire Routes And Controller
+### Task 3: Wire Routes, Policy, And Controller
 
 **Files:**
 - Modify: `config/routes.rb`
+- Modify: `app/policies/transaction_tag_policy.rb`
 - Modify: `app/controllers/api/v1/transaction_tags_controller.rb`
 
 - [ ] **Step 1: Add routes**
@@ -299,7 +301,20 @@ to:
 resources :transaction_tags, only: [ :index, :create, :update, :destroy ]
 ```
 
-- [ ] **Step 2: Add controller actions**
+- [ ] **Step 2: Add policy authorization**
+
+In `app/policies/transaction_tag_policy.rb`, add owned-record checks:
+
+```ruby
+def update? = owns_record?
+def destroy? = owns_record?
+
+private
+
+def owns_record? = user.present? && record.user_id == user.id
+```
+
+- [ ] **Step 3: Add controller actions**
 
 In `app/controllers/api/v1/transaction_tags_controller.rb`, add after `create`:
 
@@ -347,7 +362,7 @@ to:
 @tag_params ||= params.expect(transaction_tag: [ :name, :transaction_tag_group_id, :hidden ])
 ```
 
-- [ ] **Step 3: Run focused tests**
+- [ ] **Step 4: Run focused tests**
 
 Run:
 
@@ -379,7 +394,7 @@ Expected: PASS with zero failures/errors.
 Run:
 
 ```bash
-mise exec -- bin/rubocop app/services/transaction_tag_updater.rb app/controllers/api/v1/transaction_tags_controller.rb test/integration/api/v1/transaction_tags_test.rb config/routes.rb
+mise exec -- bin/rubocop app/services/transaction_tag_updater.rb app/controllers/api/v1/transaction_tags_controller.rb app/policies/transaction_tag_policy.rb test/integration/api/v1/transaction_tags_test.rb config/routes.rb
 ```
 
 Expected: `no offenses detected`.
@@ -389,7 +404,7 @@ Expected: `no offenses detected`.
 Run:
 
 ```bash
-git add app/services/transaction_tag_updater.rb app/controllers/api/v1/transaction_tags_controller.rb config/routes.rb test/integration/api/v1/transaction_tags_test.rb
+git add app/services/transaction_tag_updater.rb app/controllers/api/v1/transaction_tags_controller.rb app/policies/transaction_tag_policy.rb config/routes.rb test/integration/api/v1/transaction_tags_test.rb
 git commit --no-gpg-sign -m "feat: add transaction tag lifecycle api"
 ```
 
