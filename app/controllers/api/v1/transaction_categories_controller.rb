@@ -21,10 +21,32 @@ class Api::V1::TransactionCategoriesController < ApiController
     end
   end
 
+  # PATCH/PUT /api/v1/transaction_categories/:id
+  def update
+    category = scoped_category
+    authorize category
+    result = TransactionCategoryUpdater.new.update_category(category: category, attributes: category_params)
+
+    if result.updated?
+      render json: { transaction_category: result.category.as_json }
+    else
+      render json: { errors: result.category.errors.full_messages }, status: :unprocessable_content
+    end
+  end
+
+  # DELETE /api/v1/transaction_categories/:id
+  def destroy
+    category = scoped_category
+    authorize category
+    category.discard!
+
+    head :no_content
+  end
+
   private
 
   def category_params
-    @category_params ||= params.expect(transaction_category: [ :name, :category_type, :parent_category_id, :icon_key, :color_hex, :comment ])
+    @category_params ||= params.expect(transaction_category: [ :name, :category_type, :parent_category_id, :icon_key, :color_hex, :comment, :hidden ])
   end
 
   def parent_category_for(category)
@@ -39,5 +61,9 @@ class Api::V1::TransactionCategoriesController < ApiController
 
   def next_display_order(parent_category)
     current_user.transaction_categories.kept.where(parent_category: parent_category).maximum(:display_order).to_i + 1
+  end
+
+  def scoped_category
+    policy_scope(TransactionCategory).kept.find(params[:id])
   end
 end
