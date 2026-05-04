@@ -28,19 +28,42 @@ class ImportBatchParserJobTest < ActiveJob::TestCase
     user = create(:user)
     batch = ImportBatch.create!(user: user, source_filename: "transactions.json", raw_csv: "{}")
 
-    perform_error = nil
-    begin
-      ImportBatchParserJob.perform_now(batch.id)
-    rescue StandardError => error
-      perform_error = error
-    end
+    perform_error = perform_parser_job_error_for(batch)
 
-    assert_nil perform_error, "expected invalid JSON to fail the batch, but raised #{perform_error.inspect}"
+    assert_nil perform_error, "expected JSON import to fail the batch, but raised #{perform_error.inspect}"
     assert_predicate batch.reload, :failed?
     assert_equal "JSON import must include a transactions array", batch.error_message
   end
 
+  test "marks json imports with missing required transaction fields as failed" do
+    user = create(:user)
+    raw_json = {
+      transactions: [
+        {
+          transacted_at: "2026-05-03T10:00:00Z",
+          transaction_kind: "expense",
+          transaction_category_name: "Food",
+          source_amount_cents: 1200
+        }
+      ]
+    }.to_json
+    batch = ImportBatch.create!(user: user, source_filename: "transactions.json", raw_csv: raw_json)
+
+    perform_error = perform_parser_job_error_for(batch)
+
+    assert_nil perform_error, "expected JSON import to fail the batch, but raised #{perform_error.inspect}"
+    assert_predicate batch.reload, :failed?
+    assert_equal "JSON transaction is missing account_name", batch.error_message
+  end
+
   private
+
+  def perform_parser_job_error_for(batch)
+    ImportBatchParserJob.perform_now(batch.id)
+    nil
+  rescue StandardError => error
+    error
+  end
 
   def csv_for(account:)
     <<~CSV

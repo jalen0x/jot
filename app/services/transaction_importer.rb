@@ -42,13 +42,13 @@ class TransactionImporter
 
     transactions.map do |row|
       {
-        "Transacted At" => row.fetch("transacted_at"),
+        "Transacted At" => json_field(row, "transacted_at"),
         "Timezone UTC Offset Minutes" => row["timezone_utc_offset_minutes"] || "0",
-        "Type" => row.fetch("transaction_kind"),
-        "Account" => row.fetch("account_name"),
+        "Type" => json_field(row, "transaction_kind"),
+        "Account" => json_field(row, "account_name"),
         "Destination Account" => row["destination_account_name"],
         "Category" => row["transaction_category_name"],
-        "Source Amount Cents" => row.fetch("source_amount_cents"),
+        "Source Amount Cents" => json_field(row, "source_amount_cents"),
         "Destination Amount Cents" => row["destination_amount_cents"] || "0",
         "Tags" => Array(row["transaction_tag_names"]).join("; "),
         "Hide Amount" => row["hide_amount"] || "0",
@@ -57,6 +57,12 @@ class TransactionImporter
         "Longitude" => row["geo_longitude"]
       }
     end
+  end
+
+  def json_field(row, key)
+    row.fetch(key)
+  rescue KeyError
+    raise ImportError, "JSON transaction is missing #{key}"
   end
 
   def record_row(user, row)
