@@ -56,6 +56,64 @@ class ApiV1TransactionTemplatesTest < ActionDispatch::IntegrationTest
     refute_includes scheduled_json.keys, "user_id"
   end
 
+  test "shows one transaction template for the token owner" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Bills", category_type: :expense)
+    tag = create_tag(user: user, name: "Rent")
+    template = create_template(
+      user: user,
+      account: account,
+      category: category,
+      name: "Rent",
+      template_kind: :scheduled,
+      display_order: 1,
+      schedule_frequency: :monthly,
+      schedule_rule: "-1",
+      schedule_start_on: Date.new(2026, 5, 1),
+      scheduled_at_minutes: 540,
+      timezone_utc_offset_minutes: 480,
+      tags: [ tag ]
+    )
+    raw_token = issue_token(user)
+
+    get api_v1_transaction_template_path(template), headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ "transaction_template" ], body.keys
+    template_json = body.fetch("transaction_template")
+    assert_equal template.to_param, template_json.fetch("id")
+    assert_equal "Rent", template_json.fetch("name")
+    assert_equal "scheduled", template_json.fetch("template_kind")
+    assert_equal "expense", template_json.fetch("transaction_kind")
+    assert_equal account.to_param, template_json.fetch("account_id")
+    assert_equal category.to_param, template_json.fetch("transaction_category_id")
+    assert_equal "monthly", template_json.fetch("schedule_frequency")
+    assert_equal "-1", template_json.fetch("schedule_rule")
+    assert_equal "2026-05-01", template_json.fetch("schedule_start_on")
+    assert_equal [ tag.to_param ], template_json.fetch("transaction_tag_ids")
+    refute_includes template_json.keys, "user_id"
+  end
+
+  test "does not show another user's transaction template" do
+    user = create(:user)
+    other_user = create(:user)
+    template = create_template(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Bills", category_type: :expense),
+      name: "Other Rent",
+      template_kind: :scheduled,
+      display_order: 1
+    )
+    raw_token = issue_token(user)
+
+    get api_v1_transaction_template_path(template), headers: json_headers(raw_token)
+
+    assert_response :not_found
+  end
+
   test "creates a scheduled transaction template for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking")

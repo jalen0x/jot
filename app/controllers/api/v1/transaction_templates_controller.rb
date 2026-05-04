@@ -7,6 +7,14 @@ class Api::V1::TransactionTemplatesController < ApiController
     render json: { transaction_templates: templates.map(&:as_json) }
   end
 
+  # GET /api/v1/transaction_templates/:id
+  def show
+    template = scoped_template
+    authorize template
+
+    render json: { transaction_template: template.as_json }
+  end
+
   # POST /api/v1/transaction_templates
   def create
     authorize TransactionTemplate
