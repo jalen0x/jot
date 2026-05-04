@@ -6,16 +6,39 @@ class Api::V1::DataExportsController < ApiController
     authorize :data_export
     file_format = params[:file_format].presence || "csv"
 
-    unless %w[csv tsv].include?(file_format)
-      render json: { errors: [ "File format must be csv or tsv" ] }, status: :unprocessable_content
+    unless %w[csv tsv json].include?(file_format)
+      render json: { errors: [ "File format must be csv, tsv, or json" ] }, status: :unprocessable_content
       return
     end
 
     export = DataExport.new
-    tsv = file_format == "tsv"
 
-    send_data tsv ? export.transactions_tsv(user: current_user) : export.transactions_csv(user: current_user),
-      filename: "transactions-#{Time.zone.today.iso8601}.#{tsv ? "tsv" : "csv"}",
-      type: tsv ? "text/tab-separated-values; charset=utf-8" : "text/csv; charset=utf-8"
+    send_data export_data(export, file_format),
+      filename: "transactions-#{Time.zone.today.iso8601}.#{file_format}",
+      type: export_type(file_format)
+  end
+
+  private
+
+  def export_data(export, file_format)
+    case file_format
+    when "tsv"
+      export.transactions_tsv(user: current_user)
+    when "json"
+      export.transactions_json(user: current_user)
+    else
+      export.transactions_csv(user: current_user)
+    end
+  end
+
+  def export_type(file_format)
+    case file_format
+    when "tsv"
+      "text/tab-separated-values; charset=utf-8"
+    when "json"
+      "application/json; charset=utf-8"
+    else
+      "text/csv; charset=utf-8"
+    end
   end
 end

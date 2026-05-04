@@ -34,6 +34,24 @@ class ApiV1DataExportsTest < ActionDispatch::IntegrationTest
     assert_equal [ "Client lunch" ], rows.map { |row| row["Comment"] }
   end
 
+  test "exports the token owner's transaction JSON" do
+    user = create(:user)
+    other_user = create(:user)
+    create_transaction(user: user, comment: "Client lunch")
+    create_transaction(user: other_user, comment: "Other lunch")
+    raw_token = issue_token(user)
+
+    post api_v1_data_exports_path,
+      params: { file_format: "json" },
+      headers: json_headers(raw_token)
+
+    assert_response :success
+    assert_equal "application/json", response.media_type
+    assert_match(/transactions-\d{4}-\d{2}-\d{2}\.json/, response.headers.fetch("Content-Disposition"))
+    transactions = JSON.parse(response.body).fetch("transactions")
+    assert_equal [ "Client lunch" ], transactions.map { |transaction| transaction.fetch("comment") }
+  end
+
   test "requires token authentication" do
     post api_v1_data_exports_path, headers: { "Accept" => "text/csv" }
 
@@ -50,7 +68,7 @@ class ApiV1DataExportsTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_content
     body = JSON.parse(response.body)
-    assert_equal [ "File format must be csv or tsv" ], body.fetch("errors")
+    assert_equal [ "File format must be csv, tsv, or json" ], body.fetch("errors")
   end
 
   private
@@ -69,6 +87,13 @@ class ApiV1DataExportsTest < ActionDispatch::IntegrationTest
   def tsv_headers(raw_token)
     {
       "Accept" => "text/tab-separated-values",
+      "Authorization" => "Bearer #{raw_token}"
+    }
+  end
+
+  def json_headers(raw_token)
+    {
+      "Accept" => "application/json",
       "Authorization" => "Bearer #{raw_token}"
     }
   end

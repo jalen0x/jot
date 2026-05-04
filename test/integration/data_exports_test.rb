@@ -38,6 +38,22 @@ class DataExportsTest < ActionDispatch::IntegrationTest
     assert_equal [ "Client lunch" ], rows.map { |row| row["Comment"] }
   end
 
+  test "downloads current user's transaction JSON" do
+    user = create(:user)
+    other_user = create(:user)
+    create_transaction(user: user, comment: "Client lunch")
+    create_transaction(user: other_user, comment: "Other lunch")
+    sign_in user
+
+    post data_exports_path, params: { file_format: "json" }
+
+    assert_response :success
+    assert_equal "application/json", response.media_type
+    assert_match(/transactions-\d{4}-\d{2}-\d{2}\.json/, response.headers.fetch("Content-Disposition"))
+    transactions = JSON.parse(response.body).fetch("transactions")
+    assert_equal [ "Client lunch" ], transactions.map { |transaction| transaction.fetch("comment") }
+  end
+
   test "rejects unsupported export formats" do
     user = create(:user)
     sign_in user
@@ -45,7 +61,7 @@ class DataExportsTest < ActionDispatch::IntegrationTest
     post data_exports_path, params: { file_format: "xlsx" }
 
     assert_response :unprocessable_content
-    assert_match(/File format must be csv or tsv/, response.body)
+    assert_match(/File format must be csv, tsv, or json/, response.body)
   end
 
   private
