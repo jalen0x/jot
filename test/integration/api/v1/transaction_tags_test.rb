@@ -101,7 +101,8 @@ class ApiV1TransactionTagsTest < ActionDispatch::IntegrationTest
         transaction_tag: {
           name: "Flights",
           transaction_tag_group_id: new_group.to_param,
-          hidden: "true"
+          hidden: "true",
+          display_order: "5"
         }
       },
       headers: json_headers(raw_token),
@@ -112,12 +113,14 @@ class ApiV1TransactionTagsTest < ActionDispatch::IntegrationTest
     assert_equal "Flights", tag.name
     assert_equal new_group, tag.transaction_tag_group
     assert_equal true, tag.hidden
+    assert_equal 5, tag.display_order
 
     tag_json = JSON.parse(response.body).fetch("transaction_tag")
     assert_equal tag.to_param, tag_json.fetch("id")
     assert_equal "Flights", tag_json.fetch("name")
     assert_equal new_group.to_param, tag_json.fetch("transaction_tag_group_id")
     assert_equal true, tag_json.fetch("hidden")
+    assert_equal 5, tag_json.fetch("display_order")
     refute_includes tag_json.keys, "user_id"
   end
 
