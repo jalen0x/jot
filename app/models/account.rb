@@ -44,7 +44,11 @@ class Account < ApplicationRecord
       currency_code: currency_code,
       balance_cents: balance_cents,
       parent_account_id: parent_account&.to_param,
-      hidden: hidden
+      hidden: hidden,
+      display_order: display_order,
+      icon_key: icon_key,
+      color_hex: color_hex,
+      comment: comment
     }
   end
 end

@@ -23,6 +23,27 @@ class Api::V1::AccountsController < ApiController
     end
   end
 
+  # PATCH/PUT /api/v1/accounts/:id
+  def update
+    account = scoped_account
+    authorize account
+
+    if account.update(account_update_params)
+      render json: { account: account.as_json }
+    else
+      render json: { errors: account.errors.full_messages }, status: :unprocessable_content
+    end
+  end
+
+  # DELETE /api/v1/accounts/:id
+  def destroy
+    account = scoped_account
+    authorize account
+    account.discard!
+
+    head :no_content
+  end
+
   private
 
   def account_attributes
@@ -42,11 +63,28 @@ class Api::V1::AccountsController < ApiController
     ])
   end
 
+  def account_update_params
+    params.expect(account: [
+      :name,
+      :account_category,
+      :account_structure,
+      :icon_key,
+      :color_hex,
+      :currency_code,
+      :comment,
+      :hidden
+    ])
+  end
+
   def opening_balance_cents
     account_params[:opening_balance_cents].to_i
   end
 
   def next_display_order
     current_user.accounts.kept.where(parent_account_id: nil).maximum(:display_order).to_i + 1
+  end
+
+  def scoped_account
+    policy_scope(Account).kept.find(params[:id])
   end
 end

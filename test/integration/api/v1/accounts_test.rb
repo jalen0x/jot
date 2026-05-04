@@ -22,6 +22,11 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
     assert_equal "single_account", account_json.fetch("account_structure")
     assert_equal "USD", account_json.fetch("currency_code")
     assert_equal 12_300, account_json.fetch("balance_cents")
+    assert_equal 1, account_json.fetch("display_order")
+    assert_equal 1, account_json.fetch("icon_key")
+    assert_equal "22C55E", account_json.fetch("color_hex")
+    assert_equal false, account_json.fetch("hidden")
+    assert_equal "Wallet", account_json.fetch("comment")
     refute_includes account_json.keys, "user_id"
   end
 
@@ -65,7 +70,136 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
     assert_equal account.to_param, account_json.fetch("id")
     assert_equal "Checking", account_json.fetch("name")
     assert_equal 12_300, account_json.fetch("balance_cents")
+    assert_equal "checking_account", account_json.fetch("account_category")
+    assert_equal "single_account", account_json.fetch("account_structure")
+    assert_equal 2, account_json.fetch("icon_key")
+    assert_equal "22C55E", account_json.fetch("color_hex")
+    assert_equal "USD", account_json.fetch("currency_code")
+    assert_equal "Main bank", account_json.fetch("comment")
     refute_includes account_json.keys, "user_id"
+  end
+
+  test "updates an account for the token owner" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking", balance_cents: 12_300)
+    raw_token = issue_token(user)
+
+    patch api_v1_account_path(account),
+      params: {
+        account: {
+          name: "Everyday Checking",
+          account_category: "savings_account",
+          account_structure: "single_account",
+          icon_key: "3",
+          color_hex: "#f97316",
+          currency_code: "eur",
+          comment: "Primary account",
+          hidden: "true"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :success
+    account.reload
+    assert_equal "Everyday Checking", account.name
+    assert_equal "savings_account", account.account_category
+    assert_equal "single_account", account.account_structure
+    assert_equal 3, account.icon_key
+    assert_equal "F97316", account.color_hex
+    assert_equal "EUR", account.currency_code
+    assert_equal "Primary account", account.comment
+    assert_equal true, account.hidden
+    assert_equal 12_300, account.balance_cents
+
+    account_json = JSON.parse(response.body).fetch("account")
+    assert_equal account.to_param, account_json.fetch("id")
+    assert_equal "Everyday Checking", account_json.fetch("name")
+    assert_equal "savings_account", account_json.fetch("account_category")
+    assert_equal 3, account_json.fetch("icon_key")
+    assert_equal "F97316", account_json.fetch("color_hex")
+    assert_equal "EUR", account_json.fetch("currency_code")
+    assert_equal "Primary account", account_json.fetch("comment")
+    assert_equal true, account_json.fetch("hidden")
+    assert_equal 12_300, account_json.fetch("balance_cents")
+    refute_includes account_json.keys, "user_id"
+  end
+
+  test "rejects invalid account update params" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking", balance_cents: 12_300)
+    raw_token = issue_token(user)
+
+    patch api_v1_account_path(account),
+      params: {
+        account: {
+          name: "",
+          account_category: "checking_account",
+          account_structure: "single_account",
+          icon_key: "3",
+          color_hex: "F97316",
+          currency_code: "USD",
+          comment: "Primary account",
+          hidden: "false"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_equal "Checking", account.reload.name
+    assert_match(/Name/i, response.body)
+  end
+
+  test "does not update another user's account" do
+    user = create(:user)
+    other_user = create(:user)
+    account = create_account(user: other_user, name: "Other", balance_cents: 50_000)
+    raw_token = issue_token(user)
+
+    patch api_v1_account_path(account),
+      params: {
+        account: {
+          name: "Changed",
+          account_category: "checking_account",
+          account_structure: "single_account",
+          icon_key: "3",
+          color_hex: "F97316",
+          currency_code: "USD",
+          comment: "Changed",
+          hidden: "true"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :not_found
+    assert_equal "Other", account.reload.name
+    assert_equal false, account.hidden
+  end
+
+  test "deletes an account for the token owner" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking", balance_cents: 12_300)
+    raw_token = issue_token(user)
+
+    delete api_v1_account_path(account), headers: json_headers(raw_token)
+
+    assert_response :no_content
+    assert_empty response.body
+    assert_predicate account.reload, :discarded?
+  end
+
+  test "does not delete another user's account" do
+    user = create(:user)
+    other_user = create(:user)
+    account = create_account(user: other_user, name: "Other", balance_cents: 50_000)
+    raw_token = issue_token(user)
+
+    delete api_v1_account_path(account), headers: json_headers(raw_token)
+
+    assert_response :not_found
+    refute_predicate account.reload, :discarded?
   end
 
   test "rejects invalid account params" do
@@ -117,7 +251,8 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
       color_hex: "22C55E",
       currency_code: "USD",
       balance_cents: balance_cents,
-      display_order: 1
+      display_order: 1,
+      comment: "Wallet"
     )
   end
 end
