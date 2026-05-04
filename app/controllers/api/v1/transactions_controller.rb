@@ -88,6 +88,22 @@ class Api::V1::TransactionsController < ApiController
     end
   end
 
+  # POST /api/v1/transactions/move_between_accounts
+  def move_between_accounts
+    authorize Transaction
+    result = TransactionAccountMover.new.move_between_accounts(
+      user: current_user,
+      from_account: move_from_account,
+      to_account: move_to_account
+    )
+
+    if result.moved?
+      head :no_content
+    else
+      render json: { errors: result.errors }, status: :unprocessable_content
+    end
+  end
+
   # POST /api/v1/transactions/batch_add_tags
   def batch_add_tags
     authorize Transaction
@@ -173,6 +189,22 @@ class Api::V1::TransactionsController < ApiController
 
   def batch_update_account_id
     params[:account_id].to_s
+  end
+
+  def move_from_account
+    current_user.accounts.kept.find(Account.decode_prefix_id(move_from_account_id) || move_from_account_id)
+  end
+
+  def move_from_account_id
+    params[:from_account_id].to_s
+  end
+
+  def move_to_account
+    current_user.accounts.kept.find(Account.decode_prefix_id(move_to_account_id) || move_to_account_id)
+  end
+
+  def move_to_account_id
+    params[:to_account_id].to_s
   end
 
   def batch_update_destination_account?
