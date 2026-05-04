@@ -7,6 +7,14 @@ class Api::V1::TransactionsController < ApiController
     render json: { transactions: transactions.map(&:as_json) }
   end
 
+  # GET /api/v1/transactions/:id
+  def show
+    transaction = scoped_transaction
+    authorize transaction
+
+    render json: { transaction: transaction.as_json }
+  end
+
   # POST /api/v1/transactions
   def create
     authorize Transaction

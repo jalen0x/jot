@@ -74,6 +74,59 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     refute_includes income_json.keys, "user_id"
   end
 
+  test "shows one transaction for the token owner" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    tag = create_tag(user: user, name: "Meals")
+    transaction = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch",
+      tags: [ tag ],
+      geo_latitude: 37.7749,
+      geo_longitude: -122.4194
+    )
+    raw_token = issue_token(user)
+
+    get api_v1_transaction_path(transaction), headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ "transaction" ], body.keys
+    transaction_json = body.fetch("transaction")
+    assert_equal transaction.to_param, transaction_json.fetch("id")
+    assert_equal "expense", transaction_json.fetch("transaction_kind")
+    assert_equal account.to_param, transaction_json.fetch("account_id")
+    assert_equal category.to_param, transaction_json.fetch("transaction_category_id")
+    assert_equal [ tag.to_param ], transaction_json.fetch("transaction_tag_ids")
+    assert_equal({ "latitude" => "37.7749", "longitude" => "-122.4194" }, transaction_json.fetch("geo_location"))
+    refute_includes transaction_json.keys, "user_id"
+  end
+
+  test "does not show another user's transaction" do
+    user = create(:user)
+    other_user = create(:user)
+    transaction = create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Food", category_type: :expense),
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Other Lunch"
+    )
+    raw_token = issue_token(user)
+
+    get api_v1_transaction_path(transaction), headers: json_headers(raw_token)
+
+    assert_response :not_found
+  end
+
   test "filters transactions by kind" do
     user = create(:user)
     account = create_account(user: user, name: "Checking")
