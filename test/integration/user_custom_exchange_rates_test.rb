@@ -22,6 +22,7 @@ class UserCustomExchangeRatesTest < ActionDispatch::IntegrationTest
     assert_match "EUR", response.body
     refute_match "GBP", response.body
     refute_match "JPY", response.body
+    assert_select "a[href='#{edit_user_custom_exchange_rate_path(user.user_custom_exchange_rates.kept.sole)}']", text: /Edit/i
     assert_select "form[action='#{user_custom_exchange_rate_path(user.user_custom_exchange_rates.kept.sole)}'][data-turbo-confirm]"
   end
 
@@ -66,6 +67,46 @@ class UserCustomExchangeRatesTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_content
     assert_match(/must differ from default currency/i, response.body)
+  end
+
+  test "edits and updates the signed-in user's exchange rate" do
+    user = create(:user)
+    exchange_rate = create_rate(user: user, currency_code: "EUR", rate: "1.25")
+    sign_in user
+
+    get edit_user_custom_exchange_rate_path(exchange_rate)
+
+    assert_response :success
+    assert_match(/EUR/, response.body)
+
+    patch user_custom_exchange_rate_path(exchange_rate), params: {
+      user_custom_exchange_rate: {
+        currency_code: "gbp",
+        rate: "0.8"
+      }
+    }
+
+    assert_redirected_to user_custom_exchange_rates_path
+    exchange_rate.reload
+    assert_equal "GBP", exchange_rate.currency_code
+    assert_equal 80_000_000, exchange_rate.rate_scaled
+  end
+
+  test "does not update another user's exchange rate" do
+    user = create(:user)
+    exchange_rate = create_rate(user: create(:user), currency_code: "EUR", rate: "1.25")
+    sign_in user
+
+    patch user_custom_exchange_rate_path(exchange_rate), params: {
+      user_custom_exchange_rate: {
+        currency_code: "gbp",
+        rate: "0.8"
+      }
+    }
+
+    assert_response :not_found
+    assert_equal "EUR", exchange_rate.reload.currency_code
+    assert_equal 125_000_000, exchange_rate.rate_scaled
   end
 
   test "destroys only the signed-in user's exchange rate" do

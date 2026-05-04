@@ -49,6 +49,22 @@ zh-CN:
       updated: "头像已更新。"
     destroy:
       removed: "头像已移除。"
+  user_custom_exchange_rates:
+    index:
+      edit: "编辑"
+    edit:
+      title: "编辑 %{currency_code} 汇率"
+      eyebrow: "汇率"
+      heading: "编辑 %{currency_code}"
+      description: "更新此汇率，相对于你的默认货币 %{default_currency_code}。"
+      save_failed: "汇率无法保存。"
+      currency_code: "货币"
+      rate: "汇率"
+      cancel: "取消"
+      save: "保存汇率"
+      saving: "保存中..."
+    update:
+      updated: "汇率已更新。"
   user_preferences:
     show:
       title: "偏好设置"

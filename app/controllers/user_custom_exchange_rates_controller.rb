@@ -22,9 +22,29 @@ class UserCustomExchangeRatesController < ApplicationController
     end
   end
 
+  # GET /user_custom_exchange_rates/:id/edit
+  def edit
+    @user_custom_exchange_rate = scoped_exchange_rate
+    authorize @user_custom_exchange_rate
+    load_default_currency_code
+  end
+
+  # PATCH/PUT /user_custom_exchange_rates/:id
+  def update
+    @user_custom_exchange_rate = scoped_exchange_rate
+    authorize @user_custom_exchange_rate
+
+    if @user_custom_exchange_rate.update(user_custom_exchange_rate_params)
+      redirect_to user_custom_exchange_rates_path, notice: t(".updated")
+    else
+      load_default_currency_code
+      render :edit, status: :unprocessable_content
+    end
+  end
+
   # DELETE /user_custom_exchange_rates/:id
   def destroy
-    exchange_rate = policy_scope(UserCustomExchangeRate).kept.find(params[:id])
+    exchange_rate = scoped_exchange_rate
     authorize exchange_rate
     exchange_rate.discard!
 
@@ -39,6 +59,14 @@ class UserCustomExchangeRatesController < ApplicationController
 
   def load_exchange_rates
     @exchange_rates = policy_scope(UserCustomExchangeRate).kept.order(:currency_code)
+    load_default_currency_code
+  end
+
+  def load_default_currency_code
     @default_currency_code = current_user.user_preference&.default_currency_code || "USD"
+  end
+
+  def scoped_exchange_rate
+    policy_scope(UserCustomExchangeRate).kept.find(params[:id])
   end
 end

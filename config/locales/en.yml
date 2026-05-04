@@ -13,6 +13,22 @@ en:
       updated: "Avatar updated."
     destroy:
       removed: "Avatar removed."
+  user_custom_exchange_rates:
+    index:
+      edit: "Edit"
+    edit:
+      title: "Edit %{currency_code} exchange rate"
+      eyebrow: "Exchange rates"
+      heading: "Edit %{currency_code}"
+      description: "Update this rate relative to your default currency, %{default_currency_code}."
+      save_failed: "Exchange rate could not be saved."
+      currency_code: "Currency"
+      rate: "Rate"
+      cancel: "Cancel"
+      save: "Save rate"
+      saving: "Saving..."
+    update:
+      updated: "Exchange rate updated."
   user_preferences:
     show:
       title: "Preferences"
