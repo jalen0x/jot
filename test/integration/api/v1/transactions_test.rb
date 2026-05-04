@@ -127,6 +127,78 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "counts only the token owner's kept transactions" do
+    user = create(:user)
+    other_user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    discarded = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 13:00:00"),
+      source_amount_cents: 500,
+      comment: "Archived"
+    )
+    discarded.discard!
+    create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Food", category_type: :expense),
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Other Lunch"
+    )
+    raw_token = issue_token(user)
+
+    get count_api_v1_transactions_path, headers: json_headers(raw_token)
+
+    assert_response :success
+    assert_equal({ "count" => 1 }, JSON.parse(response.body))
+  end
+
+  test "counts transactions with existing filters" do
+    user = create(:user)
+    matching_account = create_account(user: user, name: "Checking")
+    other_account = create_account(user: user, name: "Savings")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    create_transaction(
+      user: user,
+      account: matching_account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    create_transaction(
+      user: user,
+      account: other_account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 13:00:00"),
+      source_amount_cents: 500,
+      comment: "Coffee"
+    )
+    raw_token = issue_token(user)
+
+    get count_api_v1_transactions_path, params: { account_id: matching_account.to_param }, headers: json_headers(raw_token)
+
+    assert_response :success
+    assert_equal({ "count" => 1 }, JSON.parse(response.body))
+  end
+
   test "filters transactions by kind" do
     user = create(:user)
     account = create_account(user: user, name: "Checking")
