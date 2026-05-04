@@ -1,4 +1,4 @@
-<%# locals: (transaction_template:, accounts:, transaction_categories:, transaction_tags:) %>
+<%# locals: (transaction_template:, accounts:, transaction_categories:, transaction_tags:, submit_label: "Create template", submitting_label: "Saving...") %>
 <% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
 
 <%= form_with model: transaction_template, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
@@ -56,6 +56,10 @@
     <%= form.label :hide_amount, "Hide amount", class: "select-none ms-2 text-sm font-medium text-heading" %>
   </div>
 
+  <% if transaction_template.persisted? %>
+    <%= render FormField::CheckboxComponent.new(form: form, field: :hidden, label: "Hidden") %>
+  <% end %>
+
   <div class="mb-4 grid gap-4 sm:grid-cols-3">
     <div>
       <%= form.label :schedule_frequency, "Schedule frequency", class: "block mb-2 text-sm font-medium text-heading" %>
@@ -75,6 +79,6 @@
 
   <div class="flex items-center justify-end gap-3">
     <%= render(ButtonComponent.new(variant: :secondary, href: transaction_templates_path)) { "Cancel" } %>
-    <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Saving..." })) { "Create template" } %>
+    <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: submitting_label })) { submit_label } %>
   </div>
 <% end %>

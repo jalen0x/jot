@@ -28,9 +28,31 @@ class TransactionTemplatesController < ApplicationController
     end
   end
 
+  # GET /transaction_templates/:id/edit
+  def edit
+    @transaction_template = scoped_transaction_template
+    authorize @transaction_template
+    load_form_collections
+  end
+
+  # PATCH/PUT /transaction_templates/:id
+  def update
+    transaction_template = scoped_transaction_template
+    authorize transaction_template
+    result = TransactionTemplateUpdater.new.update_template(template: transaction_template, attributes: transaction_template_params, tag_ids: transaction_tag_ids)
+
+    if result.updated?
+      redirect_to transaction_templates_path, notice: "Transaction template updated."
+    else
+      @transaction_template = result.template
+      load_form_collections
+      render :edit, status: :unprocessable_content
+    end
+  end
+
   # DELETE /transaction_templates/:id
   def destroy
-    transaction_template = policy_scope(TransactionTemplate).kept.find(params[:id])
+    transaction_template = scoped_transaction_template
     authorize transaction_template
     transaction_template.discard!
 
@@ -50,6 +72,7 @@ class TransactionTemplatesController < ApplicationController
       :source_amount_cents,
       :destination_amount_cents,
       :hide_amount,
+      :hidden,
       :comment,
       :schedule_frequency,
       :schedule_rule,
@@ -63,6 +86,10 @@ class TransactionTemplatesController < ApplicationController
 
   def transaction_tag_ids
     Array(transaction_template_params[:transaction_tag_ids]).reject(&:blank?)
+  end
+
+  def scoped_transaction_template
+    policy_scope(TransactionTemplate).kept.find(params[:id])
   end
 
   def default_template_attributes
