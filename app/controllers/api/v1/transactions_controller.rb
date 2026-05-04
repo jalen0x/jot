@@ -80,6 +80,14 @@ class Api::V1::TransactionsController < ApiController
     head :no_content
   end
 
+  # POST /api/v1/transactions/batch_remove_tags
+  def batch_remove_tags
+    authorize Transaction
+    TransactionBatchTagRemover.new.remove_tags(transactions: batch_update_transactions, tags: batch_tags)
+
+    head :no_content
+  end
+
   private
 
   def filter_params
