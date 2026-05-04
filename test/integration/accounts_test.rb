@@ -10,7 +10,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
   test "lists only current user accounts" do
     user = create(:user)
     other_user = create(:user)
-    own_account = create_account(user: user, name: "Checking")
+    own_account = create_account(user: user, name: "Checking", balance_cents: 12_300)
     create_account(user: other_user, name: "Other Checking")
 
     sign_in user
@@ -19,6 +19,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", text: /accounts/i
     assert_select "li", text: /#{own_account.name}/i
+    assert_select "li", text: /123.00 USD/
     assert_select "li", text: /Other Checking/i, count: 0
   end
 
@@ -47,7 +48,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
 
   private
 
-  def create_account(user:, name:)
+  def create_account(user:, name:, balance_cents: 0)
     Account.create!(
       user: user,
       name: name,
@@ -56,7 +57,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
       icon_key: 1,
       color_hex: "2563EB",
       currency_code: "USD",
-      balance_cents: 0,
+      balance_cents: balance_cents,
       display_order: 1
     )
   end
