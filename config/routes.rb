@@ -25,6 +25,7 @@ Rails.application.routes.draw do
       resource :two_factor_setup, only: :create
       resource :two_factor_authentication, only: [ :show, :create, :destroy ]
       resource :two_factor_recovery_codes, only: :create
+      resources :api_tokens, only: [ :index, :create, :destroy ]
       resources :user_custom_exchange_rates, only: [ :index, :show, :create, :update, :destroy ]
       resources :data_exports, only: :create
       resources :import_batches, only: [ :show, :create ]
