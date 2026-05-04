@@ -27,4 +27,15 @@ class ApiToken < ApplicationRecord
   rescue BCrypt::Errors::InvalidHash
     false
   end
+
+  def as_json(_options = {})
+    {
+      id: to_param,
+      name: name,
+      active: active?,
+      expires_at: expires_at&.iso8601(3),
+      last_used_at: last_used_at&.iso8601(3),
+      created_at: created_at.iso8601(3)
+    }
+  end
 end
