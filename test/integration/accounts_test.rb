@@ -21,6 +21,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
     assert_select "li", text: /#{own_account.name}/i
     assert_select "li", text: /123.00 USD/
     assert_select "li", text: /Other Checking/i, count: 0
+    assert_select "form[action='#{account_path(own_account)}'][data-turbo-confirm]"
   end
 
   test "creates an account for current user" do

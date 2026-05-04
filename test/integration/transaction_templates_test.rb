@@ -33,6 +33,7 @@ class TransactionTemplatesTest < ActionDispatch::IntegrationTest
     assert_select "li", text: /1000 cents/, count: 0
     assert_select "li", text: /Archived/i, count: 0
     assert_select "li", text: /Other Rent/i, count: 0
+    assert_select "form[action='#{transaction_template_path(template)}'][data-turbo-confirm]"
   end
 
   test "creates a scheduled transaction template for current user" do

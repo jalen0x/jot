@@ -22,6 +22,7 @@ class UserCustomExchangeRatesTest < ActionDispatch::IntegrationTest
     assert_match "EUR", response.body
     refute_match "GBP", response.body
     refute_match "JPY", response.body
+    assert_select "form[action='#{user_custom_exchange_rate_path(user.user_custom_exchange_rates.kept.sole)}'][data-turbo-confirm]"
   end
 
   test "creates and updates a custom exchange rate from string params" do
