@@ -1,4 +1,4 @@
-<%# locals: (transaction_tag:, transaction_tag_groups:) %>
+<%# locals: (transaction_tag:, transaction_tag_groups:, submit_label: "Create tag", submitting_label: "Saving...") %>
 <% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
 
 <%= form_with model: transaction_tag, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
@@ -20,8 +20,12 @@
     <%= form.collection_select :transaction_tag_group_id, transaction_tag_groups, :id, :name, { include_blank: "Ungrouped" }, class: field_classes %>
   </div>
 
+  <% if transaction_tag.persisted? %>
+    <%= render FormField::CheckboxComponent.new(form: form, field: :hidden, label: "Hidden") %>
+  <% end %>
+
   <div class="flex items-center justify-end gap-3">
     <%= render(ButtonComponent.new(variant: :secondary, href: transaction_tag_groups_path)) { "Cancel" } %>
-    <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Saving..." })) { "Create tag" } %>
+    <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: submitting_label })) { submit_label } %>
   </div>
 <% end %>

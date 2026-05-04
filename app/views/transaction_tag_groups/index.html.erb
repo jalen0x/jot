@@ -21,7 +21,10 @@
           <h2 class="text-lg font-semibold text-heading"><%= group.name %></h2>
           <ul class="mt-4 flex flex-wrap gap-2">
             <% group.transaction_tags.select(&:kept?).sort_by(&:display_order).each do |tag| %>
-              <li class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading"><%= tag.name %></li>
+              <li class="flex items-center gap-2 rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
+                <span><%= tag.name %></span>
+                <%= link_to "Edit", edit_transaction_tag_path(tag), class: "text-fg-brand hover:underline" %>
+              </li>
             <% end %>
           </ul>
 
@@ -36,7 +39,10 @@
           <h2 class="text-lg font-semibold text-heading">Ungrouped</h2>
           <ul class="mt-4 flex flex-wrap gap-2">
             <% @ungrouped_tags.each do |tag| %>
-              <li class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading"><%= tag.name %></li>
+              <li class="flex items-center gap-2 rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
+                <span><%= tag.name %></span>
+                <%= link_to "Edit", edit_transaction_tag_path(tag), class: "text-fg-brand hover:underline" %>
+              </li>
             <% end %>
           </ul>
         </li>
