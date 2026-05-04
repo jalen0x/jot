@@ -71,6 +71,7 @@ Rails.application.routes.draw do
   end
   resource :ledger_clearance, only: [ :new, :create ]
   resources :api_tokens, only: [ :index, :create, :destroy ]
+  resources :external_authentications, only: [ :index, :destroy ]
   resources :user_custom_exchange_rates, only: [ :index, :create, :destroy ]
   resources :data_exports, only: :create
   resources :import_batches, only: [ :new, :create, :show ]
