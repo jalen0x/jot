@@ -1,0 +1,34 @@
+<% content_for :title, "External Authentications" %>
+
+<section class="space-y-8">
+  <div class="max-w-3xl space-y-3">
+    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Security</p>
+    <h1 class="text-3xl font-semibold tracking-tight text-heading">External authentications</h1>
+    <p class="text-body">Review connected sign-in providers and disconnect one after confirming your current password.</p>
+  </div>
+
+  <div class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+    <ul class="divide-y divide-default">
+      <% if @external_authentications.any? %>
+        <% @external_authentications.each do |external_authentication| %>
+          <li class="grid gap-5 p-5 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Provider</p>
+              <p class="mt-1 text-lg font-semibold text-heading"><%= external_authentication.provider %></p>
+            </div>
+
+            <%= form_with scope: :external_authentication, url: external_authentication_path(external_authentication), method: :delete, class: "grid gap-3 sm:grid-cols-[minmax(14rem,1fr)_auto] sm:items-end" do |form| %>
+              <div>
+                <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
+                <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+              </div>
+              <%= render(ButtonComponent.new(variant: :danger, type: :submit, data: { turbo_submits_with: "Disconnecting..." })) { "Disconnect" } %>
+            <% end %>
+          </li>
+        <% end %>
+      <% else %>
+        <li class="px-5 py-8 text-center text-body-subtle">No external authentications connected.</li>
+      <% end %>
+    </ul>
+  </div>
+</section>
