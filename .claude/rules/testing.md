@@ -5,7 +5,7 @@ paths:
 
 # Testing Standards (Minitest)
 
-- Use FactoryBot for test data by default. Do not add new Rails fixtures.
+- Use FactoryBot for test data by default. Do not add Rails fixtures or `test/fixtures`.
 - Use block syntax: `test "valid user can login" do`.
 - Use `setup` / `teardown` for common code.
 - Test the minimum set of happy, sad, and edge paths needed for confidence; tests are risk reduction, not output.
@@ -101,8 +101,10 @@ Match test parameters to the real wire format:
 
 Realistic, valid factory records reduce hidden coupling between tests.
 
+- Factories live under `test/factories/` and use `factory_bot_rails`.
+- Use the `faker` gem for realistic random values when a field should not depend on one hardcoded value.
 - Factories should create valid records by default.
-- Use random-but-valid values (Faker is fine) to prevent tests from depending on one hardcoded value.
+- Prefer explicit calls like `FactoryBot.create(:user)` over including FactoryBot's syntax methods globally.
 - Use `FactoryBot.lint traits: true` rather than writing redundant factory smoke tests.
 - Use `FactoryBot.build` in mailer previews and other browser previews when persistence is not needed.
 - Customize edge cases in-test with `update!` or explicit factory attributes.

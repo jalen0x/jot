@@ -10,8 +10,20 @@ paths:
 
 - **One task per file** — filename = task name (`change_approved_widgets_to_legacy.rake`).
 - **Directory structure matches namespace** — `lib/tasks/db/updates/prod/countries.rake` → `db:updates:prod:countries`.
-- **Always write `desc`** — tasks without `desc` don't show up in `rake -T`, making them invisible.
+- **Always write `desc`** — tasks without `desc` don't show up in `bin/rails -T`, making them invisible.
 - **Task names must be specific** — `change_approved_widgets_to_legacy`, not `legacy` or `update`.
+
+## When to Use a Rake Task
+
+Use a Rake task when automation needs the Rails app context: models, services, `Rails.root`, app configuration, or database access. Use `task name: :environment` for these tasks.
+
+Good fits:
+
+- recurring or manually triggered operational automation;
+- production-data corrections that need an auditable trail in version control;
+- runbook steps that would otherwise tell someone to paste Ruby or SQL into production.
+
+If the automation does not need Rails internals, use a `bin/` script instead.
 
 ## Task Body Is One Line
 
@@ -23,6 +35,8 @@ task change_approved_widgets_to_legacy: :environment do
   LegacyWidgets.new.change_approved_widgets_to_legacy
 end
 ```
+
+Do not put loops, SQL updates, branching business rules, or multi-step workflows in the `.rake` file. Put them in a normal Ruby class and test that class.
 
 ## One-off Tasks
 
@@ -38,16 +52,22 @@ namespace :one_off do
 end
 ```
 
+One-off does not mean unstructured. The task still delegates to a class so the implementation is reviewable, testable, and easy to audit.
+
+## Testing Rake Tasks
+
+Do not write tests that only duplicate a one-line Rake task body. Test the service class that the task invokes. For the task itself, run it locally or run `bin/rails -T <namespace>` to confirm it loads and is discoverable.
+
 ## Rake Task vs `bin/` Script
 
 | Feature | Rake Task | `bin/` script |
 |---|---|---|
-| Needs Rails environment | Good fit | Requires manual loading |
+| Needs Rails environment | Good fit | Avoid unless necessary |
 | Tab completion | Not supported | Supported |
 | Argument passing | Unusual syntax | Standard CLI arguments |
 | Help docs | `desc` string | OptionParser auto-generates |
 
-**Conclusion**: automation scripts that don't need Rails go in `bin/` (Ruby or bash). Scripts that need Rails go in `lib/tasks/`.
+**Conclusion**: developer automation that doesn't need Rails goes in `bin/` (Ruby or bash). Automation that needs Rails goes in `lib/tasks/`.
 
 ## Automation > Documentation
 

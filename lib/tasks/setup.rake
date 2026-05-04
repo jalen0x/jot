@@ -1,6 +1,6 @@
 namespace :setup do
   desc "Setup project with custom configuration"
-  task :project do
+  task project: :environment do
     print "Enter project slug (e.g., musicforge): "
     project_slug = STDIN.gets.chomp
 

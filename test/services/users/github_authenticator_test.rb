@@ -2,7 +2,7 @@ require "test_helper"
 
 class Users::GithubAuthenticatorTest < ActiveSupport::TestCase
   test "authenticates an existing github user" do
-    user = users(:github_connected)
+    user = FactoryBot.create(:user, :github_connected)
     result = Users::GithubAuthenticator.new(auth: github_auth(uid: user.uid, email: user.email)).authenticate
 
     assert result.authenticated?
@@ -11,7 +11,7 @@ class Users::GithubAuthenticatorTest < ActiveSupport::TestCase
   end
 
   test "links an existing email user" do
-    user = users(:existing_email)
+    user = FactoryBot.create(:user)
     result = Users::GithubAuthenticator.new(auth: github_auth(email: user.email, uid: "new-github-uid")).authenticate
 
     assert result.authenticated?
