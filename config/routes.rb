@@ -22,6 +22,7 @@ Rails.application.routes.draw do
       resources :transaction_tags, only: [ :index, :create, :update, :destroy ]
       resources :transaction_templates, only: [ :index, :create, :update, :destroy ]
       resources :transactions, only: [ :index, :create, :update, :destroy ] do
+        post :batch_delete, on: :collection
         resources :pictures, controller: "transaction_pictures", only: [ :index, :create, :destroy ]
       end
     end

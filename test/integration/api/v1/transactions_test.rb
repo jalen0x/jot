@@ -463,6 +463,79 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal 3_750, other_account.reload.balance_cents
   end
 
+  test "batch deletes transactions for the token owner" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking", balance_cents: 10_750)
+    income_category = create_category(user: user, name: "Salary", category_type: :income)
+    expense_category = create_category(user: user, name: "Food", category_type: :expense)
+    income = create_transaction(
+      user: user,
+      account: account,
+      category: income_category,
+      transaction_kind: :income,
+      transacted_at: Time.zone.parse("2026-05-03 11:00:00"),
+      source_amount_cents: 2_000,
+      comment: "Paycheck"
+    )
+    expense = create_transaction(
+      user: user,
+      account: account,
+      category: expense_category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    raw_token = issue_token(user)
+
+    post batch_delete_api_v1_transactions_path,
+      params: { transaction_ids: [ income.to_param, expense.to_param ] },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :no_content
+    assert_empty response.body
+    assert_predicate income.reload, :discarded?
+    assert_predicate expense.reload, :discarded?
+    assert_equal 10_000, account.reload.balance_cents
+  end
+
+  test "does not batch delete when one transaction is unavailable" do
+    user = create(:user)
+    other_user = create(:user)
+    account = create_account(user: user, name: "Checking", balance_cents: 3_750)
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    transaction = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    other_transaction = create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking", balance_cents: 8_000),
+      category: create_category(user: other_user, name: "Other Food", category_type: :expense),
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 500,
+      comment: "Other Lunch"
+    )
+    raw_token = issue_token(user)
+
+    post batch_delete_api_v1_transactions_path,
+      params: { transaction_ids: [ transaction.to_param, other_transaction.to_param ] },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :not_found
+    refute_predicate transaction.reload, :discarded?
+    refute_predicate other_transaction.reload, :discarded?
+    assert_equal 3_750, account.reload.balance_cents
+  end
+
   test "deletes a transaction for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 3_750)

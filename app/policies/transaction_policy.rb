@@ -5,6 +5,7 @@ class TransactionPolicy < ApplicationPolicy
   def create? = user.present?
   def update? = owns_record?
   def destroy? = owns_record?
+  def batch_delete? = user.present?
 
   class Scope < ApplicationPolicy::Scope
     def resolve
