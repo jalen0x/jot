@@ -49,6 +49,22 @@ class TransactionImporterTest < ActiveSupport::TestCase
     assert_equal 5_000, account.reload.balance_cents
   end
 
+  test "rolls back imported rows when a later row fails" do
+    user = create(:user)
+    account = create_account(user: user, name: "Cash", balance_cents: 5_000)
+    create_category(user: user, name: "Food", category_type: :expense)
+    batch = ImportBatch.create!(user: user, source_filename: "transactions.csv", raw_csv: partial_failure_csv)
+
+    error = assert_raises(TransactionImporter::ImportError) do
+      TransactionImporter.new.import_transactions(import_batch: batch)
+    end
+
+    assert_equal "Category not found: Missing", error.message
+    assert_predicate batch.reload, :pending?
+    assert_equal 0, user.transactions.count
+    assert_equal 5_000, account.reload.balance_cents
+  end
+
   private
 
   def csv_for(comment:)
@@ -62,6 +78,14 @@ class TransactionImporterTest < ActiveSupport::TestCase
     <<~CSV
       Transacted At,Timezone UTC Offset Minutes,Type,Account,Destination Account,Category,Source Amount Cents,Destination Amount Cents,Tags,Hide Amount,Comment,Latitude,Longitude
       2026-05-03T10:00:00Z,0,balance_adjustment,Cash,,,5000,0,,false,Opening balance,,
+    CSV
+  end
+
+  def partial_failure_csv
+    <<~CSV
+      Transacted At,Timezone UTC Offset Minutes,Type,Account,Destination Account,Category,Source Amount Cents,Destination Amount Cents,Tags,Hide Amount,Comment,Latitude,Longitude
+      2026-05-03T10:00:00Z,0,expense,Cash,,Food,1200,0,,false,Lunch,,
+      2026-05-04T10:00:00Z,0,expense,Cash,,Missing,400,0,,false,Coffee,,
     CSV
   end
 

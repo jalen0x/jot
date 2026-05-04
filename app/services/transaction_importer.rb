@@ -6,12 +6,14 @@ class TransactionImporter
   def import_transactions(import_batch:)
     imported_count = 0
 
-    CSV.parse(import_batch.raw_csv, headers: true).each do |row|
-      record_row(import_batch.user, row)
-      imported_count += 1
-    end
+    ActiveRecord::Base.transaction do
+      CSV.parse(import_batch.raw_csv, headers: true).each do |row|
+        record_row(import_batch.user, row)
+        imported_count += 1
+      end
 
-    import_batch.update!(status: :imported, imported_count: imported_count, error_message: "")
+      import_batch.update!(status: :imported, imported_count: imported_count, error_message: "")
+    end
   rescue CSV::MalformedCSVError => error
     raise ImportError, error.message
   end
