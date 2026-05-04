@@ -20,6 +20,13 @@ class ApplicationLock < ApplicationRecord
     false
   end
 
+  def as_json(_options = {})
+    {
+      enabled: true,
+      created_at: created_at.iso8601(3)
+    }
+  end
+
   def self.bcrypt_cost
     Rails.env.test? ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
   end
