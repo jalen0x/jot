@@ -634,6 +634,107 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_match(/Transaction category does not match transaction type/i, response.body)
   end
 
+  test "batch adds tags to transactions for the token owner" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    existing_tag = create_tag(user: user, name: "Meals")
+    new_tag = create_tag(user: user, name: "Business")
+    lunch = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch",
+      tags: [ existing_tag ]
+    )
+    coffee = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 13:00:00"),
+      source_amount_cents: 500,
+      comment: "Coffee"
+    )
+    raw_token = issue_token(user)
+
+    post batch_add_tags_api_v1_transactions_path,
+      params: { transaction_ids: [ lunch.to_param, coffee.to_param ], transaction_tag_ids: [ existing_tag.to_param, new_tag.to_param ] },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :no_content
+    assert_empty response.body
+    assert_equal [ existing_tag, new_tag ], lunch.reload.transaction_tags.order(:id).to_a
+    assert_equal [ existing_tag, new_tag ], coffee.reload.transaction_tags.order(:id).to_a
+  end
+
+  test "does not batch add tags when one tag is unavailable" do
+    user = create(:user)
+    other_user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    transaction = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    tag = create_tag(user: user, name: "Meals")
+    other_tag = create_tag(user: other_user, name: "Other")
+    raw_token = issue_token(user)
+
+    post batch_add_tags_api_v1_transactions_path,
+      params: { transaction_ids: [ transaction.to_param ], transaction_tag_ids: [ tag.to_param, other_tag.to_param ] },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :not_found
+    assert_empty transaction.reload.transaction_tags
+  end
+
+  test "does not batch add tags when one transaction is unavailable" do
+    user = create(:user)
+    other_user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    transaction = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    other_transaction = create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Food", category_type: :expense),
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 500,
+      comment: "Other Lunch"
+    )
+    tag = create_tag(user: user, name: "Meals")
+    raw_token = issue_token(user)
+
+    post batch_add_tags_api_v1_transactions_path,
+      params: { transaction_ids: [ transaction.to_param, other_transaction.to_param ], transaction_tag_ids: [ tag.to_param ] },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :not_found
+    assert_empty transaction.reload.transaction_tags
+    assert_empty other_transaction.reload.transaction_tags
+  end
+
   test "deletes a transaction for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 3_750)

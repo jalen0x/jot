@@ -72,6 +72,14 @@ class Api::V1::TransactionsController < ApiController
     end
   end
 
+  # POST /api/v1/transactions/batch_add_tags
+  def batch_add_tags
+    authorize Transaction
+    TransactionBatchTagAdder.new.add_tags(transactions: batch_update_transactions, tags: batch_tags)
+
+    head :no_content
+  end
+
   private
 
   def filter_params
@@ -125,5 +133,15 @@ class Api::V1::TransactionsController < ApiController
 
   def batch_update_category_id
     params[:transaction_category_id].to_s
+  end
+
+  def batch_tags
+    batch_transaction_tag_ids.map do |id|
+      current_user.transaction_tags.kept.find(TransactionTag.decode_prefix_id(id) || id)
+    end
+  end
+
+  def batch_transaction_tag_ids
+    Array(params.permit(transaction_tag_ids: [])[:transaction_tag_ids]).reject(&:blank?).map(&:to_s).uniq
   end
 end
