@@ -36,7 +36,11 @@ class TransactionImporter
   end
 
   def json_rows(import_batch)
-    JSON.parse(import_batch.raw_csv).fetch("transactions").map do |row|
+    payload = JSON.parse(import_batch.raw_csv)
+    transactions = payload["transactions"] if payload.is_a?(Hash)
+    raise ImportError, "JSON import must include a transactions array" unless transactions.is_a?(Array)
+
+    transactions.map do |row|
       {
         "Transacted At" => row.fetch("transacted_at"),
         "Timezone UTC Offset Minutes" => row["timezone_utc_offset_minutes"] || "0",
