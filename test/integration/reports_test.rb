@@ -14,6 +14,7 @@ class ReportsTest < ActionDispatch::IntegrationTest
     food = create_category(user: user, name: "Food", category_type: :expense)
     create_transaction(user: user, category: salary, transaction_kind: :income, amount_cents: 5_000, comment: "Paycheck")
     create_transaction(user: user, category: food, transaction_kind: :expense, amount_cents: 1_200, comment: "Groceries")
+    create_transaction(user: user, category: salary, transaction_kind: :income, amount_cents: 700, comment: "Cash gift", currency_code: "CNY")
     create_transaction(user: other_user, transaction_kind: :income, amount_cents: 9_999, comment: "Other Paycheck")
     sign_in user
 
@@ -21,8 +22,10 @@ class ReportsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "h1", text: /reports/i
-    assert_select "p", text: /50.00/
-    assert_select "p", text: /12.00/
+    assert_select "p", text: /50.00 USD/
+    assert_select "p", text: /12.00 USD/
+    assert_select "p", text: /7.00 CNY/
+    assert_select "p", text: /57.00/, count: 0
     assert_select "li", text: /Salary/i
     assert_select "li", text: /Food/i
     assert_select "li", text: /Other/i, count: 0
@@ -30,9 +33,9 @@ class ReportsTest < ActionDispatch::IntegrationTest
 
   private
 
-  def create_transaction(user:, transaction_kind:, amount_cents:, comment:, category: nil)
+  def create_transaction(user:, transaction_kind:, amount_cents:, comment:, category: nil, currency_code: "USD")
     category ||= create_category(user: user, name: transaction_kind.to_s.humanize, category_type: transaction_kind)
-    account = create_account(user: user)
+    account = create_account(user: user, currency_code: currency_code)
 
     Transaction.create!(
       user: user,
@@ -47,7 +50,7 @@ class ReportsTest < ActionDispatch::IntegrationTest
     )
   end
 
-  def create_account(user:)
+  def create_account(user:, currency_code: "USD")
     Account.create!(
       user: user,
       name: "Cash",
@@ -55,7 +58,7 @@ class ReportsTest < ActionDispatch::IntegrationTest
       account_structure: :single_account,
       icon_key: 1,
       color_hex: "22C55E",
-      currency_code: "USD",
+      currency_code: currency_code,
       balance_cents: 0,
       display_order: 1
     )

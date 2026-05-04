@@ -23,6 +23,25 @@ class LedgerStatisticsTest < ActiveSupport::TestCase
     assert_equal({ "Salary" => 5_000, "Food" => -1_500 }, summary.category_totals.transform_values(&:itself))
   end
 
+  test "summarizes income expense and net by account currency" do
+    user = create(:user)
+    usd_account = create_account(user: user, name: "Checking", currency_code: "USD")
+    cny_account = create_account(user: user, name: "Wallet", currency_code: "CNY")
+    salary = create_category(user: user, name: "Salary", category_type: :income)
+    food = create_category(user: user, name: "Food", category_type: :expense)
+    create_transaction(user: user, account: usd_account, category: salary, transaction_kind: :income, amount_cents: 5_000)
+    create_transaction(user: user, account: usd_account, category: food, transaction_kind: :expense, amount_cents: 1_200)
+    create_transaction(user: user, account: cny_account, category: salary, transaction_kind: :income, amount_cents: 700)
+
+    summary = LedgerStatistics.new.summarize_transactions(user: user, range: Time.zone.parse("2026-05-01")..Time.zone.parse("2026-05-31 23:59:59"))
+
+    assert_respond_to summary, :amounts
+    assert_equal [
+      { currency_code: "CNY", income_cents: 700, expense_cents: 0, net_cents: 700 },
+      { currency_code: "USD", income_cents: 5_000, expense_cents: 1_200, net_cents: 3_800 }
+    ], summary.amounts.map { |amount| { currency_code: amount.currency_code, income_cents: amount.income_cents, expense_cents: amount.expense_cents, net_cents: amount.net_cents } }
+  end
+
   test "ignores transfers and discarded transactions" do
     user = create(:user)
     income_category = create_category(user: user, name: "Salary", category_type: :income)
@@ -104,7 +123,7 @@ class LedgerStatisticsTest < ActiveSupport::TestCase
     )
   end
 
-  def create_account(user:, name: "Cash")
+  def create_account(user:, name: "Cash", currency_code: "USD")
     Account.create!(
       user: user,
       name: name,
@@ -112,7 +131,7 @@ class LedgerStatisticsTest < ActiveSupport::TestCase
       account_structure: :single_account,
       icon_key: 1,
       color_hex: "22C55E",
-      currency_code: "USD",
+      currency_code: currency_code,
       balance_cents: 0,
       display_order: 1
     )
