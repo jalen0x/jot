@@ -536,6 +536,104 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal 3_750, account.reload.balance_cents
   end
 
+  test "batch updates transaction categories for the token owner" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    old_category = create_category(user: user, name: "Food", category_type: :expense)
+    new_category = create_category(user: user, name: "Travel", category_type: :expense)
+    lunch = create_transaction(
+      user: user,
+      account: account,
+      category: old_category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    coffee = create_transaction(
+      user: user,
+      account: account,
+      category: old_category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 13:00:00"),
+      source_amount_cents: 500,
+      comment: "Coffee"
+    )
+    raw_token = issue_token(user)
+
+    post batch_update_category_api_v1_transactions_path,
+      params: { transaction_ids: [ lunch.to_param, coffee.to_param ], transaction_category_id: new_category.to_param },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :no_content
+    assert_empty response.body
+    assert_equal new_category, lunch.reload.transaction_category
+    assert_equal new_category, coffee.reload.transaction_category
+  end
+
+  test "does not batch update categories when one transaction is unavailable" do
+    user = create(:user)
+    other_user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    old_category = create_category(user: user, name: "Food", category_type: :expense)
+    new_category = create_category(user: user, name: "Travel", category_type: :expense)
+    transaction = create_transaction(
+      user: user,
+      account: account,
+      category: old_category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    other_transaction = create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Food", category_type: :expense),
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 500,
+      comment: "Other Lunch"
+    )
+    raw_token = issue_token(user)
+
+    post batch_update_category_api_v1_transactions_path,
+      params: { transaction_ids: [ transaction.to_param, other_transaction.to_param ], transaction_category_id: new_category.to_param },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :not_found
+    assert_equal old_category, transaction.reload.transaction_category
+    refute_equal new_category, other_transaction.reload.transaction_category
+  end
+
+  test "does not batch update categories when target category type mismatches" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    old_category = create_category(user: user, name: "Food", category_type: :expense)
+    income_category = create_category(user: user, name: "Salary", category_type: :income)
+    transaction = create_transaction(
+      user: user,
+      account: account,
+      category: old_category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    raw_token = issue_token(user)
+
+    post batch_update_category_api_v1_transactions_path,
+      params: { transaction_ids: [ transaction.to_param ], transaction_category_id: income_category.to_param },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_equal old_category, transaction.reload.transaction_category
+    assert_match(/Transaction category does not match transaction type/i, response.body)
+  end
+
   test "deletes a transaction for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 3_750)
