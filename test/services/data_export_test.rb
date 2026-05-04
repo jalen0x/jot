@@ -45,6 +45,18 @@ class DataExportTest < ActiveSupport::TestCase
     assert_nil rows[0]["Category"]
   end
 
+  test "exports current user's transactions as TSV" do
+    user = create(:user)
+    create_transaction(user: user, comment: "Client lunch")
+
+    tsv = DataExport.new.transactions_tsv(user: user)
+    rows = CSV.parse(tsv, headers: true, col_sep: "\t")
+
+    assert_equal 1, rows.length
+    assert_equal "Client lunch", rows[0]["Comment"]
+    assert_includes tsv, "\t"
+  end
+
   private
 
   def create_transaction(user:, comment:, timezone_utc_offset_minutes: 0, hide_amount: false, geo_latitude: nil, geo_longitude: nil)

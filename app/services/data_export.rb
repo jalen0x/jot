@@ -18,7 +18,17 @@ class DataExport
   ].freeze
 
   def transactions_csv(user:)
-    CSV.generate(headers: true) do |csv|
+    transactions_delimited(user: user, col_sep: ",")
+  end
+
+  def transactions_tsv(user:)
+    transactions_delimited(user: user, col_sep: "\t")
+  end
+
+  private
+
+  def transactions_delimited(user:, col_sep:)
+    CSV.generate(headers: true, col_sep: col_sep) do |csv|
       csv << HEADERS
 
       user.transactions.kept.includes(:account, :destination_account, :transaction_category, :transaction_tags).order(:transacted_at, :id).each do |transaction|
@@ -26,8 +36,6 @@ class DataExport
       end
     end
   end
-
-  private
 
   def row_for(transaction)
     [
