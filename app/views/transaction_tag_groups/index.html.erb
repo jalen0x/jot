@@ -24,6 +24,7 @@
               <li class="flex items-center gap-2 rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
                 <span><%= tag.name %></span>
                 <%= link_to "Edit", edit_transaction_tag_path(tag), class: "text-fg-brand hover:underline" %>
+                <%= button_to "Delete", transaction_tag_path(tag), method: :delete, form_class: "inline", class: "font-medium text-danger hover:underline" %>
               </li>
             <% end %>
           </ul>
@@ -43,6 +44,7 @@
               <li class="flex items-center gap-2 rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
                 <span><%= tag.name %></span>
                 <%= link_to "Edit", edit_transaction_tag_path(tag), class: "text-fg-brand hover:underline" %>
+                <%= button_to "Delete", transaction_tag_path(tag), method: :delete, form_class: "inline", class: "font-medium text-danger hover:underline" %>
               </li>
             <% end %>
           </ul>

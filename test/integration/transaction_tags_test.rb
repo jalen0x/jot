@@ -82,4 +82,28 @@ class TransactionTagsTest < ActionDispatch::IntegrationTest
     assert_equal "Other Business", tag.reload.name
     refute_predicate tag, :hidden?
   end
+
+  test "deletes a tag for current user" do
+    user = create(:user)
+    tag = TransactionTag.create!(user: user, name: "Business", display_order: 1)
+    sign_in user
+
+    delete transaction_tag_path(tag)
+
+    assert_response :see_other
+    assert_redirected_to transaction_tag_groups_path
+    assert_predicate tag.reload, :discarded?
+  end
+
+  test "does not delete another user's tag" do
+    user = create(:user)
+    other_user = create(:user)
+    tag = TransactionTag.create!(user: other_user, name: "Other Business", display_order: 1)
+    sign_in user
+
+    delete transaction_tag_path(tag)
+
+    assert_response :not_found
+    assert_predicate tag.reload, :kept?
+  end
 end
