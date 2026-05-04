@@ -1,4 +1,4 @@
-<%# locals: (account:) %>
+<%# locals: (account:, submit_label: "Create account", submitting_label: "Saving...") %>
 <% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
 
 <%= form_with model: account, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
@@ -36,15 +36,17 @@
     <%= render FormField::InputComponent.new(form: form, field: :currency_code, label: "Currency", placeholder: "USD", required: true) %>
   </div>
 
-  <div class="mb-4">
-    <%= label_tag "account_opening_balance_cents", "Opening balance cents", class: "block mb-2 text-sm font-medium text-heading" %>
-    <%= number_field_tag "account[opening_balance_cents]", account.balance_cents, id: "account_opening_balance_cents", autocomplete: "off", class: field_classes %>
-  </div>
+  <% unless account.persisted? %>
+    <div class="mb-4">
+      <%= label_tag "account_opening_balance_cents", "Opening balance cents", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= number_field_tag "account[opening_balance_cents]", account.balance_cents, id: "account_opening_balance_cents", autocomplete: "off", class: field_classes %>
+    </div>
+  <% end %>
 
   <%= render FormField::InputComponent.new(form: form, field: :comment, label: "Comment", type: :textarea) %>
 
   <div class="flex items-center justify-end gap-3">
     <%= render(ButtonComponent.new(variant: :secondary, href: accounts_path)) { "Cancel" } %>
-    <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Saving..." })) { "Create account" } %>
+    <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: submitting_label })) { submit_label } %>
   </div>
 <% end %>

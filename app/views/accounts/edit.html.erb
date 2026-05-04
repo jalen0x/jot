@@ -1,0 +1,11 @@
+<% content_for :title, "Edit account" %>
+
+<section class="mx-auto w-full max-w-3xl">
+  <div class="mb-6">
+    <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
+    <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Edit account</h1>
+    <p class="mt-2 text-sm text-body">Update account details without changing ledger balances.</p>
+  </div>
+
+  <%= render "form", account: @account, submit_label: "Update account", submitting_label: "Updating..." %>
+</section>
