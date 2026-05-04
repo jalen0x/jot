@@ -105,9 +105,6 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 
-  # Build realistic test data without adding new Rails fixtures.
-  gem "factory_bot_rails"
-
   # Mock HTTP requests in tests
   gem "webmock"
 end
