@@ -60,6 +60,8 @@ class TransactionsController < ApplicationController
       :destination_amount_cents,
       :hide_amount,
       :comment,
+      :geo_latitude,
+      :geo_longitude,
       transaction_tag_ids: [],
       pictures: []
     ])

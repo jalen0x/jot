@@ -16,7 +16,9 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
       transacted_at: Time.zone.parse("2026-05-03 11:00:00"),
       source_amount_cents: 200_000,
       comment: "Paycheck",
-      tags: [ tag ]
+      tags: [ tag ],
+      geo_latitude: 37.7749,
+      geo_longitude: -122.4194
     )
     expense = create_transaction(
       user: user,
@@ -67,6 +69,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal 0, income_json.fetch("destination_amount_cents")
     assert_equal false, income_json.fetch("hide_amount")
     assert_equal "Paycheck", income_json.fetch("comment")
+    assert_equal({ "latitude" => "37.7749", "longitude" => "-122.4194" }, income_json.fetch("geo_location"))
     assert_equal [ tag.to_param ], income_json.fetch("transaction_tag_ids")
     refute_includes income_json.keys, "user_id"
   end
@@ -229,6 +232,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
           destination_amount_cents: "0",
           hide_amount: "false",
           comment: "Lunch",
+          geo_location: { latitude: "37.7749", longitude: "-122.4194" },
           transaction_tag_ids: [ tag.to_param ]
         }
       },
@@ -246,6 +250,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal account.to_param, transaction_json.fetch("account_id")
     assert_equal category.to_param, transaction_json.fetch("transaction_category_id")
     assert_equal [ tag.to_param ], transaction_json.fetch("transaction_tag_ids")
+    assert_equal({ "latitude" => "37.7749", "longitude" => "-122.4194" }, transaction_json.fetch("geo_location"))
     refute_includes transaction_json.keys, "user_id"
   end
 
@@ -447,7 +452,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     TransactionTag.create!(user: user, name: name, display_order: 1)
   end
 
-  def create_transaction(user:, account:, category:, transaction_kind:, transacted_at:, source_amount_cents:, comment:, tags: [])
+  def create_transaction(user:, account:, category:, transaction_kind:, transacted_at:, source_amount_cents:, comment:, tags: [], geo_latitude: nil, geo_longitude: nil)
     transaction = Transaction.create!(
       user: user,
       account: account,
@@ -457,7 +462,9 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
       timezone_utc_offset_minutes: 0,
       source_amount_cents: source_amount_cents,
       destination_amount_cents: 0,
-      comment: comment
+      comment: comment,
+      geo_latitude: geo_latitude,
+      geo_longitude: geo_longitude
     )
     tags.each { |tag| TransactionTagging.create!(user: user, ledger_transaction: transaction, transaction_tag: tag) }
     transaction

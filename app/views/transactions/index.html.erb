@@ -49,6 +49,9 @@
               <p class="mt-1 text-sm text-body-subtle">
                 <%= l(transaction.transacted_at, format: :long) %> · <%= transaction.account.name %> · <%= transaction.transaction_category.name %>
               </p>
+              <% if transaction.geo_latitude.present? && transaction.geo_longitude.present? %>
+                <p class="mt-1 text-sm text-body-subtle"><%= transaction.geo_latitude %>, <%= transaction.geo_longitude %></p>
+              <% end %>
               <% if transaction.transaction_tags.any? %>
                 <div class="mt-3 flex flex-wrap gap-2">
                   <% transaction.transaction_tags.each do |tag| %>

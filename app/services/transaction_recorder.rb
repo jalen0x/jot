@@ -31,8 +31,19 @@ class TransactionRecorder
       source_amount_cents: attributes[:source_amount_cents].to_i,
       destination_amount_cents: attributes[:destination_amount_cents].to_i,
       hide_amount: ActiveModel::Type::Boolean.new.cast(attributes[:hide_amount]),
-      comment: attributes[:comment]
+      comment: attributes[:comment],
+      geo_latitude: coordinate_value(attributes, :latitude, :geo_latitude),
+      geo_longitude: coordinate_value(attributes, :longitude, :geo_longitude)
     }
+  end
+
+  def coordinate_value(attributes, nested_key, direct_key)
+    direct_value = attributes[direct_key]
+    return direct_value if direct_value.present?
+
+    geo_location = attributes[:geo_location]
+    geo_location = geo_location.to_h.symbolize_keys if geo_location.respond_to?(:to_h)
+    geo_location[nested_key] if geo_location.present?
   end
 
   def assign_owned_records(user, transaction, attributes, tag_ids)

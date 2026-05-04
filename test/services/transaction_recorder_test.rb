@@ -143,6 +143,28 @@ class TransactionRecorderTest < ActiveSupport::TestCase
     assert_equal 1_000, account.reload.balance_cents
   end
 
+  test "records nested geographic location" do
+    user = create(:user)
+    account = create_account(user: user, balance_cents: 5_000)
+    category = create_category(user: user, category_type: :expense)
+
+    result = TransactionRecorder.new.record_transaction(
+      user: user,
+      attributes: transaction_attributes(
+        transaction_kind: "expense",
+        account_id: account.id.to_s,
+        transaction_category_id: category.id.to_s,
+        source_amount_cents: "1200",
+        geo_location: { latitude: "37.7749", longitude: "-122.4194" }
+      ),
+      tag_ids: []
+    )
+
+    assert_predicate result, :recorded?
+    assert_equal BigDecimal("37.7749"), result.transaction.geo_latitude
+    assert_equal BigDecimal("-122.4194"), result.transaction.geo_longitude
+  end
+
   private
 
   def transaction_attributes(overrides)

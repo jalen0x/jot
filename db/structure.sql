@@ -1131,9 +1131,14 @@ CREATE TABLE public.transactions (
     created_at timestamp(6) with time zone NOT NULL,
     updated_at timestamp(6) with time zone NOT NULL,
     transaction_category_id bigint,
+    geo_latitude numeric(10,7),
+    geo_longitude numeric(10,7),
     CONSTRAINT transactions_balance_adjustment_has_no_category CHECK (((transaction_kind <> 1) OR (transaction_category_id IS NULL))),
     CONSTRAINT transactions_destination_amount_range CHECK (((destination_amount_cents >= '-99999999999'::bigint) AND (destination_amount_cents <= '99999999999'::bigint))),
     CONSTRAINT transactions_destination_differs_from_source CHECK (((destination_account_id IS NULL) OR (destination_account_id <> account_id))),
+    CONSTRAINT transactions_geo_latitude_range CHECK (((geo_latitude IS NULL) OR ((geo_latitude >= ('-90'::integer)::numeric) AND (geo_latitude <= (90)::numeric)))),
+    CONSTRAINT transactions_geo_location_pair CHECK ((((geo_latitude IS NULL) AND (geo_longitude IS NULL)) OR ((geo_latitude IS NOT NULL) AND (geo_longitude IS NOT NULL)))),
+    CONSTRAINT transactions_geo_longitude_range CHECK (((geo_longitude IS NULL) OR ((geo_longitude >= ('-180'::integer)::numeric) AND (geo_longitude <= (180)::numeric)))),
     CONSTRAINT transactions_kind_valid CHECK ((transaction_kind = ANY (ARRAY[1, 2, 3, 4]))),
     CONSTRAINT transactions_non_transfer_has_no_destination CHECK (((transaction_kind = 4) OR (destination_account_id IS NULL))),
     CONSTRAINT transactions_normal_category_required CHECK (((transaction_kind = 1) OR (transaction_category_id IS NOT NULL))),
@@ -1231,6 +1236,20 @@ COMMENT ON COLUMN public.transactions.discarded_at IS 'Soft deletion timestamp';
 --
 
 COMMENT ON COLUMN public.transactions.transaction_category_id IS 'Category assigned to normal transactions';
+
+
+--
+-- Name: COLUMN transactions.geo_latitude; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transactions.geo_latitude IS 'Optional geographic latitude';
+
+
+--
+-- Name: COLUMN transactions.geo_longitude; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.transactions.geo_longitude IS 'Optional geographic longitude';
 
 
 --
@@ -2500,6 +2519,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260504090000'),
 ('20260503200001'),
 ('20260503200000'),
 ('20260503190000'),
