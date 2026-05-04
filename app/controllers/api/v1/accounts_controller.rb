@@ -29,6 +29,8 @@ class Api::V1::AccountsController < ApiController
     else
       render json: { errors: result.account.errors.full_messages }, status: :unprocessable_content
     end
+  rescue ActiveRecord::RecordNotFound
+    render json: { errors: [ "Parent account is unavailable" ] }, status: :unprocessable_content
   end
 
   # PATCH/PUT /api/v1/accounts/:id
@@ -55,7 +57,10 @@ class Api::V1::AccountsController < ApiController
   private
 
   def account_attributes
-    account_params.except(:opening_balance_cents).merge(display_order: next_display_order)
+    account_params.except(:opening_balance_cents, :parent_account_id).merge(
+      parent_account: parent_account,
+      display_order: next_display_order(parent_account)
+    )
   end
 
   def account_params
@@ -66,6 +71,7 @@ class Api::V1::AccountsController < ApiController
       :icon_key,
       :color_hex,
       :currency_code,
+      :parent_account_id,
       :opening_balance_cents,
       :comment
     ])
@@ -89,8 +95,18 @@ class Api::V1::AccountsController < ApiController
     account_params[:opening_balance_cents].to_i
   end
 
-  def next_display_order
-    current_user.accounts.kept.where(parent_account_id: nil).maximum(:display_order).to_i + 1
+  def parent_account
+    return if parent_account_id.blank?
+
+    @parent_account ||= current_user.accounts.kept.find(Account.decode_prefix_id(parent_account_id) || parent_account_id)
+  end
+
+  def parent_account_id
+    account_params[:parent_account_id].to_s
+  end
+
+  def next_display_order(parent_account)
+    current_user.accounts.kept.where(parent_account: parent_account).maximum(:display_order).to_i + 1
   end
 
   def scoped_account
