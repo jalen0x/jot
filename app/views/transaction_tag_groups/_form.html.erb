@@ -1,4 +1,4 @@
-<%# locals: (transaction_tag_group:) %>
+<%# locals: (transaction_tag_group:, submit_label: "Create group", submitting_label: "Saving...") %>
 
 <%= form_with model: transaction_tag_group, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
   <% if transaction_tag_group.errors.any? %>
@@ -16,6 +16,6 @@
 
   <div class="flex items-center justify-end gap-3">
     <%= render(ButtonComponent.new(variant: :secondary, href: transaction_tag_groups_path)) { "Cancel" } %>
-    <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Saving..." })) { "Create group" } %>
+    <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: submitting_label })) { submit_label } %>
   </div>
 <% end %>

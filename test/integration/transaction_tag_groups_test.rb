@@ -36,4 +36,40 @@ class TransactionTagGroupsTest < ActionDispatch::IntegrationTest
     assert_redirected_to transaction_tag_groups_path
     assert_equal "Context", group.name
   end
+
+  test "updates a tag group for current user" do
+    user = create(:user)
+    group = TransactionTagGroup.create!(user: user, name: "Context", display_order: 3)
+    sign_in user
+
+    get edit_transaction_tag_group_path(group)
+    assert_response :success
+    assert_select "h1", text: /edit tag group/i
+
+    patch transaction_tag_group_path(group), params: {
+      transaction_tag_group: {
+        name: "People"
+      }
+    }
+
+    assert_redirected_to transaction_tag_groups_path
+    assert_equal "People", group.reload.name
+    assert_equal 3, group.display_order
+  end
+
+  test "does not update another user's tag group" do
+    user = create(:user)
+    other_user = create(:user)
+    group = TransactionTagGroup.create!(user: other_user, name: "Other Context", display_order: 1)
+    sign_in user
+
+    patch transaction_tag_group_path(group), params: {
+      transaction_tag_group: {
+        name: "Changed"
+      }
+    }
+
+    assert_response :not_found
+    assert_equal "Other Context", group.reload.name
+  end
 end

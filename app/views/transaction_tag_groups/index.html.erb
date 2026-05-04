@@ -24,6 +24,10 @@
               <li class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading"><%= tag.name %></li>
             <% end %>
           </ul>
+
+          <div class="mt-4 flex justify-end">
+            <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_tag_group_path(group))) { "Edit group" } %>
+          </div>
         </li>
       <% end %>
 
