@@ -1,0 +1,38 @@
+<% content_for :title, t(".title", currency_code: @user_custom_exchange_rate.currency_code) %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+
+<section class="max-w-2xl space-y-8">
+  <div class="space-y-3">
+    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand"><%= t(".eyebrow") %></p>
+    <h1 class="text-3xl font-semibold tracking-tight text-heading"><%= t(".heading", currency_code: @user_custom_exchange_rate.currency_code) %></h1>
+    <p class="text-body"><%= t(".description", default_currency_code: @default_currency_code) %></p>
+  </div>
+
+  <%= form_with model: @user_custom_exchange_rate, url: user_custom_exchange_rate_path(@user_custom_exchange_rate), method: :patch, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs space-y-5" do |form| %>
+    <% if @user_custom_exchange_rate.errors.any? %>
+      <div class="rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
+        <p class="font-medium"><%= t(".save_failed") %></p>
+        <ul class="mt-2 list-disc ps-5">
+          <% @user_custom_exchange_rate.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div>
+      <%= form.label :currency_code, t(".currency_code"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.text_field :currency_code, required: true, maxlength: 3, class: field_classes %>
+    </div>
+
+    <div>
+      <%= form.label :rate, t(".rate"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.text_field :rate, required: true, class: field_classes %>
+    </div>
+
+    <div class="flex justify-end gap-3">
+      <%= render(ButtonComponent.new(variant: :secondary, href: user_custom_exchange_rates_path)) { t(".cancel") } %>
+      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: t(".saving") })) { t(".save") } %>
+    </div>
+  <% end %>
+</section>
