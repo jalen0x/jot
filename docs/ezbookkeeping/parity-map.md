@@ -36,6 +36,7 @@
 | Custom exchange rates | Phase 4 | `UserCustomExchangeRate` |
 | Automatic exchange rates | Phase 4 | `ExchangeRateSnapshot`, provider jobs |
 | Sessions and API tokens | Phase 5 | Rails session/token resources |
+| Login rate limiting | Phase 5 | `LoginAttemptLimiter` |
 | Two-factor authentication | Phase 5 | `TwoFactorAuthentication` resources |
 | OIDC/external auth | Phase 5 | `ExternalAuthentication` resources |
 | Application lock | Phase 5 | `ApplicationLock` resources |
