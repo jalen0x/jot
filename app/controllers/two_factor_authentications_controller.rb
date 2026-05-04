@@ -46,7 +46,7 @@ class TwoFactorAuthenticationsController < ApplicationController
     load_two_factor_authentication
 
     unless @two_factor_authentication
-      redirect_to two_factor_authentication_path, notice: "Two-factor authentication is not enabled."
+      redirect_to two_factor_authentication_path, notice: "Two-factor authentication is not enabled.", status: :see_other
       return
     end
 
@@ -63,7 +63,7 @@ class TwoFactorAuthenticationsController < ApplicationController
       @two_factor_authentication.destroy!
     end
 
-    redirect_to two_factor_authentication_path, notice: "Two-factor authentication disabled."
+    redirect_to two_factor_authentication_path, notice: "Two-factor authentication disabled.", status: :see_other
   end
 
   private

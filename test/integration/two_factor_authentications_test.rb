@@ -79,6 +79,7 @@ class TwoFactorAuthenticationsTest < ActionDispatch::IntegrationTest
       two_factor_authentication: { current_password: "password123" }
     }
 
+    assert_response :see_other
     assert_redirected_to two_factor_authentication_path
     refute_predicate user.reload, :two_factor_enabled?
   end

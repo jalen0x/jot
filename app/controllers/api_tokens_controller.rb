@@ -41,7 +41,7 @@ class ApiTokensController < ApplicationController
     authorize api_token
     api_token.discard!
 
-    redirect_to api_tokens_path, notice: "API token revoked."
+    redirect_to api_tokens_path, notice: "API token revoked.", status: :see_other
   end
 
   private

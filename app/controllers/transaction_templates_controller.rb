@@ -56,7 +56,7 @@ class TransactionTemplatesController < ApplicationController
     authorize transaction_template
     transaction_template.discard!
 
-    redirect_to transaction_templates_path, notice: "Transaction template deleted."
+    redirect_to transaction_templates_path, notice: "Transaction template deleted.", status: :see_other
   end
 
   private

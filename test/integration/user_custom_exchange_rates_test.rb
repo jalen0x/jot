@@ -76,6 +76,7 @@ class UserCustomExchangeRatesTest < ActionDispatch::IntegrationTest
 
     delete user_custom_exchange_rate_path(exchange_rate)
 
+    assert_response :see_other
     assert_redirected_to user_custom_exchange_rates_path
     assert_predicate exchange_rate.reload, :discarded?
     assert_predicate other_rate.reload, :kept?

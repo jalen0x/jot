@@ -78,6 +78,7 @@ class ApiTokensTest < ActionDispatch::IntegrationTest
 
     delete api_token_path(api_token)
 
+    assert_response :see_other
     assert_redirected_to api_tokens_path
     assert_predicate api_token.reload, :discarded?
     assert_predicate other_token.reload, :kept?

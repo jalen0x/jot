@@ -185,6 +185,7 @@ class TransactionTemplatesTest < ActionDispatch::IntegrationTest
 
     delete transaction_template_path(template)
 
+    assert_response :see_other
     assert_redirected_to transaction_templates_path
     assert_predicate template.reload, :discarded?
   end
