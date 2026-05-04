@@ -18,6 +18,15 @@ class TwoFactorAuthentication < ApplicationRecord
     return false if code.blank?
 
     totp.verify(code.to_s.delete(" "), drift_behind: 30, drift_ahead: 30).present?
+  rescue ROTP::Base32::Base32Error
+    false
+  end
+
+  def as_json(_options = {})
+    {
+      enabled: true,
+      enabled_at: enabled_at.iso8601(3)
+    }
   end
 
   private

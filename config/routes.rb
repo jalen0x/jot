@@ -22,6 +22,9 @@ Rails.application.routes.draw do
       resource :user_preference, only: [ :show, :update ]
       resource :exchange_rate_catalog, only: :show
       resource :application_lock, only: [ :show, :create, :destroy ]
+      resource :two_factor_setup, only: :create
+      resource :two_factor_authentication, only: [ :show, :create, :destroy ]
+      resource :two_factor_recovery_codes, only: :create
       resources :user_custom_exchange_rates, only: [ :index, :show, :create, :update, :destroy ]
       resources :data_exports, only: :create
       resources :import_batches, only: [ :show, :create ]
