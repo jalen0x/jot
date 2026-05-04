@@ -51,6 +51,15 @@ class AccountsController < ApplicationController
     end
   end
 
+  # DELETE /accounts/:id
+  def destroy
+    account = scoped_account
+    authorize account
+    account.discard!
+
+    redirect_to accounts_path, notice: "Account deleted.", status: :see_other
+  end
+
   private
 
   def account_attributes
