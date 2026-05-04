@@ -2,6 +2,29 @@ zh-CN:
   components:
     modal:
       close: "关闭弹窗"
+  account_reconciliation_statements:
+    show:
+      title: "%{account_name} 对账单"
+      eyebrow: "账户"
+      heading: "%{account_name} 对账单"
+      description: "查看此账户的期初余额、期间变动和期末余额。"
+      back: "返回账户"
+      start_date: "开始日期"
+      end_date: "结束日期"
+      update: "更新对账单"
+      invalid_dates: "开始日期和结束日期必须是有效的 ISO 8601 日期"
+      opening_balance: "期初余额"
+      inflow: "流入"
+      outflow: "流出"
+      closing_balance: "期末余额"
+      transaction: "交易"
+      kind: "类型"
+      date: "日期"
+      amount: "金额"
+      empty: "此日期范围内没有交易。"
+  accounts:
+    index:
+      reconcile: "对账"
   layouts:
     application:
       insights: "洞察"
