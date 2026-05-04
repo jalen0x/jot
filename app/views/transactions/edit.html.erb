@@ -1,0 +1,11 @@
+<% content_for :title, "Edit transaction" %>
+
+<section class="mx-auto w-full max-w-3xl">
+  <div class="mb-6">
+    <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
+    <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Edit transaction</h1>
+    <p class="mt-2 text-sm text-body">Update the transaction and keep account balances in sync.</p>
+  </div>
+
+  <%= render "form", transaction: @transaction, accounts: @accounts, transaction_categories: @transaction_categories, transaction_tags: @transaction_tags, submit_label: "Update transaction", submitting_label: "Updating..." %>
+</section>

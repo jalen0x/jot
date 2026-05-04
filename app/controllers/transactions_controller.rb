@@ -31,9 +31,31 @@ class TransactionsController < ApplicationController
     end
   end
 
+  # GET /transactions/:id/edit
+  def edit
+    @transaction = scoped_transaction
+    authorize @transaction
+    load_form_collections
+  end
+
+  # PATCH/PUT /transactions/:id
+  def update
+    transaction = scoped_transaction
+    authorize transaction
+    result = TransactionUpdater.new.update_transaction(transaction: transaction, attributes: transaction_params, tag_ids: transaction_tag_ids)
+
+    if result.updated?
+      redirect_to transactions_path, notice: "Transaction updated."
+    else
+      @transaction = result.transaction
+      load_form_collections
+      render :edit, status: :unprocessable_content
+    end
+  end
+
   # DELETE /transactions/:id
   def destroy
-    transaction = policy_scope(Transaction).kept.find(params[:id])
+    transaction = scoped_transaction
     authorize transaction
     result = TransactionReversal.new.delete_transaction(transaction: transaction)
 
@@ -75,6 +97,10 @@ class TransactionsController < ApplicationController
 
   def picture_files
     Array(transaction_params[:pictures]).reject(&:blank?)
+  end
+
+  def scoped_transaction
+    policy_scope(Transaction).kept.find(params[:id])
   end
 
   def default_transaction_attributes

@@ -82,7 +82,8 @@
               <p class="mt-1 text-sm text-body-subtle"><%= transaction.transaction_kind.humanize %></p>
             </div>
 
-            <div class="flex justify-end sm:justify-start">
+            <div class="flex justify-end gap-2 sm:justify-start">
+              <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_path(transaction))) { "Edit" } %>
               <%= button_to "Delete", transaction_path(transaction), method: :delete, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
             </div>
           </div>
