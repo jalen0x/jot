@@ -2,6 +2,9 @@ zh-CN:
   components:
     modal:
       close: "关闭弹窗"
+  layouts:
+    application:
+      profile: "个人资料"
   devise:
     passwords:
       new:
@@ -41,6 +44,11 @@ zh-CN:
   oauth:
     github: "GitHub"
     sign_in_with: "使用 %{provider} 登录"
+  user_avatars:
+    create:
+      updated: "头像已更新。"
+    destroy:
+      removed: "头像已移除。"
   user_preferences:
     show:
       title: "偏好设置"
@@ -74,3 +82,29 @@ zh-CN:
         decimal_comma: "1.234,56"
     update:
       updated: "偏好设置已更新。"
+  user_profiles:
+    show:
+      title: "个人资料"
+      eyebrow: "账号"
+      heading: "个人资料"
+      description: "更新账本界面中显示的姓名和头像。"
+      avatar_alt: "个人头像"
+      avatar_uploaded: "已上传头像"
+      avatar_missing: "尚未上传头像"
+      remove_avatar: "移除头像"
+      remove_avatar_confirm: "要移除你的头像吗？"
+      remove_avatar_accept: "移除"
+      save_failed: "个人资料无法保存。"
+      first_name: "名"
+      last_name: "姓"
+      cancel: "取消"
+      save: "保存个人资料"
+      saving: "保存中..."
+      avatar_heading: "头像"
+      avatar_description: "上传一张方形图片作为登录后的个人头像。"
+      avatar_file: "头像图片"
+      avatar_help: "支持 PNG、JPEG 或 WebP。"
+      upload_avatar: "上传头像"
+      uploading: "上传中..."
+    update:
+      updated: "个人资料已更新。"

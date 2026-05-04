@@ -1,0 +1,81 @@
+<% content_for :title, t(".title") %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+<% file_classes = "cursor-pointer bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full shadow-xs placeholder:text-body" %>
+
+<section class="max-w-3xl space-y-8">
+  <div class="space-y-3">
+    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand"><%= t(".eyebrow") %></p>
+    <h1 class="text-3xl font-semibold tracking-tight text-heading"><%= t(".heading") %></h1>
+    <p class="text-body"><%= t(".description") %></p>
+  </div>
+
+  <div class="bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs">
+    <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-4">
+        <% if current_user.avatar.attached? %>
+          <%= image_tag current_user.avatar, class: "h-20 w-20 rounded-full border border-default object-cover shadow-xs", alt: t(".avatar_alt") %>
+        <% else %>
+          <div class="flex h-20 w-20 items-center justify-center rounded-full border border-default bg-neutral-secondary-medium text-2xl font-semibold text-heading shadow-xs">
+            <%= current_user.name.to_s.first&.upcase || current_user.email.first.upcase %>
+          </div>
+        <% end %>
+        <div>
+          <h2 class="text-xl font-semibold text-heading"><%= @user_profile.name.presence || current_user.email %></h2>
+          <p class="mt-1 text-sm text-body"><%= current_user.email %></p>
+          <p class="mt-1 text-sm text-body-subtle"><%= current_user.avatar.attached? ? t(".avatar_uploaded") : t(".avatar_missing") %></p>
+        </div>
+      </div>
+
+      <% if current_user.avatar.attached? %>
+        <%= button_to user_avatar_path, method: :delete, data: destructive_confirm_data(t(".remove_avatar_confirm"), accept: t(".remove_avatar_accept")), class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" do %>
+          <%= t(".remove_avatar") %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <%= form_with scope: :user_profile, url: user_profile_path, method: :patch, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs space-y-5" do |form| %>
+    <% if @user_profile.errors.any? %>
+      <div class="rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
+        <p class="font-medium"><%= t(".save_failed") %></p>
+        <ul class="mt-2 list-disc ps-5">
+          <% @user_profile.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div>
+      <%= form.label :first_name, t(".first_name"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.text_field :first_name, value: @user_profile.first_name, autocomplete: "given-name", class: field_classes %>
+    </div>
+
+    <div>
+      <%= form.label :last_name, t(".last_name"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.text_field :last_name, value: @user_profile.last_name, autocomplete: "family-name", class: field_classes %>
+    </div>
+
+    <div class="flex justify-end gap-3">
+      <%= render(ButtonComponent.new(variant: :secondary, href: dashboard_path)) { t(".cancel") } %>
+      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: t(".saving") })) { t(".save") } %>
+    </div>
+  <% end %>
+
+  <%= form_with url: user_avatar_path, multipart: true, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs space-y-5" do |form| %>
+    <div>
+      <h2 class="text-xl font-semibold text-heading"><%= t(".avatar_heading") %></h2>
+      <p class="mt-2 text-sm text-body"><%= t(".avatar_description") %></p>
+    </div>
+
+    <div>
+      <%= form.label :avatar, t(".avatar_file"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.file_field :avatar, required: true, accept: "image/png,image/jpeg,image/webp", class: file_classes %>
+      <p class="mt-2 text-sm text-body-subtle"><%= t(".avatar_help") %></p>
+    </div>
+
+    <div class="flex justify-end">
+      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: t(".uploading") })) { t(".upload_avatar") } %>
+    </div>
+  <% end %>
+</section>
