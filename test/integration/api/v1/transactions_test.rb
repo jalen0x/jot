@@ -199,6 +199,87 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal({ "count" => 1 }, JSON.parse(response.body))
   end
 
+  test "summarizes transaction statistics for the token owner" do
+    user = create(:user)
+    other_user = create(:user)
+    matching_account = create_account(user: user, name: "Checking")
+    other_account = create_account(user: user, name: "Savings")
+    salary = create_category(user: user, name: "Salary", category_type: :income)
+    food = create_category(user: user, name: "Food", category_type: :expense)
+    create_transaction(
+      user: user,
+      account: matching_account,
+      category: salary,
+      transaction_kind: :income,
+      transacted_at: Time.zone.parse("2026-05-04 09:00:00"),
+      source_amount_cents: 5_000,
+      comment: "Paycheck"
+    )
+    create_transaction(
+      user: user,
+      account: matching_account,
+      category: food,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 10:00:00"),
+      source_amount_cents: 1_200,
+      comment: "Lunch"
+    )
+    create_transaction(
+      user: user,
+      account: other_account,
+      category: food,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 11:00:00"),
+      source_amount_cents: 300,
+      comment: "Coffee"
+    )
+    create_transaction(
+      user: user,
+      account: matching_account,
+      category: salary,
+      transaction_kind: :income,
+      transacted_at: Time.zone.parse("2026-06-01 09:00:00"),
+      source_amount_cents: 9_999,
+      comment: "June Paycheck"
+    )
+    create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Salary", category_type: :income),
+      transaction_kind: :income,
+      transacted_at: Time.zone.parse("2026-05-04 09:00:00"),
+      source_amount_cents: 7_777,
+      comment: "Other Paycheck"
+    )
+    raw_token = issue_token(user)
+
+    get statistics_api_v1_transactions_path,
+      params: { start_date: "2026-05-01", end_date: "2026-05-31", account_id: matching_account.to_param },
+      headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ "statistics" ], body.keys
+    statistics = body.fetch("statistics")
+    assert_equal 5_000, statistics.fetch("income_cents")
+    assert_equal 1_200, statistics.fetch("expense_cents")
+    assert_equal 3_800, statistics.fetch("net_cents")
+    assert_equal({ "Salary" => 5_000, "Food" => -1_200 }, statistics.fetch("category_totals"))
+    assert_equal({ "Checking" => 3_800 }, statistics.fetch("account_totals"))
+  end
+
+  test "rejects invalid transaction statistics dates" do
+    user = create(:user)
+    raw_token = issue_token(user)
+
+    get statistics_api_v1_transactions_path,
+      params: { start_date: "not-a-date", end_date: "2026-05-31" },
+      headers: json_headers(raw_token)
+
+    assert_response :unprocessable_content
+    assert_match(/valid ISO 8601 dates/i, response.body)
+  end
+
   test "filters transactions by kind" do
     user = create(:user)
     account = create_account(user: user, name: "Checking")
