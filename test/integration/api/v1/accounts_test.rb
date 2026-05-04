@@ -126,7 +126,8 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
           color_hex: "#f97316",
           currency_code: "eur",
           comment: "Primary account",
-          hidden: "true"
+          hidden: "true",
+          display_order: "5"
         }
       },
       headers: json_headers(raw_token),
@@ -142,6 +143,7 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
     assert_equal "EUR", account.currency_code
     assert_equal "Primary account", account.comment
     assert_equal true, account.hidden
+    assert_equal 5, account.display_order
     assert_equal 12_300, account.balance_cents
 
     account_json = JSON.parse(response.body).fetch("account")
@@ -153,6 +155,7 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
     assert_equal "EUR", account_json.fetch("currency_code")
     assert_equal "Primary account", account_json.fetch("comment")
     assert_equal true, account_json.fetch("hidden")
+    assert_equal 5, account_json.fetch("display_order")
     assert_equal 12_300, account_json.fetch("balance_cents")
     refute_includes account_json.keys, "user_id"
   end
