@@ -36,6 +36,24 @@ class ImportBatchesTest < ActionDispatch::IntegrationTest
     assert_equal 1, user.transactions.count
   end
 
+  test "rejects unsupported import source filename" do
+    user = create(:user)
+    sign_in user
+
+    assert_no_enqueued_jobs only: ImportBatchParserJob do
+      post import_batches_path, params: {
+        import_batch: {
+          source_filename: "transactions.xlsx",
+          raw_csv: csv_for(account: "Cash")
+        }
+      }
+    end
+
+    assert_response :unprocessable_content
+    assert_equal 0, user.import_batches.reload.count
+    assert_match(/Source filename must be csv or tsv/i, response.body)
+  end
+
   test "does not show another user's import batch" do
     user = create(:user)
     other_batch = ImportBatch.create!(user: create(:user), source_filename: "transactions.csv", raw_csv: csv_for(account: "Cash"))

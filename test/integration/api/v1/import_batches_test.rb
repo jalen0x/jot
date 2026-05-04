@@ -83,6 +83,28 @@ class ApiV1ImportBatchesTest < ActionDispatch::IntegrationTest
     assert_match(/Raw csv/i, response.body)
   end
 
+  test "rejects unsupported import source filename" do
+    user = create(:user)
+    raw_token = issue_token(user)
+
+    assert_no_enqueued_jobs only: ImportBatchParserJob do
+      post api_v1_import_batches_path,
+        params: {
+          import_batch: {
+            source_filename: "transactions.xlsx",
+            raw_csv: csv_for(account: "Cash")
+          }
+        },
+        headers: json_headers(raw_token),
+        as: :json
+    end
+
+    assert_response :unprocessable_content
+    assert_empty user.import_batches
+    errors = JSON.parse(response.body).fetch("errors")
+    assert_includes errors, "Source filename must be csv or tsv"
+  end
+
   private
 
   def issue_token(user)
