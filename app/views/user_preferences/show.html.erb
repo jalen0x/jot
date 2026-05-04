@@ -32,6 +32,12 @@
       <p class="mt-2 text-sm text-body-subtle"><%= t(".locale_help") %></p>
     </div>
 
+    <div>
+      <%= form.label :date_format, t(".date_format"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.select :date_format, UserPreference::SUPPORTED_DATE_FORMATS.map { |date_format| [ t(".date_formats.#{date_format}"), date_format ] }, {}, class: field_classes %>
+      <p class="mt-2 text-sm text-body-subtle"><%= t(".date_format_help") %></p>
+    </div>
+
     <div class="flex justify-end gap-3">
       <%= render(ButtonComponent.new(variant: :secondary, href: dashboard_path)) { t(".cancel") } %>
       <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: t(".saving") })) { t(".save") } %>
