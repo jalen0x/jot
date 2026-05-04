@@ -1,0 +1,40 @@
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+
+<%= form_with model: insight_explorer, url: url, method: method, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs space-y-5" do |form| %>
+  <% if insight_explorer.errors.any? %>
+    <div class="rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
+      <p class="font-medium"><%= t(".save_failed") %></p>
+      <ul class="mt-2 list-disc ps-5">
+        <% insight_explorer.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :name, t(".name"), class: "mb-2 block text-sm font-medium text-heading" %>
+    <%= form.text_field :name, required: true, maxlength: 64, class: field_classes %>
+  </div>
+
+  <div>
+    <%= form.label :display_order, t(".display_order"), class: "mb-2 block text-sm font-medium text-heading" %>
+    <%= form.number_field :display_order, required: true, class: field_classes %>
+  </div>
+
+  <div class="flex items-center">
+    <%= form.check_box :hidden, class: "w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft" %>
+    <%= form.label :hidden, t(".hidden"), class: "select-none ms-2 text-sm font-medium text-heading" %>
+  </div>
+
+  <div>
+    <%= form.label :config_json, t(".config_json"), class: "mb-2 block text-sm font-medium text-heading" %>
+    <%= form.text_area :config_json, value: config_json, rows: 12, required: true, spellcheck: false, class: "#{field_classes} font-mono" %>
+    <p class="mt-2 text-sm text-body-subtle"><%= t(".config_json_help") %></p>
+  </div>
+
+  <div class="flex justify-end gap-3">
+    <%= render(ButtonComponent.new(variant: :secondary, href: insight_explorers_path)) { t(".cancel") } %>
+    <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: submitting_label })) { submit_label } %>
+  </div>
+<% end %>

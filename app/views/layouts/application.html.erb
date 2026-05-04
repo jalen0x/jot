@@ -31,6 +31,7 @@
           <% if user_signed_in? %>
             <%= link_to "Dashboard", dashboard_path, class: "text-sm font-medium text-body hover:text-heading" %>
             <%= link_to "Reports", reports_path, class: "text-sm font-medium text-body hover:text-heading" %>
+            <%= link_to t("layouts.application.insights"), insight_explorers_path, class: "text-sm font-medium text-body hover:text-heading" %>
             <%= link_to "Data", data_management_path, class: "text-sm font-medium text-body hover:text-heading" %>
             <%= link_to "Imports", new_import_batch_path, class: "text-sm font-medium text-body hover:text-heading" %>
             <%= link_to "Accounts", accounts_path, class: "text-sm font-medium text-body hover:text-heading" %>

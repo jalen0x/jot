@@ -1,0 +1,17 @@
+<% content_for :title, t(".title") %>
+
+<section class="max-w-3xl space-y-8">
+  <div class="space-y-3">
+    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand"><%= t(".eyebrow") %></p>
+    <h1 class="text-3xl font-semibold tracking-tight text-heading"><%= t(".heading") %></h1>
+    <p class="text-body"><%= t(".description") %></p>
+  </div>
+
+  <%= render "form",
+    insight_explorer: @insight_explorer,
+    config_json: @config_json,
+    url: insight_explorers_path,
+    method: :post,
+    submit_label: t(".save"),
+    submitting_label: t(".saving") %>
+</section>

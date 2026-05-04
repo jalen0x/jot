@@ -1,0 +1,47 @@
+<% content_for :title, t(".title") %>
+
+<section class="space-y-8">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="max-w-3xl space-y-3">
+      <p class="text-sm font-medium uppercase tracking-wide text-fg-brand"><%= t(".eyebrow") %></p>
+      <h1 class="text-3xl font-semibold tracking-tight text-heading"><%= t(".heading") %></h1>
+      <p class="text-body"><%= t(".description") %></p>
+    </div>
+
+    <%= render(ButtonComponent.new(href: new_insight_explorer_path)) { t(".new") } %>
+  </div>
+
+  <div class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+    <table class="w-full text-left text-sm text-body">
+      <thead class="border-b border-default bg-neutral-secondary-medium text-xs uppercase text-body-subtle">
+        <tr>
+          <th scope="col" class="px-5 py-3"><%= t(".name") %></th>
+          <th scope="col" class="px-5 py-3"><%= t(".display_order") %></th>
+          <th scope="col" class="px-5 py-3"><%= t(".status") %></th>
+          <th scope="col" class="px-5 py-3 text-right"><%= t(".actions") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if @insight_explorers.any? %>
+          <% @insight_explorers.each do |insight_explorer| %>
+            <tr class="border-b border-default last:border-0">
+              <td class="px-5 py-4 font-medium text-heading"><%= insight_explorer.name %></td>
+              <td class="px-5 py-4"><%= insight_explorer.display_order %></td>
+              <td class="px-5 py-4"><%= insight_explorer.hidden? ? t(".hidden") : t(".visible") %></td>
+              <td class="px-5 py-4">
+                <div class="flex justify-end gap-2">
+                  <%= render(ButtonComponent.new(variant: :secondary, href: edit_insight_explorer_path(insight_explorer))) { t(".edit") } %>
+                  <%= button_to t(".delete"), insight_explorer_path(insight_explorer), method: :delete, form: { data: destructive_confirm_data(t(".delete_confirm")) }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr>
+            <td colspan="4" class="px-5 py-8 text-center text-body-subtle"><%= t(".empty") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -4,6 +4,7 @@ en:
       close: "Close modal"
   layouts:
     application:
+      insights: "Insights"
       profile: "Profile"
   oauth:
     github: "GitHub"
@@ -29,6 +30,52 @@ en:
       saving: "Saving..."
     update:
       updated: "Exchange rate updated."
+  insight_explorers:
+    index:
+      title: "Insight explorers"
+      eyebrow: "Insights"
+      heading: "Insight explorers"
+      description: "Save reusable insight widgets and their JSON configuration."
+      new: "New explorer"
+      name: "Name"
+      display_order: "Order"
+      status: "Status"
+      visible: "Visible"
+      hidden: "Hidden"
+      actions: "Actions"
+      edit: "Edit"
+      delete: "Delete"
+      delete_confirm: "Delete this insight explorer?"
+      empty: "No insight explorers yet."
+    new:
+      title: "New insight explorer"
+      eyebrow: "Insights"
+      heading: "New insight explorer"
+      description: "Create a saved insight configuration for your dashboard."
+      save: "Create explorer"
+      saving: "Creating..."
+    edit:
+      title: "Edit %{name}"
+      eyebrow: "Insights"
+      heading: "Edit %{name}"
+      description: "Update this saved insight configuration."
+      save: "Save explorer"
+      saving: "Saving..."
+    form:
+      save_failed: "Insight explorer could not be saved."
+      name: "Name"
+      display_order: "Display order"
+      hidden: "Hide this explorer"
+      config_json: "Config JSON"
+      config_json_help: "Enter a JSON object such as {\"chart\":\"bar\"}."
+      config_json_invalid: "Config JSON is invalid."
+      cancel: "Cancel"
+    create:
+      created: "Insight explorer created."
+    update:
+      updated: "Insight explorer updated."
+    destroy:
+      deleted: "Insight explorer deleted."
   user_preferences:
     show:
       title: "Preferences"
