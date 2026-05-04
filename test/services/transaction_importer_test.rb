@@ -63,6 +63,25 @@ class TransactionImporterTest < ActiveSupport::TestCase
     assert_equal 3_800, account.reload.balance_cents
   end
 
+  test "imports json transaction rows from json files" do
+    user = create(:user)
+    account = create_account(user: user, name: "Cash", balance_cents: 5_000)
+    create_category(user: user, name: "Food", category_type: :expense)
+    create_tag(user: user, name: "Business")
+    batch = ImportBatch.create!(user: user, source_filename: "transactions.json", raw_csv: json_for(comment: "Client lunch"))
+
+    TransactionImporter.new.import_transactions(import_batch: batch)
+
+    assert_predicate batch.reload, :imported?
+    transaction = user.transactions.sole
+    assert_equal "Client lunch", transaction.comment
+    assert_equal [ "Business" ], transaction.transaction_tags.map(&:name)
+    assert_equal true, transaction.hide_amount
+    assert_equal BigDecimal("37.7749"), transaction.geo_latitude
+    assert_equal BigDecimal("-122.4194"), transaction.geo_longitude
+    assert_equal 3_800, account.reload.balance_cents
+  end
+
   test "rolls back imported rows when a later row fails" do
     user = create(:user)
     account = create_account(user: user, name: "Cash", balance_cents: 5_000)
@@ -100,6 +119,28 @@ class TransactionImporterTest < ActiveSupport::TestCase
       [ "Transacted At", "Timezone UTC Offset Minutes", "Type", "Account", "Destination Account", "Category", "Source Amount Cents", "Destination Amount Cents", "Tags", "Hide Amount", "Comment", "Latitude", "Longitude" ].join("\t"),
       [ "2026-05-03T10:00:00Z", "0", "expense", "Cash", "", "Food", "1200", "0", "", "false", comment, "", "" ].join("\t")
     ].join("\n")
+  end
+
+  def json_for(comment:)
+    JSON.generate(
+      transactions: [
+        {
+          transacted_at: "2026-05-03T10:00:00Z",
+          timezone_utc_offset_minutes: 0,
+          transaction_kind: "expense",
+          account_name: "Cash",
+          destination_account_name: nil,
+          transaction_category_name: "Food",
+          source_amount_cents: 1200,
+          destination_amount_cents: 0,
+          transaction_tag_names: [ "Business" ],
+          hide_amount: true,
+          comment: comment,
+          geo_latitude: "37.7749",
+          geo_longitude: "-122.4194"
+        }
+      ]
+    )
   end
 
   def partial_failure_csv

@@ -37,6 +37,7 @@ class DataManagementTest < ActionDispatch::IntegrationTest
     assert_select "article", text: /Templates\s+1/i
     assert_select "article", text: /Scheduled\s+1/i
     assert_select "a[href='#{new_import_batch_path}']", text: /import/i
+    assert_select "article", text: /Paste CSV, TSV, or JSON/i
     assert_select "form[action='#{data_exports_path}']", count: 3
     assert_select "button", text: /Export JSON/i
     assert_select "a[href='#{new_ledger_clearance_path}']", text: /clear/i
