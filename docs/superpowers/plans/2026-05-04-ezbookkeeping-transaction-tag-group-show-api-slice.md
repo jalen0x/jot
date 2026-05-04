@@ -13,7 +13,7 @@
 ## File Structure
 
 - Modify `config/routes.rb`: include `:show` in `api/v1` transaction tag group routes.
-- Modify `app/controllers/api/v1/transaction_tag_groups_controller.rb`: add `show` action that renders `{ transaction_tag_group: scoped_tag_group.as_json }`.
+- Modify `app/controllers/api/v1/transaction_tag_groups_controller.rb`: add `show` action that renders `{ transaction_tag_group: scoped_tag_group }`.
 - Modify `app/policies/transaction_tag_group_policy.rb`: allow owner-scoped transaction tag group show authorization.
 - Modify `test/integration/api/v1/transaction_tag_groups_test.rb`: add HTTP contract tests for success and current-user scoping.
 
@@ -104,7 +104,7 @@ Add this action after `index` in `app/controllers/api/v1/transaction_tag_groups_
     tag_group = scoped_tag_group
     authorize tag_group
 
-    render json: { transaction_tag_group: tag_group.as_json }
+    render json: { transaction_tag_group: tag_group }
   end
 ```
 

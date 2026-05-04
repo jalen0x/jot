@@ -297,7 +297,7 @@ def update
   authorize account
 
   if account.update(account_update_params)
-    render json: { account: account.as_json }
+    render json: { account: account }
   else
     render json: { errors: account.errors.full_messages }, status: :unprocessable_content
   end

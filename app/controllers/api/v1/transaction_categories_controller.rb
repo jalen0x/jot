@@ -12,7 +12,7 @@ class Api::V1::TransactionCategoriesController < ApiController
     category = scoped_category
     authorize category
 
-    render json: { transaction_category: category.as_json }
+    render json: { transaction_category: category }
   end
 
   # POST /api/v1/transaction_categories
@@ -23,7 +23,7 @@ class Api::V1::TransactionCategoriesController < ApiController
     category.display_order = next_display_order(category.parent_category)
 
     if category.errors.empty? && category.save
-      render json: { transaction_category: category.as_json }, status: :created
+      render json: { transaction_category: category }, status: :created
     else
       render json: { errors: category.errors.full_messages }, status: :unprocessable_content
     end
@@ -36,7 +36,7 @@ class Api::V1::TransactionCategoriesController < ApiController
     result = TransactionCategoryUpdater.new.update_category(category: category, attributes: category_params)
 
     if result.updated?
-      render json: { transaction_category: result.category.as_json }
+      render json: { transaction_category: result.category }
     else
       render json: { errors: result.category.errors.full_messages }, status: :unprocessable_content
     end

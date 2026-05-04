@@ -13,7 +13,7 @@
 ## File Structure
 
 - Modify `config/routes.rb`: include `:show` in `api/v1` transaction routes.
-- Modify `app/controllers/api/v1/transactions_controller.rb`: add `show` action that renders `{ transaction: scoped_transaction.as_json }`.
+- Modify `app/controllers/api/v1/transactions_controller.rb`: add `show` action that renders `{ transaction: scoped_transaction }`.
 - Modify `test/integration/api/v1/transactions_test.rb`: add HTTP contract tests for success and current-user scoping.
 
 ---
@@ -119,7 +119,7 @@ Add this action after `index` in `app/controllers/api/v1/transactions_controller
     transaction = scoped_transaction
     authorize transaction
 
-    render json: { transaction: transaction.as_json }
+    render json: { transaction: transaction }
   end
 ```
 

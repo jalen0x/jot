@@ -99,7 +99,7 @@ def update
   )
 
   if result.updated?
-    render json: { transaction_template: result.template.as_json }
+    render json: { transaction_template: result.template }
   else
     render json: { errors: result.template.errors.full_messages }, status: :unprocessable_content
   end

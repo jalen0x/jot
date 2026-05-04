@@ -573,7 +573,7 @@ def update
   result = TransactionUpdater.new.update_transaction(transaction: transaction, attributes: transaction_params, tag_ids: transaction_tag_ids)
 
   if result.updated?
-    render json: { transaction: result.transaction.as_json }
+    render json: { transaction: result.transaction }
   else
     render json: { errors: result.transaction.errors.full_messages }, status: :unprocessable_content
   end

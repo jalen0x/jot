@@ -3,7 +3,7 @@ class Api::V1::UserPreferencesController < ApiController
   def show
     authorize :user_preference
 
-    render json: { user_preference: user_preference.as_json }
+    render json: { user_preference: user_preference }
   end
 
   # PATCH/PUT /api/v1/user_preference
@@ -11,7 +11,7 @@ class Api::V1::UserPreferencesController < ApiController
     authorize :user_preference
 
     if user_preference.update(user_preference_params)
-      render json: { user_preference: user_preference.as_json }
+      render json: { user_preference: user_preference }
     else
       render json: { errors: user_preference.errors.full_messages }, status: :unprocessable_content
     end

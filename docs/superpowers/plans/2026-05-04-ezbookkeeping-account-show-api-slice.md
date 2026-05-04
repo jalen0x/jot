@@ -13,7 +13,7 @@
 ## File Structure
 
 - Modify `config/routes.rb`: include `:show` in `api/v1` account routes.
-- Modify `app/controllers/api/v1/accounts_controller.rb`: add `show` action that renders `{ account: scoped_account.as_json }`.
+- Modify `app/controllers/api/v1/accounts_controller.rb`: add `show` action that renders `{ account: scoped_account }`.
 - Modify `app/policies/account_policy.rb`: allow owner-scoped account show authorization.
 - Modify `test/integration/api/v1/accounts_test.rb`: add HTTP contract tests for success and current-user scoping.
 
@@ -108,7 +108,7 @@ Add this action after `index` in `app/controllers/api/v1/accounts_controller.rb`
     account = scoped_account
     authorize account
 
-    render json: { account: account.as_json }
+    render json: { account: account }
   end
 ```
 

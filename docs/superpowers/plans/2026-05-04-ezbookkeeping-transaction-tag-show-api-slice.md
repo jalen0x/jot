@@ -13,7 +13,7 @@
 ## File Structure
 
 - Modify `config/routes.rb`: include `:show` in `api/v1` transaction tag routes.
-- Modify `app/controllers/api/v1/transaction_tags_controller.rb`: add `show` action that renders `{ transaction_tag: scoped_tag.as_json }`.
+- Modify `app/controllers/api/v1/transaction_tags_controller.rb`: add `show` action that renders `{ transaction_tag: scoped_tag }`.
 - Modify `app/policies/transaction_tag_policy.rb`: allow owner-scoped transaction tag show authorization.
 - Modify `test/integration/api/v1/transaction_tags_test.rb`: add HTTP contract tests for success and current-user scoping.
 
@@ -107,7 +107,7 @@ Add this action after `index` in `app/controllers/api/v1/transaction_tags_contro
     tag = scoped_tag
     authorize tag
 
-    render json: { transaction_tag: tag.as_json }
+    render json: { transaction_tag: tag }
   end
 ```
 

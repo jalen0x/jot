@@ -151,7 +151,7 @@ class Api::V1::TransactionTemplatesController < ApiController
     )
 
     if result.created?
-      render json: { transaction_template: result.template.as_json }, status: :created
+      render json: { transaction_template: result.template }, status: :created
     else
       render json: { errors: result.template.errors.full_messages }, status: :unprocessable_content
     end

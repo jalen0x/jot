@@ -13,7 +13,7 @@
 ## File Structure
 
 - Modify `config/routes.rb`: include `:show` in `api/v1` transaction category routes.
-- Modify `app/controllers/api/v1/transaction_categories_controller.rb`: add `show` action that renders `{ transaction_category: scoped_category.as_json }`.
+- Modify `app/controllers/api/v1/transaction_categories_controller.rb`: add `show` action that renders `{ transaction_category: scoped_category }`.
 - Modify `app/policies/transaction_category_policy.rb`: allow owner-scoped transaction category show authorization.
 - Modify `test/integration/api/v1/transaction_categories_test.rb`: add HTTP contract tests for success and current-user scoping.
 
@@ -108,7 +108,7 @@ Add this action after `index` in `app/controllers/api/v1/transaction_categories_
     category = scoped_category
     authorize category
 
-    render json: { transaction_category: category.as_json }
+    render json: { transaction_category: category }
   end
 ```
 

@@ -12,7 +12,7 @@ class Api::V1::AccountsController < ApiController
     account = scoped_account
     authorize account
 
-    render json: { account: account.as_json }
+    render json: { account: account }
   end
 
   # POST /api/v1/accounts
@@ -25,7 +25,7 @@ class Api::V1::AccountsController < ApiController
     )
 
     if result.created?
-      render json: { account: result.account.as_json }, status: :created
+      render json: { account: result.account }, status: :created
     else
       render json: { errors: result.account.errors.full_messages }, status: :unprocessable_content
     end
@@ -42,7 +42,7 @@ class Api::V1::AccountsController < ApiController
     assign_parent_account(account, update_params[:parent_account_id]) if update_params.key?(:parent_account_id)
 
     if account.errors.empty? && account.save
-      render json: { account: account.as_json }
+      render json: { account: account }
     else
       render json: { errors: account.errors.full_messages }, status: :unprocessable_content
     end

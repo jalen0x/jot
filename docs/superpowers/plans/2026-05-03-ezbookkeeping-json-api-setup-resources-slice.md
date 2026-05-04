@@ -87,7 +87,7 @@ def create
   )
 
   if result.created?
-    render json: { account: result.account.as_json }, status: :created
+    render json: { account: result.account }, status: :created
   else
     render json: { errors: result.account.errors.full_messages }, status: :unprocessable_content
   end
@@ -224,7 +224,7 @@ class Api::V1::TransactionTagGroupsController < ApiController
     tag_group = current_user.transaction_tag_groups.build(tag_group_params.merge(display_order: next_display_order))
 
     if tag_group.save
-      render json: { transaction_tag_group: tag_group.as_json }, status: :created
+      render json: { transaction_tag_group: tag_group }, status: :created
     else
       render json: { errors: tag_group.errors.full_messages }, status: :unprocessable_content
     end
@@ -284,7 +284,7 @@ class Api::V1::TransactionTagsController < ApiController
     tag.display_order = next_display_order
 
     if tag.errors.empty? && tag.save
-      render json: { transaction_tag: tag.as_json }, status: :created
+      render json: { transaction_tag: tag }, status: :created
     else
       render json: { errors: tag.errors.full_messages }, status: :unprocessable_content
     end

@@ -12,7 +12,7 @@ class Api::V1::TransactionsController < ApiController
     transaction = scoped_transaction
     authorize transaction
 
-    render json: { transaction: transaction.as_json }
+    render json: { transaction: transaction }
   end
 
   # POST /api/v1/transactions
@@ -21,7 +21,7 @@ class Api::V1::TransactionsController < ApiController
     result = TransactionRecorder.new.record_transaction(user: current_user, attributes: transaction_params, tag_ids: transaction_tag_ids)
 
     if result.recorded?
-      render json: { transaction: result.transaction.as_json }, status: :created
+      render json: { transaction: result.transaction }, status: :created
     else
       render json: { errors: result.transaction.errors.full_messages }, status: :unprocessable_content
     end
@@ -34,7 +34,7 @@ class Api::V1::TransactionsController < ApiController
     result = TransactionUpdater.new.update_transaction(transaction: transaction, attributes: transaction_params, tag_ids: transaction_tag_ids)
 
     if result.updated?
-      render json: { transaction: result.transaction.as_json }
+      render json: { transaction: result.transaction }
     else
       render json: { errors: result.transaction.errors.full_messages }, status: :unprocessable_content
     end

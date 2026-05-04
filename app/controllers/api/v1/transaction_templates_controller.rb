@@ -12,7 +12,7 @@ class Api::V1::TransactionTemplatesController < ApiController
     template = scoped_template
     authorize template
 
-    render json: { transaction_template: template.as_json }
+    render json: { transaction_template: template }
   end
 
   # POST /api/v1/transaction_templates
@@ -25,7 +25,7 @@ class Api::V1::TransactionTemplatesController < ApiController
     )
 
     if result.created?
-      render json: { transaction_template: result.template.as_json }, status: :created
+      render json: { transaction_template: result.template }, status: :created
     else
       render json: { errors: result.template.errors.full_messages }, status: :unprocessable_content
     end
@@ -42,7 +42,7 @@ class Api::V1::TransactionTemplatesController < ApiController
     )
 
     if result.updated?
-      render json: { transaction_template: result.template.as_json }
+      render json: { transaction_template: result.template }
     else
       render json: { errors: result.template.errors.full_messages }, status: :unprocessable_content
     end

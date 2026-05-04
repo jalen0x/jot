@@ -182,7 +182,7 @@ def update
   authorize tag_group
 
   if tag_group.update(tag_group_params)
-    render json: { transaction_tag_group: tag_group.as_json }
+    render json: { transaction_tag_group: tag_group }
   else
     render json: { errors: tag_group.errors.full_messages }, status: :unprocessable_content
   end

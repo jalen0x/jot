@@ -350,7 +350,7 @@ def update
   result = TransactionCategoryUpdater.new.update_category(category: category, attributes: category_params)
 
   if result.updated?
-    render json: { transaction_category: result.category.as_json }
+    render json: { transaction_category: result.category }
   else
     render json: { errors: result.category.errors.full_messages }, status: :unprocessable_content
   end

@@ -326,7 +326,7 @@ def update
   result = TransactionTagUpdater.new.update_tag(tag: tag, attributes: tag_params)
 
   if result.updated?
-    render json: { transaction_tag: result.tag.as_json }
+    render json: { transaction_tag: result.tag }
   else
     render json: { errors: result.tag.errors.full_messages }, status: :unprocessable_content
   end

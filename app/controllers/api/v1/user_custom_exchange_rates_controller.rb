@@ -12,7 +12,7 @@ class Api::V1::UserCustomExchangeRatesController < ApiController
     exchange_rate = scoped_exchange_rate
     authorize exchange_rate
 
-    render json: { user_custom_exchange_rate: exchange_rate.as_json }
+    render json: { user_custom_exchange_rate: exchange_rate }
   end
 
   # POST /api/v1/user_custom_exchange_rates
@@ -21,7 +21,7 @@ class Api::V1::UserCustomExchangeRatesController < ApiController
     exchange_rate = current_user.user_custom_exchange_rates.build(user_custom_exchange_rate_params)
 
     if exchange_rate.save
-      render json: { user_custom_exchange_rate: exchange_rate.as_json }, status: :created
+      render json: { user_custom_exchange_rate: exchange_rate }, status: :created
     else
       render json: { errors: exchange_rate.errors.full_messages }, status: :unprocessable_content
     end
@@ -33,7 +33,7 @@ class Api::V1::UserCustomExchangeRatesController < ApiController
     authorize exchange_rate
 
     if exchange_rate.update(user_custom_exchange_rate_params)
-      render json: { user_custom_exchange_rate: exchange_rate.as_json }
+      render json: { user_custom_exchange_rate: exchange_rate }
     else
       render json: { errors: exchange_rate.errors.full_messages }, status: :unprocessable_content
     end

@@ -13,7 +13,7 @@
 ## File Structure
 
 - Modify `config/routes.rb`: include `:show` in `api/v1` transaction template routes.
-- Modify `app/controllers/api/v1/transaction_templates_controller.rb`: add `show` action that renders `{ transaction_template: scoped_template.as_json }`.
+- Modify `app/controllers/api/v1/transaction_templates_controller.rb`: add `show` action that renders `{ transaction_template: scoped_template }`.
 - Modify `app/policies/transaction_template_policy.rb`: allow owner-scoped transaction template show authorization.
 - Modify `test/integration/api/v1/transaction_templates_test.rb`: add HTTP contract tests for success and current-user scoping.
 
@@ -134,7 +134,7 @@ Add this action after `index` in `app/controllers/api/v1/transaction_templates_c
     template = scoped_template
     authorize template
 
-    render json: { transaction_template: template.as_json }
+    render json: { transaction_template: template }
   end
 ```
 

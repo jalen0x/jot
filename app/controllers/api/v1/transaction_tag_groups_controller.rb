@@ -12,7 +12,7 @@ class Api::V1::TransactionTagGroupsController < ApiController
     tag_group = scoped_tag_group
     authorize tag_group
 
-    render json: { transaction_tag_group: tag_group.as_json }
+    render json: { transaction_tag_group: tag_group }
   end
 
   # POST /api/v1/transaction_tag_groups
@@ -21,7 +21,7 @@ class Api::V1::TransactionTagGroupsController < ApiController
     tag_group = current_user.transaction_tag_groups.build(tag_group_params.merge(display_order: next_display_order))
 
     if tag_group.save
-      render json: { transaction_tag_group: tag_group.as_json }, status: :created
+      render json: { transaction_tag_group: tag_group }, status: :created
     else
       render json: { errors: tag_group.errors.full_messages }, status: :unprocessable_content
     end
@@ -33,7 +33,7 @@ class Api::V1::TransactionTagGroupsController < ApiController
     authorize tag_group
 
     if tag_group.update(tag_group_params)
-      render json: { transaction_tag_group: tag_group.as_json }
+      render json: { transaction_tag_group: tag_group }
     else
       render json: { errors: tag_group.errors.full_messages }, status: :unprocessable_content
     end

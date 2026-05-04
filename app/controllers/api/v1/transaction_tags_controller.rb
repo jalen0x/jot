@@ -12,7 +12,7 @@ class Api::V1::TransactionTagsController < ApiController
     tag = scoped_tag
     authorize tag
 
-    render json: { transaction_tag: tag.as_json }
+    render json: { transaction_tag: tag }
   end
 
   # POST /api/v1/transaction_tags
@@ -23,7 +23,7 @@ class Api::V1::TransactionTagsController < ApiController
     tag.display_order = next_display_order
 
     if tag.errors.empty? && tag.save
-      render json: { transaction_tag: tag.as_json }, status: :created
+      render json: { transaction_tag: tag }, status: :created
     else
       render json: { errors: tag.errors.full_messages }, status: :unprocessable_content
     end
@@ -36,7 +36,7 @@ class Api::V1::TransactionTagsController < ApiController
     result = TransactionTagUpdater.new.update_tag(tag: tag, attributes: tag_params)
 
     if result.updated?
-      render json: { transaction_tag: result.tag.as_json }
+      render json: { transaction_tag: result.tag }
     else
       render json: { errors: result.tag.errors.full_messages }, status: :unprocessable_content
     end
