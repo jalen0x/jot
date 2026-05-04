@@ -19,7 +19,7 @@ Rails.application.routes.draw do
       resources :accounts, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_categories, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_tag_groups, only: [ :index, :show, :create, :update, :destroy ]
-      resources :transaction_tags, only: [ :index, :create, :update, :destroy ]
+      resources :transaction_tags, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_templates, only: [ :index, :create, :update, :destroy ]
       resources :transactions, only: [ :index, :show, :create, :update, :destroy ] do
         get :count, on: :collection
