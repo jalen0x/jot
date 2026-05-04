@@ -1,0 +1,20 @@
+<div id="<%= dom_id(receipt_recognition) %>" class="bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs">
+  <dl class="grid gap-4 text-sm sm:grid-cols-2">
+    <div>
+      <dt class="font-medium text-heading">Status</dt>
+      <dd class="mt-1 text-body"><%= receipt_recognition.status.humanize %></dd>
+    </div>
+    <div>
+      <dt class="font-medium text-heading">Image</dt>
+      <dd class="mt-1 text-body"><%= receipt_recognition.image.filename if receipt_recognition.image.attached? %></dd>
+    </div>
+  </dl>
+
+  <% if receipt_recognition.succeeded? %>
+    <pre class="mt-5 overflow-x-auto rounded-base bg-neutral-secondary-medium p-4 text-sm text-heading"><%= JSON.pretty_generate(receipt_recognition.result_json) %></pre>
+  <% elsif receipt_recognition.failed? %>
+    <p class="mt-5 rounded-base border border-danger bg-danger-soft p-4 text-sm text-heading"><%= receipt_recognition.error_message %></p>
+  <% else %>
+    <p class="mt-5 text-sm text-body-subtle">Recognition is waiting for the background worker.</p>
+  <% end %>
+</div>

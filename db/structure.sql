@@ -1,7 +1,6 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -668,6 +667,76 @@ CREATE SEQUENCE public.insight_explorers_id_seq
 --
 
 ALTER SEQUENCE public.insight_explorers_id_seq OWNED BY public.insight_explorers.id;
+
+
+--
+-- Name: receipt_recognitions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.receipt_recognitions (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    result_json jsonb DEFAULT '{}'::jsonb NOT NULL,
+    error_message text,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL,
+    CONSTRAINT receipt_recognitions_status_valid CHECK ((status = ANY (ARRAY[0, 1, 2, 3])))
+);
+
+
+--
+-- Name: TABLE receipt_recognitions; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.receipt_recognitions IS 'User-owned receipt image recognition requests';
+
+
+--
+-- Name: COLUMN receipt_recognitions.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.receipt_recognitions.user_id IS 'Owner of this receipt recognition request';
+
+
+--
+-- Name: COLUMN receipt_recognitions.status; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.receipt_recognitions.status IS 'Recognition lifecycle status: 0 pending, 1 processing, 2 succeeded, 3 failed';
+
+
+--
+-- Name: COLUMN receipt_recognitions.result_json; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.receipt_recognitions.result_json IS 'Parsed receipt fields returned by the recognition provider';
+
+
+--
+-- Name: COLUMN receipt_recognitions.error_message; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.receipt_recognitions.error_message IS 'Friendly failure message from the recognition lifecycle';
+
+
+--
+-- Name: receipt_recognitions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.receipt_recognitions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: receipt_recognitions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.receipt_recognitions_id_seq OWNED BY public.receipt_recognitions.id;
 
 
 --
@@ -1832,6 +1901,13 @@ ALTER TABLE ONLY public.insight_explorers ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: receipt_recognitions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.receipt_recognitions ALTER COLUMN id SET DEFAULT nextval('public.receipt_recognitions_id_seq'::regclass);
+
+
+--
 -- Name: transaction_categories id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1993,6 +2069,14 @@ ALTER TABLE ONLY public.import_batches
 
 ALTER TABLE ONLY public.insight_explorers
     ADD CONSTRAINT insight_explorers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: receipt_recognitions receipt_recognitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.receipt_recognitions
+    ADD CONSTRAINT receipt_recognitions_pkey PRIMARY KEY (id);
 
 
 --
@@ -2237,6 +2321,13 @@ CREATE INDEX index_insight_explorers_on_owner_order_name ON public.insight_explo
 --
 
 CREATE INDEX index_insight_explorers_on_user_id ON public.insight_explorers USING btree (user_id);
+
+
+--
+-- Name: index_receipt_recognitions_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_receipt_recognitions_on_user_id ON public.receipt_recognitions USING btree (user_id);
 
 
 --
@@ -2723,6 +2814,14 @@ ALTER TABLE ONLY public.accounts
 
 
 --
+-- Name: receipt_recognitions fk_rails_c183f7ef56; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.receipt_recognitions
+    ADD CONSTRAINT fk_rails_c183f7ef56 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: active_storage_attachments fk_rails_c3b3935057; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2817,6 +2916,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260505070000'),
 ('20260505060000'),
 ('20260505050000'),
 ('20260505040000'),
