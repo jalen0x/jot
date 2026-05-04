@@ -14,6 +14,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal [ "user_preference" ], body.keys
     user_preference_json = body.fetch("user_preference")
     assert_equal "EUR", user_preference_json.fetch("default_currency_code")
+    assert_equal "en", user_preference_json["locale"]
     refute_includes user_preference_json.keys, "user_id"
   end
 
@@ -22,7 +23,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     raw_token = issue_token(user)
 
     patch api_v1_user_preference_path,
-      params: { user_preference: { default_currency_code: "cad" } },
+      params: { user_preference: { default_currency_code: "cad", locale: "zh-CN" } },
       headers: json_headers(raw_token),
       as: :json
 
@@ -31,6 +32,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
 
     user_preference_json = JSON.parse(response.body).fetch("user_preference")
     assert_equal "CAD", user_preference_json.fetch("default_currency_code")
+    assert_equal "zh-CN", user_preference_json["locale"]
   end
 
   test "rejects invalid user preference updates" do
@@ -46,6 +48,20 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_content
     assert_equal "USD", user.reload.user_preference.default_currency_code
     assert_match(/Default currency code/i, response.body)
+  end
+
+  test "rejects unsupported locale updates" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD")
+    raw_token = issue_token(user)
+
+    patch api_v1_user_preference_path,
+      params: { user_preference: { default_currency_code: "usd", locale: "fr" } },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_match(/Locale/i, response.body)
   end
 
   private

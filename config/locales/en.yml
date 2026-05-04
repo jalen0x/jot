@@ -5,6 +5,25 @@ en:
   oauth:
     github: "GitHub"
     sign_in_with: "Sign in with %{provider}"
+  user_preferences:
+    show:
+      title: "Preferences"
+      eyebrow: "Settings"
+      heading: "Preferences"
+      description: "Choose defaults used by new ledger records."
+      save_failed: "Preferences could not be saved."
+      default_currency_code: "Default currency code"
+      default_currency_help: "Used as the starting currency on new account forms."
+      locale: "Language"
+      locale_help: "Used for signed-in interface text."
+      cancel: "Cancel"
+      save: "Save preferences"
+      saving: "Saving..."
+      locales:
+        en: "English"
+        zh-CN: "Simplified Chinese"
+    update:
+      updated: "Preferences updated."
   users:
     omniauth_callbacks:
       failure: "We could not sign you in with GitHub right now."

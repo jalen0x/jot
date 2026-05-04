@@ -15,6 +15,15 @@ class UserPreferenceTest < ActiveSupport::TestCase
     assert_includes preference.errors[:default_currency_code], "is invalid"
   end
 
+  test "database rejects unsupported locales" do
+    preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
+
+    ex = assert_raises(ActiveRecord::StatementInvalid) do
+      preference.update_column(:locale, "fr")
+    end
+    assert_match(/user_preferences_locale_supported/i, ex.message)
+  end
+
   test "allows only one preference record per user" do
     user = create(:user)
     UserPreference.create!(user: user, default_currency_code: "USD")

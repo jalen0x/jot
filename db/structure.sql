@@ -1649,7 +1649,9 @@ CREATE TABLE public.user_preferences (
     default_currency_code text DEFAULT 'USD'::text NOT NULL,
     created_at timestamp(6) with time zone NOT NULL,
     updated_at timestamp(6) with time zone NOT NULL,
-    CONSTRAINT user_preferences_default_currency_code_length CHECK ((char_length(default_currency_code) = 3))
+    locale text DEFAULT 'en'::text NOT NULL,
+    CONSTRAINT user_preferences_default_currency_code_length CHECK ((char_length(default_currency_code) = 3)),
+    CONSTRAINT user_preferences_locale_supported CHECK ((locale = ANY (ARRAY['en'::text, 'zh-CN'::text])))
 );
 
 
@@ -1672,6 +1674,13 @@ COMMENT ON COLUMN public.user_preferences.user_id IS 'Owner of these preferences
 --
 
 COMMENT ON COLUMN public.user_preferences.default_currency_code IS 'ISO 4217 default currency code for new ledger records';
+
+
+--
+-- Name: COLUMN user_preferences.locale; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_preferences.locale IS 'I18n locale used for signed-in interface text';
 
 
 --
@@ -2767,6 +2776,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260505030000'),
 ('20260504103000'),
 ('20260504100000'),
 ('20260504090000'),
