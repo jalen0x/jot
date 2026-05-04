@@ -410,6 +410,95 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: exchange_rate_snapshots; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.exchange_rate_snapshots (
+    id bigint NOT NULL,
+    data_source text NOT NULL,
+    reference_url text,
+    base_currency_code text NOT NULL,
+    currency_code text NOT NULL,
+    rate_scaled bigint NOT NULL,
+    observed_at timestamp(6) with time zone NOT NULL,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL,
+    CONSTRAINT exchange_rate_snapshots_base_currency_code_length CHECK ((char_length(base_currency_code) = 3)),
+    CONSTRAINT exchange_rate_snapshots_currency_code_length CHECK ((char_length(currency_code) = 3)),
+    CONSTRAINT exchange_rate_snapshots_distinct_currencies CHECK ((base_currency_code <> currency_code)),
+    CONSTRAINT exchange_rate_snapshots_rate_scaled_positive CHECK ((rate_scaled > 0))
+);
+
+
+--
+-- Name: TABLE exchange_rate_snapshots; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.exchange_rate_snapshots IS 'Provider-observed automatic exchange rate snapshots';
+
+
+--
+-- Name: COLUMN exchange_rate_snapshots.data_source; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.exchange_rate_snapshots.data_source IS 'Provider key or human-readable data source name';
+
+
+--
+-- Name: COLUMN exchange_rate_snapshots.reference_url; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.exchange_rate_snapshots.reference_url IS 'Provider reference URL for this rate set';
+
+
+--
+-- Name: COLUMN exchange_rate_snapshots.base_currency_code; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.exchange_rate_snapshots.base_currency_code IS 'ISO 4217 currency code that rates are based on';
+
+
+--
+-- Name: COLUMN exchange_rate_snapshots.currency_code; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.exchange_rate_snapshots.currency_code IS 'ISO 4217 target currency code';
+
+
+--
+-- Name: COLUMN exchange_rate_snapshots.rate_scaled; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.exchange_rate_snapshots.rate_scaled IS 'Exchange rate scaled by UserCustomExchangeRate::SCALE';
+
+
+--
+-- Name: COLUMN exchange_rate_snapshots.observed_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.exchange_rate_snapshots.observed_at IS 'Time the provider says this rate was observed or published';
+
+
+--
+-- Name: exchange_rate_snapshots_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.exchange_rate_snapshots_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: exchange_rate_snapshots_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.exchange_rate_snapshots_id_seq OWNED BY public.exchange_rate_snapshots.id;
+
+
+--
 -- Name: import_batches; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1687,6 +1776,13 @@ ALTER TABLE ONLY public.application_locks ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: exchange_rate_snapshots id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.exchange_rate_snapshots ALTER COLUMN id SET DEFAULT nextval('public.exchange_rate_snapshots_id_seq'::regclass);
+
+
+--
 -- Name: import_batches id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1838,6 +1934,14 @@ ALTER TABLE ONLY public.application_locks
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: exchange_rate_snapshots exchange_rate_snapshots_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.exchange_rate_snapshots
+    ADD CONSTRAINT exchange_rate_snapshots_pkey PRIMARY KEY (id);
 
 
 --
@@ -2049,6 +2153,20 @@ CREATE INDEX index_api_tokens_on_user_id ON public.api_tokens USING btree (user_
 --
 
 CREATE UNIQUE INDEX index_application_locks_on_user_id ON public.application_locks USING btree (user_id);
+
+
+--
+-- Name: index_exchange_rate_snapshots_on_base_currency_observed_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_exchange_rate_snapshots_on_base_currency_observed_at ON public.exchange_rate_snapshots USING btree (base_currency_code, currency_code, observed_at);
+
+
+--
+-- Name: index_exchange_rate_snapshots_on_provider_observation; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_exchange_rate_snapshots_on_provider_observation ON public.exchange_rate_snapshots USING btree (data_source, base_currency_code, currency_code, observed_at);
 
 
 --
@@ -2649,6 +2767,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260504103000'),
 ('20260504100000'),
 ('20260504090000'),
 ('20260503200001'),
