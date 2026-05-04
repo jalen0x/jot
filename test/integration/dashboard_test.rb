@@ -24,6 +24,8 @@ class DashboardTest < ActionDispatch::IntegrationTest
     assert_select "p", text: /40.00 USD/
     assert_select "p", text: /7.00 CNY/
     assert_select "li", text: /Groceries/i
+    assert_select "li", text: /10.00 USD/
+    assert_select "li", text: /1000 cents/, count: 0
     assert_select "li", text: /Other Groceries/i, count: 0
   end
 
