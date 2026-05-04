@@ -57,6 +57,28 @@ class DataExportTest < ActiveSupport::TestCase
     assert_includes tsv, "\t"
   end
 
+  test "exports current user's transactions as JSON" do
+    user = create(:user)
+    other_user = create(:user)
+    tag = create_tag(user: user, name: "Business")
+    transaction = create_transaction(user: user, comment: "Client lunch", timezone_utc_offset_minutes: 480, hide_amount: true, geo_latitude: 37.7749, geo_longitude: -122.4194)
+    TransactionTagging.create!(user: user, ledger_transaction: transaction, transaction_tag: tag)
+    create_transaction(user: other_user, comment: "Other lunch")
+
+    body = JSON.parse(DataExport.new.transactions_json(user: user))
+    transactions = body.fetch("transactions")
+
+    assert_equal 1, transactions.length
+    transaction_json = transactions.first
+    assert_equal "Client lunch", transaction_json.fetch("comment")
+    assert_equal "Business", transaction_json.fetch("transaction_tag_names").sole
+    assert_equal "expense", transaction_json.fetch("transaction_kind")
+    assert_equal 480, transaction_json.fetch("timezone_utc_offset_minutes")
+    assert_equal true, transaction_json.fetch("hide_amount")
+    assert_equal "37.7749", transaction_json.fetch("geo_latitude")
+    assert_equal "-122.4194", transaction_json.fetch("geo_longitude")
+  end
+
   private
 
   def create_transaction(user:, comment:, timezone_utc_offset_minutes: 0, hide_amount: false, geo_latitude: nil, geo_longitude: nil)

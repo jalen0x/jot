@@ -32,10 +32,11 @@
   <div class="grid gap-4 lg:grid-cols-3">
     <article class="bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs">
       <h2 class="text-lg font-semibold text-heading">Export transactions</h2>
-      <p class="mt-2 text-sm text-body">Download your current Rails ledger transactions as CSV or TSV.</p>
+      <p class="mt-2 text-sm text-body">Download your current Rails ledger transactions as CSV, TSV, or JSON.</p>
       <div class="mt-5 flex flex-wrap gap-3">
         <%= button_to "Export CSV", data_exports_path, method: :post, params: { file_format: "csv" }, class: secondary_button_classes %>
         <%= button_to "Export TSV", data_exports_path, method: :post, params: { file_format: "tsv" }, class: secondary_button_classes %>
+        <%= button_to "Export JSON", data_exports_path, method: :post, params: { file_format: "json" }, class: secondary_button_classes %>
       </div>
     </article>
 
