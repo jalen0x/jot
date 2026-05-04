@@ -45,6 +45,15 @@ class TransactionCategoriesController < ApplicationController
     end
   end
 
+  # DELETE /transaction_categories/:id
+  def destroy
+    category = scoped_category
+    authorize category
+    category.discard!
+
+    redirect_to transaction_categories_path, notice: "Category deleted.", status: :see_other
+  end
+
   private
 
   def category_attributes
