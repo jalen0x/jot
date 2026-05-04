@@ -59,6 +59,7 @@ Rails.application.routes.draw do
 
   resource :dashboard, only: :show
   resource :reports, only: :show
+  resource :data_management, only: :show
   resource :user_preference, only: [ :show, :update ]
   resource :two_factor_authentication, only: [ :show, :create, :destroy ]
   resource :two_factor_challenge, only: [ :new, :create ]
