@@ -6,6 +6,7 @@ class TransactionPolicy < ApplicationPolicy
   def update? = owns_record?
   def destroy? = owns_record?
   def batch_delete? = user.present?
+  def batch_update_category? = user.present?
 
   class Scope < ApplicationPolicy::Scope
     def resolve
