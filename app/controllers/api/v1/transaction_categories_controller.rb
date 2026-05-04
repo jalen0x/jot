@@ -54,7 +54,7 @@ class Api::V1::TransactionCategoriesController < ApiController
   private
 
   def category_params
-    @category_params ||= params.expect(transaction_category: [ :name, :category_type, :parent_category_id, :icon_key, :color_hex, :comment, :hidden ])
+    @category_params ||= params.expect(transaction_category: [ :name, :category_type, :parent_category_id, :icon_key, :color_hex, :comment, :hidden, :display_order ])
   end
 
   def parent_category_for(category)

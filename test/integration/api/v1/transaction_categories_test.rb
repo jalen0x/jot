@@ -113,7 +113,8 @@ class ApiV1TransactionCategoriesTest < ActionDispatch::IntegrationTest
           icon_key: "3",
           color_hex: "#22c55e",
           comment: "Air travel",
-          hidden: "true"
+          hidden: "true",
+          display_order: "5"
         }
       },
       headers: json_headers(raw_token),
@@ -128,12 +129,14 @@ class ApiV1TransactionCategoriesTest < ActionDispatch::IntegrationTest
     assert_equal "22C55E", category.color_hex
     assert_equal "Air travel", category.comment
     assert_equal true, category.hidden
+    assert_equal 5, category.display_order
 
     category_json = JSON.parse(response.body).fetch("transaction_category")
     assert_equal category.to_param, category_json.fetch("id")
     assert_equal "Flights", category_json.fetch("name")
     assert_equal new_parent.to_param, category_json.fetch("parent_category_id")
     assert_equal true, category_json.fetch("hidden")
+    assert_equal 5, category_json.fetch("display_order")
     refute_includes category_json.keys, "user_id"
   end
 

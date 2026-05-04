@@ -13,7 +13,7 @@ class TransactionCategoryUpdater
   private
 
   def category_attributes(attributes)
-    {
+    category_attributes = {
       name: attributes[:name],
       category_type: attributes[:category_type],
       icon_key: attributes[:icon_key],
@@ -21,6 +21,8 @@ class TransactionCategoryUpdater
       comment: attributes[:comment],
       hidden: ActiveModel::Type::Boolean.new.cast(attributes[:hidden])
     }
+    category_attributes[:display_order] = attributes[:display_order] if attributes.key?(:display_order)
+    category_attributes
   end
 
   def parent_category_for(category, parent_category_id)
