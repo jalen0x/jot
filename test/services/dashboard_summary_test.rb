@@ -5,6 +5,8 @@ class DashboardSummaryTest < ActiveSupport::TestCase
     user = create(:user)
     other_user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 5_000)
+    create_account(user: user, name: "Savings", balance_cents: -1_000)
+    create_account(user: user, name: "Wallet", balance_cents: 700, currency_code: "CNY")
     discarded_account = create_account(user: user, name: "Closed", balance_cents: 9_999)
     discarded_account.discard!
     create_account(user: other_user, name: "Other", balance_cents: 7_777)
@@ -15,8 +17,12 @@ class DashboardSummaryTest < ActiveSupport::TestCase
 
     summary = DashboardSummary.new.summarize(user: user)
 
-    assert_equal 5_000, summary.total_balance_cents
-    assert_equal 1, summary.account_count
+    assert_respond_to summary, :account_balances
+    assert_equal [
+      { currency_code: "CNY", balance_cents: 700 },
+      { currency_code: "USD", balance_cents: 4_000 }
+    ], summary.account_balances.map { |balance| { currency_code: balance.currency_code, balance_cents: balance.balance_cents } }
+    assert_equal 3, summary.account_count
     assert_equal 1, summary.transaction_count
     assert_equal [ "Groceries" ], summary.recent_transactions.map(&:comment)
   end
@@ -38,7 +44,7 @@ class DashboardSummaryTest < ActiveSupport::TestCase
 
   private
 
-  def create_account(user:, name:, balance_cents:)
+  def create_account(user:, name:, balance_cents:, currency_code: "USD")
     Account.create!(
       user: user,
       name: name,
@@ -46,7 +52,7 @@ class DashboardSummaryTest < ActiveSupport::TestCase
       account_structure: :single_account,
       icon_key: 1,
       color_hex: "22C55E",
-      currency_code: "USD",
+      currency_code: currency_code,
       balance_cents: balance_cents,
       display_order: 1
     )
