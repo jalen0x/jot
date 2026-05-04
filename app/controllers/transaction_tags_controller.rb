@@ -21,6 +21,28 @@ class TransactionTagsController < ApplicationController
     end
   end
 
+  # GET /transaction_tags/:id/edit
+  def edit
+    @transaction_tag = scoped_tag
+    authorize @transaction_tag
+    @transaction_tag_groups = tag_groups
+  end
+
+  # PATCH/PUT /transaction_tags/:id
+  def update
+    tag = scoped_tag
+    authorize tag
+    result = TransactionTagUpdater.new.update_tag(tag: tag, attributes: tag_update_params)
+
+    if result.updated?
+      redirect_to transaction_tag_groups_path, notice: "Tag updated."
+    else
+      @transaction_tag = result.tag
+      @transaction_tag_groups = tag_groups
+      render :edit, status: :unprocessable_content
+    end
+  end
+
   private
 
   def tag_attributes
@@ -31,6 +53,10 @@ class TransactionTagsController < ApplicationController
 
   def tag_params
     params.expect(transaction_tag: [ :name, :transaction_tag_group_id ])
+  end
+
+  def tag_update_params
+    params.expect(transaction_tag: [ :name, :transaction_tag_group_id, :hidden ])
   end
 
   def tag_group_for(tag_group_id)
@@ -45,5 +71,9 @@ class TransactionTagsController < ApplicationController
 
   def next_display_order
     current_user.transaction_tags.kept.maximum(:display_order).to_i + 1
+  end
+
+  def scoped_tag
+    policy_scope(TransactionTag).kept.find(params[:id])
   end
 end
