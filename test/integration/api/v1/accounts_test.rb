@@ -62,6 +62,91 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "shows a reconciliation statement for the token owner's account" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking", balance_cents: 0)
+    other_account = create_account(user: create(:user), name: "Other", balance_cents: 0)
+    create_transaction(
+      user: user,
+      account: account,
+      transaction_kind: :balance_adjustment,
+      source_amount_cents: 5_000,
+      transacted_at: Time.zone.parse("2026-05-01 09:00:00")
+    )
+    income = create_transaction(
+      user: user,
+      account: account,
+      transaction_kind: :income,
+      source_amount_cents: 2_000,
+      transacted_at: Time.zone.parse("2026-05-03 09:00:00")
+    )
+    expense = create_transaction(
+      user: user,
+      account: account,
+      transaction_kind: :expense,
+      source_amount_cents: 1_200,
+      transacted_at: Time.zone.parse("2026-05-03 10:00:00")
+    )
+    create_transaction(
+      user: user,
+      account: account,
+      transaction_kind: :income,
+      source_amount_cents: 9_999,
+      transacted_at: Time.zone.parse("2026-05-04 09:00:00")
+    )
+    create_transaction(
+      user: other_account.user,
+      account: other_account,
+      transaction_kind: :income,
+      source_amount_cents: 7_777,
+      transacted_at: Time.zone.parse("2026-05-03 09:00:00")
+    )
+    raw_token = issue_token(user)
+
+    get api_v1_account_reconciliation_statement_path(account),
+      params: { start_date: "2026-05-03", end_date: "2026-05-03" },
+      headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ "reconciliation_statement" ], body.keys
+    statement = body.fetch("reconciliation_statement")
+    assert_equal account.to_param, statement.fetch("account_id")
+    assert_equal "2026-05-03", statement.fetch("start_date")
+    assert_equal "2026-05-03", statement.fetch("end_date")
+    assert_equal 5_000, statement.fetch("opening_balance_cents")
+    assert_equal 2_000, statement.fetch("inflow_cents")
+    assert_equal 1_200, statement.fetch("outflow_cents")
+    assert_equal 5_800, statement.fetch("closing_balance_cents")
+    assert_equal [ income.to_param, expense.to_param ], statement.fetch("transaction_ids")
+  end
+
+  test "does not show a reconciliation statement for another user's account" do
+    user = create(:user)
+    account = create_account(user: create(:user), name: "Other Checking", balance_cents: 50_000)
+    raw_token = issue_token(user)
+
+    get api_v1_account_reconciliation_statement_path(account),
+      params: { start_date: "2026-05-03", end_date: "2026-05-03" },
+      headers: json_headers(raw_token)
+
+    assert_response :not_found
+  end
+
+  test "rejects invalid reconciliation statement dates" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking", balance_cents: 0)
+    raw_token = issue_token(user)
+
+    get api_v1_account_reconciliation_statement_path(account),
+      params: { start_date: "not-a-date", end_date: "2026-05-03" },
+      headers: json_headers(raw_token)
+
+    assert_response :unprocessable_content
+    body = JSON.parse(response.body)
+    assert_equal [ "Start date and end date must be valid ISO 8601 dates" ], body.fetch("errors")
+  end
+
   test "creates an account for the token owner" do
     user = create(:user)
     create_account(user: user, name: "Cash", balance_cents: 0)
@@ -288,6 +373,33 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
       balance_cents: balance_cents,
       display_order: 1,
       comment: "Wallet"
+    )
+  end
+
+  def create_transaction(user:, account:, transaction_kind:, source_amount_cents:, transacted_at:)
+    Transaction.create!(
+      user: user,
+      account: account,
+      transaction_category: category_for(user, transaction_kind),
+      transaction_kind: transaction_kind,
+      transacted_at: transacted_at,
+      timezone_utc_offset_minutes: 0,
+      source_amount_cents: source_amount_cents,
+      destination_amount_cents: 0,
+      comment: transaction_kind.to_s.humanize
+    )
+  end
+
+  def category_for(user, transaction_kind)
+    return if transaction_kind.to_s == "balance_adjustment"
+
+    TransactionCategory.create!(
+      user: user,
+      name: transaction_kind.to_s.humanize,
+      category_type: transaction_kind,
+      icon_key: 1,
+      color_hex: "F97316",
+      display_order: 1
     )
   end
 end
