@@ -75,6 +75,107 @@ class TransactionTemplatesTest < ActionDispatch::IntegrationTest
     assert_predicate template, :monthly?
   end
 
+  test "updates a transaction template for current user" do
+    user = create(:user)
+    old_account = create_account(user: user, name: "Checking")
+    new_account = create_account(user: user, name: "Savings")
+    old_category = create_category(user: user, name: "Food", category_type: :expense)
+    new_category = create_category(user: user, name: "Bills", category_type: :expense)
+    old_tag = create_tag(user: user, name: "Meals")
+    new_tag = create_tag(user: user, name: "Rent")
+    template = create_template(
+      user: user,
+      account: old_account,
+      category: old_category,
+      name: "Lunch",
+      template_kind: :normal,
+      tags: [ old_tag ]
+    )
+    sign_in user
+
+    get edit_transaction_template_path(template)
+    assert_response :success
+    assert_select "h1", text: /edit transaction template/i
+    assert_select "input#transaction_template_hidden"
+
+    patch transaction_template_path(template), params: {
+      transaction_template: {
+        template_kind: "scheduled",
+        transaction_kind: "expense",
+        name: "Rent",
+        account_id: new_account.id.to_s,
+        destination_account_id: "",
+        transaction_category_id: new_category.id.to_s,
+        source_amount_cents: "120000",
+        destination_amount_cents: "0",
+        hide_amount: "1",
+        hidden: "1",
+        comment: "Monthly rent",
+        schedule_frequency: "monthly",
+        schedule_rule: "-1",
+        schedule_start_on: "2026-05-01",
+        schedule_end_on: "2026-12-31",
+        scheduled_at_minutes: "540",
+        timezone_utc_offset_minutes: "480",
+        transaction_tag_ids: [ new_tag.id.to_s ]
+      }
+    }
+
+    assert_redirected_to transaction_templates_path
+    template.reload
+    assert_equal "Rent", template.name
+    assert_equal new_account, template.account
+    assert_equal new_category, template.transaction_category
+    assert_equal [ new_tag ], template.transaction_tags.to_a
+    assert_equal 1, template.display_order
+    assert_equal 120_000, template.source_amount_cents
+    assert_predicate template, :hide_amount?
+    assert_predicate template, :hidden?
+    assert_predicate template, :scheduled?
+    assert_predicate template, :monthly?
+    assert_equal Date.new(2026, 5, 1), template.schedule_start_on
+    assert_equal Date.new(2026, 12, 31), template.schedule_end_on
+    assert_equal 540, template.scheduled_at_minutes
+    assert_equal 480, template.timezone_utc_offset_minutes
+  end
+
+  test "does not update another user's transaction template" do
+    user = create(:user)
+    other_user = create(:user)
+    template = create_template(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Bills", category_type: :expense),
+      name: "Other Rent",
+      template_kind: :scheduled
+    )
+    sign_in user
+
+    patch transaction_template_path(template), params: {
+      transaction_template: {
+        template_kind: "normal",
+        transaction_kind: "expense",
+        name: "Changed",
+        account_id: template.account.id.to_s,
+        destination_account_id: "",
+        transaction_category_id: template.transaction_category.id.to_s,
+        source_amount_cents: "130000",
+        destination_amount_cents: "0",
+        hide_amount: "0",
+        hidden: "1",
+        comment: "Changed",
+        schedule_frequency: "disabled",
+        schedule_rule: "",
+        scheduled_at_minutes: "0",
+        timezone_utc_offset_minutes: "0"
+      }
+    }
+
+    assert_response :not_found
+    assert_equal "Other Rent", template.reload.name
+    refute_predicate template, :hidden?
+  end
+
   test "deletes a transaction template for current user" do
     user = create(:user)
     account = create_account(user: user, name: "Checking")
@@ -137,8 +238,8 @@ class TransactionTemplatesTest < ActionDispatch::IntegrationTest
     TransactionTag.create!(user: user, name: name, display_order: 1)
   end
 
-  def create_template(user:, account:, category:, name:, template_kind:)
-    TransactionTemplate.create!(
+  def create_template(user:, account:, category:, name:, template_kind:, tags: [])
+    template = TransactionTemplate.create!(
       user: user,
       account: account,
       transaction_category: category,
@@ -153,5 +254,7 @@ class TransactionTemplatesTest < ActionDispatch::IntegrationTest
       timezone_utc_offset_minutes: 480,
       display_order: 1
     )
+    tags.each { |tag| TransactionTemplateTagging.create!(user: user, transaction_template: template, transaction_tag: tag) }
+    template
   end
 end

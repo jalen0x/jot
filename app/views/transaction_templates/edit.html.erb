@@ -1,0 +1,11 @@
+<% content_for :title, "Edit transaction template" %>
+
+<section class="mx-auto w-full max-w-3xl">
+  <div class="mb-6">
+    <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Automation</p>
+    <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Edit transaction template</h1>
+    <p class="mt-2 text-sm text-body">Update this reusable transaction shape or scheduled ledger entry.</p>
+  </div>
+
+  <%= render "form", transaction_template: @transaction_template, accounts: @accounts, transaction_categories: @transaction_categories, transaction_tags: @transaction_tags, submit_label: "Update template", submitting_label: "Updating..." %>
+</section>
