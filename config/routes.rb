@@ -19,6 +19,7 @@ Rails.application.routes.draw do
       resources :accounts, only: [ :index, :show, :create, :update, :destroy ] do
         resource :reconciliation_statement, only: :show, controller: "account_reconciliation_statements"
       end
+      resource :user_preference, only: [ :show, :update ]
       resources :transaction_categories, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_tag_groups, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_tags, only: [ :index, :show, :create, :update, :destroy ]
