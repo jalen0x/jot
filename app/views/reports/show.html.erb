@@ -37,7 +37,10 @@
             </p>
           <% end %>
         <% else %>
-          <p class="text-3xl font-semibold text-heading"><%= number_to_currency(0, unit: "") %></p>
+          <p class="text-3xl font-semibold text-heading">
+            <%= number_to_currency(0, unit: "") %>
+            <span class="text-base font-medium text-body-subtle"><%= @default_currency_code %></span>
+          </p>
         <% end %>
       </div>
     </div>
@@ -52,7 +55,10 @@
             </p>
           <% end %>
         <% else %>
-          <p class="text-3xl font-semibold text-heading"><%= number_to_currency(0, unit: "") %></p>
+          <p class="text-3xl font-semibold text-heading">
+            <%= number_to_currency(0, unit: "") %>
+            <span class="text-base font-medium text-body-subtle"><%= @default_currency_code %></span>
+          </p>
         <% end %>
       </div>
     </div>
@@ -67,7 +73,10 @@
             </p>
           <% end %>
         <% else %>
-          <p class="text-3xl font-semibold text-heading"><%= number_to_currency(0, unit: "") %></p>
+          <p class="text-3xl font-semibold text-heading">
+            <%= number_to_currency(0, unit: "") %>
+            <span class="text-base font-medium text-body-subtle"><%= @default_currency_code %></span>
+          </p>
         <% end %>
       </div>
     </div>
