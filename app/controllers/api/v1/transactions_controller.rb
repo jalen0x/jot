@@ -72,6 +72,22 @@ class Api::V1::TransactionsController < ApiController
     end
   end
 
+  # POST /api/v1/transactions/batch_update_account
+  def batch_update_account
+    authorize Transaction
+    result = TransactionBatchAccountUpdater.new.update_account(
+      transactions: batch_update_transactions,
+      account: batch_update_account_target,
+      destination_account: batch_update_destination_account?
+    )
+
+    if result.updated?
+      head :no_content
+    else
+      render json: { errors: result.transaction.errors.full_messages }, status: :unprocessable_content
+    end
+  end
+
   # POST /api/v1/transactions/batch_add_tags
   def batch_add_tags
     authorize Transaction
@@ -149,6 +165,18 @@ class Api::V1::TransactionsController < ApiController
 
   def batch_update_category_id
     params[:transaction_category_id].to_s
+  end
+
+  def batch_update_account_target
+    current_user.accounts.kept.find(Account.decode_prefix_id(batch_update_account_id) || batch_update_account_id)
+  end
+
+  def batch_update_account_id
+    params[:account_id].to_s
+  end
+
+  def batch_update_destination_account?
+    ActiveModel::Type::Boolean.new.cast(params[:is_destination_account])
   end
 
   def batch_tags

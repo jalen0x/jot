@@ -7,6 +7,7 @@ class TransactionPolicy < ApplicationPolicy
   def destroy? = owns_record?
   def batch_delete? = user.present?
   def batch_update_category? = user.present?
+  def batch_update_account? = user.present?
   def batch_add_tags? = user.present?
   def batch_remove_tags? = user.present?
   def batch_clear_tags? = user.present?

@@ -634,6 +634,141 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_match(/Transaction category does not match transaction type/i, response.body)
   end
 
+  test "batch updates transaction source accounts for the token owner" do
+    user = create(:user)
+    old_account = create_account(user: user, name: "Checking", balance_cents: 3_250)
+    new_account = create_account(user: user, name: "Savings", balance_cents: 10_000)
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    lunch = create_transaction(
+      user: user,
+      account: old_account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    coffee = create_transaction(
+      user: user,
+      account: old_account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 13:00:00"),
+      source_amount_cents: 500,
+      comment: "Coffee"
+    )
+    raw_token = issue_token(user)
+
+    post batch_update_account_api_v1_transactions_path,
+      params: { transaction_ids: [ lunch.to_param, coffee.to_param ], account_id: new_account.to_param },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :no_content
+    assert_empty response.body
+    assert_equal new_account, lunch.reload.account
+    assert_equal new_account, coffee.reload.account
+    assert_equal 5_000, old_account.reload.balance_cents
+    assert_equal 8_250, new_account.reload.balance_cents
+  end
+
+  test "batch updates transfer destination accounts for the token owner" do
+    user = create(:user)
+    source = create_account(user: user, name: "Checking", balance_cents: 8_000)
+    old_destination = create_account(user: user, name: "Savings", balance_cents: 7_000)
+    new_destination = create_account(user: user, name: "Brokerage", balance_cents: 1_000)
+    category = create_category(user: user, name: "Move", category_type: :transfer)
+    transfer = create_transaction(
+      user: user,
+      account: source,
+      destination_account: old_destination,
+      category: category,
+      transaction_kind: :transfer,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 2_000,
+      destination_amount_cents: 2_000,
+      comment: "Move"
+    )
+    raw_token = issue_token(user)
+
+    post batch_update_account_api_v1_transactions_path,
+      params: { transaction_ids: [ transfer.to_param ], account_id: new_destination.to_param, is_destination_account: "true" },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :no_content
+    assert_empty response.body
+    assert_equal new_destination, transfer.reload.destination_account
+    assert_equal 8_000, source.reload.balance_cents
+    assert_equal 5_000, old_destination.reload.balance_cents
+    assert_equal 3_000, new_destination.reload.balance_cents
+  end
+
+  test "does not batch update accounts when target account is unavailable" do
+    user = create(:user)
+    other_user = create(:user)
+    old_account = create_account(user: user, name: "Checking", balance_cents: 3_750)
+    other_account = create_account(user: other_user, name: "Other Checking", balance_cents: 10_000)
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    transaction = create_transaction(
+      user: user,
+      account: old_account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    raw_token = issue_token(user)
+
+    post batch_update_account_api_v1_transactions_path,
+      params: { transaction_ids: [ transaction.to_param ], account_id: other_account.to_param },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :not_found
+    assert_equal old_account, transaction.reload.account
+    assert_equal 3_750, old_account.reload.balance_cents
+    assert_equal 10_000, other_account.reload.balance_cents
+  end
+
+  test "does not batch update accounts when one transaction is unavailable" do
+    user = create(:user)
+    other_user = create(:user)
+    old_account = create_account(user: user, name: "Checking", balance_cents: 3_750)
+    new_account = create_account(user: user, name: "Savings", balance_cents: 10_000)
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    transaction = create_transaction(
+      user: user,
+      account: old_account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    other_transaction = create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Food", category_type: :expense),
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 500,
+      comment: "Other Lunch"
+    )
+    raw_token = issue_token(user)
+
+    post batch_update_account_api_v1_transactions_path,
+      params: { transaction_ids: [ transaction.to_param, other_transaction.to_param ], account_id: new_account.to_param },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :not_found
+    assert_equal old_account, transaction.reload.account
+    assert_equal 3_750, old_account.reload.balance_cents
+    assert_equal 10_000, new_account.reload.balance_cents
+  end
+
   test "batch adds tags to transactions for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking")
@@ -999,16 +1134,17 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     TransactionTag.create!(user: user, name: name, display_order: 1)
   end
 
-  def create_transaction(user:, account:, category:, transaction_kind:, transacted_at:, source_amount_cents:, comment:, tags: [], geo_latitude: nil, geo_longitude: nil)
+  def create_transaction(user:, account:, category:, transaction_kind:, transacted_at:, source_amount_cents:, comment:, destination_account: nil, destination_amount_cents: 0, tags: [], geo_latitude: nil, geo_longitude: nil)
     transaction = Transaction.create!(
       user: user,
       account: account,
+      destination_account: destination_account,
       transaction_category: category,
       transaction_kind: transaction_kind,
       transacted_at: transacted_at,
       timezone_utc_offset_minutes: 0,
       source_amount_cents: source_amount_cents,
-      destination_amount_cents: 0,
+      destination_amount_cents: destination_amount_cents,
       comment: comment,
       geo_latitude: geo_latitude,
       geo_longitude: geo_longitude
