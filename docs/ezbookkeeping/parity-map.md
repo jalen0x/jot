@@ -45,5 +45,5 @@
 | PWA and responsive mobile UI | Phase 6 | Rails views/assets |
 | Transaction templates and schedules | Phase 7 | `TransactionTemplate`, recurring job |
 | Rails-native JSON API | Phase 8 | `Api::V1` resource controllers with top-level JSON keys |
-| LLM receipt recognition | Phase 8 | recognition job/result resources |
+| LLM receipt recognition | Phase 8 | `ReceiptRecognition`, `ReceiptRecognitionJob`, `ReceiptRecognitionClient` |
 | MCP support | Excluded | Not part of the Rails rewrite scope |

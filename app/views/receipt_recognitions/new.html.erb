@@ -1,0 +1,31 @@
+<% content_for :title, "Recognize Receipt" %>
+
+<section class="max-w-3xl space-y-8">
+  <div class="space-y-3">
+    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">AI</p>
+    <h1 class="text-3xl font-semibold tracking-tight text-heading">Recognize receipt</h1>
+    <p class="text-body">Upload a receipt image and let the background recognizer extract merchant, amount, currency, and notes.</p>
+  </div>
+
+  <%= form_with model: @receipt_recognition, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
+    <% if @receipt_recognition.errors.any? %>
+      <div class="mb-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
+        <p class="font-medium">Receipt recognition could not be started.</p>
+        <ul class="mt-2 list-disc ps-5">
+          <% @receipt_recognition.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="mb-5">
+      <%= form.label :image, "Receipt image", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.file_field :image, required: true, accept: "image/*", class: "cursor-pointer bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full shadow-xs placeholder:text-body" %>
+    </div>
+
+    <div class="flex justify-end">
+      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Starting..." })) { "Start recognition" } %>
+    </div>
+  <% end %>
+</section>
