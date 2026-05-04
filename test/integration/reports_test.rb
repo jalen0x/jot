@@ -34,6 +34,17 @@ class ReportsTest < ActionDispatch::IntegrationTest
     assert_select "li", text: /Other/i, count: 0
   end
 
+  test "shows empty report totals in the user's default currency" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "CNY")
+    sign_in user
+
+    get reports_path, params: { start_date: "2026-05-01", end_date: "2026-05-31" }
+
+    assert_response :success
+    assert_select "p", text: /0\.00 CNY/, count: 3
+  end
+
   private
 
   def create_transaction(user:, transaction_kind:, amount_cents:, comment:, category: nil, currency_code: "USD")
