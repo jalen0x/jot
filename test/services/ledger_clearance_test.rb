@@ -36,14 +36,21 @@ class LedgerClearanceTest < ActiveSupport::TestCase
     tag_group = create_tag_group(user: user)
     tag = create_tag(user: user, tag_group: tag_group)
     exchange_rate = UserCustomExchangeRate.create!(user: user, currency_code: "EUR", rate: "1.25")
+    explorer = InsightExplorer.create!(user: user, name: "Monthly", config: {}, display_order: 1)
+    template = create_template(user: user, account: account, category: category, tag: tag, name: "Rent")
     transaction = create_transaction(user: user, account: account, category: category)
     create_tagging(user: user, transaction: transaction, tag: tag)
     other_category = create_category(user: other_user, category_type: :expense)
+    other_tag_group = create_tag_group(user: other_user)
+    other_tag = create_tag(user: other_user, tag_group: other_tag_group)
+    other_explorer = InsightExplorer.create!(user: other_user, name: "Other Monthly", config: {}, display_order: 1)
+    other_template = create_template(user: other_user, account: other_account, category: other_category, tag: other_tag, name: "Other Rent")
     other_transaction = create_transaction(user: other_user, account: other_account, category: other_category)
 
     LedgerClearance.new.clear_all_data(user: user)
 
     assert_equal 0, TransactionTagging.where(user: user).count
+    assert_equal 0, TransactionTemplateTagging.where(user: user).count
     assert_predicate transaction.reload, :discarded?
     assert_predicate account.reload, :discarded?
     assert_predicate parent_account.reload, :discarded?
@@ -53,9 +60,14 @@ class LedgerClearanceTest < ActiveSupport::TestCase
     assert_predicate tag.reload, :discarded?
     assert_predicate tag_group.reload, :discarded?
     assert_predicate exchange_rate.reload, :discarded?
+    assert_predicate explorer.reload, :discarded?
+    assert_predicate template.reload, :discarded?
     assert_predicate other_transaction.reload, :kept?
     assert_predicate other_account.reload, :kept?
     assert_predicate other_category.reload, :kept?
+    assert_predicate other_explorer.reload, :kept?
+    assert_predicate other_template.reload, :kept?
+    assert_equal 1, TransactionTemplateTagging.where(user: other_user).count
   end
 
   private
@@ -93,6 +105,26 @@ class LedgerClearanceTest < ActiveSupport::TestCase
 
   def create_tag(user:, tag_group:)
     TransactionTag.create!(user: user, transaction_tag_group: tag_group, name: "Client", display_order: 1)
+  end
+
+  def create_template(user:, account:, category:, tag:, name:)
+    template = TransactionTemplate.create!(
+      user: user,
+      account: account,
+      transaction_category: category,
+      template_kind: :normal,
+      transaction_kind: :expense,
+      name: name,
+      source_amount_cents: 1_200,
+      destination_amount_cents: 0,
+      schedule_frequency: :disabled,
+      schedule_rule: "",
+      scheduled_at_minutes: 540,
+      timezone_utc_offset_minutes: 0,
+      display_order: 1
+    )
+    template.transaction_template_taggings.create!(user: user, transaction_tag: tag)
+    template
   end
 
   def create_transaction(user:, account:, category:)
