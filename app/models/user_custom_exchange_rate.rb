@@ -29,6 +29,14 @@ class UserCustomExchangeRate < ApplicationRecord
     self.rate_scaled = nil
   end
 
+  def as_json(_options = {})
+    {
+      id: to_param,
+      currency_code: currency_code,
+      rate: rate.to_s("F")
+    }
+  end
+
   private
 
   def rate_input_must_be_valid
