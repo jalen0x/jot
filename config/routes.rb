@@ -21,6 +21,7 @@ Rails.application.routes.draw do
       end
       resource :user_preference, only: [ :show, :update ]
       resource :exchange_rate_catalog, only: :show
+      resource :application_lock, only: [ :show, :create, :destroy ]
       resources :user_custom_exchange_rates, only: [ :index, :show, :create, :update, :destroy ]
       resources :data_exports, only: :create
       resources :import_batches, only: [ :show, :create ]
