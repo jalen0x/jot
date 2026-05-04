@@ -496,6 +496,92 @@ ALTER SEQUENCE public.import_batches_id_seq OWNED BY public.import_batches.id;
 
 
 --
+-- Name: insight_explorers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.insight_explorers (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    name text NOT NULL,
+    config jsonb DEFAULT '{}'::jsonb NOT NULL,
+    hidden boolean DEFAULT false NOT NULL,
+    display_order integer DEFAULT 0 NOT NULL,
+    discarded_at timestamp(6) with time zone,
+    created_at timestamp(6) with time zone NOT NULL,
+    updated_at timestamp(6) with time zone NOT NULL,
+    CONSTRAINT insight_explorers_name_length CHECK ((char_length(name) <= 64))
+);
+
+
+--
+-- Name: TABLE insight_explorers; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.insight_explorers IS 'User-owned saved insight explorer configurations';
+
+
+--
+-- Name: COLUMN insight_explorers.user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.insight_explorers.user_id IS 'Owner of this saved explorer';
+
+
+--
+-- Name: COLUMN insight_explorers.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.insight_explorers.name IS 'User-facing explorer name';
+
+
+--
+-- Name: COLUMN insight_explorers.config; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.insight_explorers.config IS 'Bounded inert chart and filter configuration';
+
+
+--
+-- Name: COLUMN insight_explorers.hidden; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.insight_explorers.hidden IS 'Whether this explorer is hidden from default lists';
+
+
+--
+-- Name: COLUMN insight_explorers.display_order; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.insight_explorers.display_order IS 'Owner-scoped sort order';
+
+
+--
+-- Name: COLUMN insight_explorers.discarded_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.insight_explorers.discarded_at IS 'Soft deletion timestamp';
+
+
+--
+-- Name: insight_explorers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.insight_explorers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: insight_explorers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.insight_explorers_id_seq OWNED BY public.insight_explorers.id;
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1608,6 +1694,13 @@ ALTER TABLE ONLY public.import_batches ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: insight_explorers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.insight_explorers ALTER COLUMN id SET DEFAULT nextval('public.insight_explorers_id_seq'::regclass);
+
+
+--
 -- Name: transaction_categories id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1753,6 +1846,14 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 ALTER TABLE ONLY public.import_batches
     ADD CONSTRAINT import_batches_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: insight_explorers insight_explorers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.insight_explorers
+    ADD CONSTRAINT insight_explorers_pkey PRIMARY KEY (id);
 
 
 --
@@ -1962,6 +2063,27 @@ CREATE INDEX index_import_batches_on_owner_created_at ON public.import_batches U
 --
 
 CREATE INDEX index_import_batches_on_user_id ON public.import_batches USING btree (user_id);
+
+
+--
+-- Name: index_insight_explorers_on_discarded_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_insight_explorers_on_discarded_at ON public.insight_explorers USING btree (discarded_at);
+
+
+--
+-- Name: index_insight_explorers_on_owner_order_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_insight_explorers_on_owner_order_name ON public.insight_explorers USING btree (user_id, display_order, name);
+
+
+--
+-- Name: index_insight_explorers_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_insight_explorers_on_user_id ON public.insight_explorers USING btree (user_id);
 
 
 --
@@ -2449,6 +2571,14 @@ ALTER TABLE ONLY public.transactions
 
 
 --
+-- Name: insight_explorers fk_rails_d0e7592aa7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.insight_explorers
+    ADD CONSTRAINT fk_rails_d0e7592aa7 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: transaction_tags fk_rails_d5db8ca0c9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2519,6 +2649,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260504100000'),
 ('20260504090000'),
 ('20260503200001'),
 ('20260503200000'),
