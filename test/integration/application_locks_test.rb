@@ -35,11 +35,12 @@ class ApplicationLocksTest < ActionDispatch::IntegrationTest
     ApplicationLock.create!(user: user, pin_digest: ApplicationLock.digest("123456"))
     sign_in user
 
-    post lock_application_lock_path
+    delete application_lock_session_path
 
-    assert_redirected_to unlock_application_lock_path
+    assert_response :see_other
+    assert_redirected_to new_application_lock_session_path
     get dashboard_path
-    assert_redirected_to unlock_application_lock_path
+    assert_redirected_to new_application_lock_session_path
   end
 
   test "keeps the session locked for a wrong pin" do
@@ -47,12 +48,12 @@ class ApplicationLocksTest < ActionDispatch::IntegrationTest
     ApplicationLock.create!(user: user, pin_digest: ApplicationLock.digest("123456"))
     sign_in user
 
-    post unlock_application_lock_path, params: unlock_params(pin_code: "000000")
+    post application_lock_session_path, params: unlock_params(pin_code: "000000")
 
     assert_response :unprocessable_content
     assert_match(/PIN code is invalid/i, response.body)
     get dashboard_path
-    assert_redirected_to unlock_application_lock_path
+    assert_redirected_to new_application_lock_session_path
   end
 
   test "unlocks the session with the correct pin" do
@@ -60,7 +61,7 @@ class ApplicationLocksTest < ActionDispatch::IntegrationTest
     ApplicationLock.create!(user: user, pin_digest: ApplicationLock.digest("123456"))
     sign_in user
 
-    post unlock_application_lock_path, params: unlock_params(pin_code: "123456")
+    post application_lock_session_path, params: unlock_params(pin_code: "123456")
 
     assert_redirected_to dashboard_path
     get dashboard_path

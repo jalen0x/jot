@@ -1,6 +1,6 @@
 class ApplicationLocksController < ApplicationController
   before_action :authenticate_user!
-  skip_before_action :require_application_unlock, only: [ :destroy, :unlock ]
+  skip_before_action :require_application_unlock, only: :destroy
 
   # GET /application_lock
   def show
@@ -50,43 +50,10 @@ class ApplicationLocksController < ApplicationController
     end
   end
 
-  # POST /application_lock/lock
-  def lock
-    authorize :application_lock
-
-    if !current_user.application_lock_enabled?
-      redirect_to application_lock_path, alert: "Application lock is not enabled."
-    else
-      clear_application_unlock
-      redirect_to unlock_application_lock_path, notice: "Application locked."
-    end
-  end
-
-  # GET|POST /application_lock/unlock
-  def unlock
-    authorize :application_lock
-    @application_lock = current_user.application_lock
-    return render :unlock if request.get?
-
-    if @application_lock.blank?
-      redirect_to application_lock_path, alert: "Application lock is not enabled."
-    elsif @application_lock.matches_pin?(unlock_params[:pin_code])
-      mark_application_unlocked
-      redirect_to dashboard_path, notice: "Application unlocked."
-    else
-      flash.now[:alert] = "PIN code is invalid."
-      render :unlock, status: :unprocessable_content
-    end
-  end
-
   private
 
   def application_lock_params
     params.expect(application_lock: [ :current_password, :pin_code, :pin_code_confirmation ])
-  end
-
-  def unlock_params
-    params.expect(application_lock: [ :pin_code ])
   end
 
   def current_password_param
