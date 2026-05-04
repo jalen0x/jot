@@ -4,10 +4,6 @@ require "rails/test_help"
 require "factory_bot_rails"
 require_relative "support/confidence_check"
 
-Capybara.configure do |config|
-  config.test_id = "data-testid"
-end
-
 module ActiveSupport
   class TestCase
     include TestSupport::ConfidenceCheck
