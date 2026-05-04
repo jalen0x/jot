@@ -18,6 +18,22 @@ class ApiV1DataExportsTest < ActionDispatch::IntegrationTest
     assert_equal [ "Client lunch" ], rows.map { |row| row["Comment"] }
   end
 
+  test "exports the token owner's transaction TSV" do
+    user = create(:user)
+    create_transaction(user: user, comment: "Client lunch")
+    raw_token = issue_token(user)
+
+    post api_v1_data_exports_path,
+      params: { file_format: "tsv" },
+      headers: tsv_headers(raw_token)
+
+    assert_response :success
+    assert_equal "text/tab-separated-values", response.media_type
+    assert_match(/transactions-\d{4}-\d{2}-\d{2}\.tsv/, response.headers.fetch("Content-Disposition"))
+    rows = CSV.parse(response.body, headers: true, col_sep: "\t")
+    assert_equal [ "Client lunch" ], rows.map { |row| row["Comment"] }
+  end
+
   test "requires token authentication" do
     post api_v1_data_exports_path, headers: { "Accept" => "text/csv" }
 
@@ -33,6 +49,13 @@ class ApiV1DataExportsTest < ActionDispatch::IntegrationTest
   def csv_headers(raw_token)
     {
       "Accept" => "text/csv",
+      "Authorization" => "Bearer #{raw_token}"
+    }
+  end
+
+  def tsv_headers(raw_token)
+    {
+      "Accept" => "text/tab-separated-values",
       "Authorization" => "Bearer #{raw_token}"
     }
   end

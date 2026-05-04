@@ -49,6 +49,20 @@ class TransactionImporterTest < ActiveSupport::TestCase
     assert_equal 5_000, account.reload.balance_cents
   end
 
+  test "imports tab-separated transaction rows from tsv files" do
+    user = create(:user)
+    account = create_account(user: user, name: "Cash", balance_cents: 5_000)
+    create_category(user: user, name: "Food", category_type: :expense)
+    batch = ImportBatch.create!(user: user, source_filename: "transactions.tsv", raw_csv: tsv_for(comment: "Client lunch"))
+
+    TransactionImporter.new.import_transactions(import_batch: batch)
+
+    assert_predicate batch.reload, :imported?
+    transaction = user.transactions.sole
+    assert_equal "Client lunch", transaction.comment
+    assert_equal 3_800, account.reload.balance_cents
+  end
+
   test "rolls back imported rows when a later row fails" do
     user = create(:user)
     account = create_account(user: user, name: "Cash", balance_cents: 5_000)
@@ -79,6 +93,13 @@ class TransactionImporterTest < ActiveSupport::TestCase
       Transacted At,Timezone UTC Offset Minutes,Type,Account,Destination Account,Category,Source Amount Cents,Destination Amount Cents,Tags,Hide Amount,Comment,Latitude,Longitude
       2026-05-03T10:00:00Z,0,balance_adjustment,Cash,,,5000,0,,false,Opening balance,,
     CSV
+  end
+
+  def tsv_for(comment:)
+    [
+      [ "Transacted At", "Timezone UTC Offset Minutes", "Type", "Account", "Destination Account", "Category", "Source Amount Cents", "Destination Amount Cents", "Tags", "Hide Amount", "Comment", "Latitude", "Longitude" ].join("\t"),
+      [ "2026-05-03T10:00:00Z", "0", "expense", "Cash", "", "Food", "1200", "0", "", "false", comment, "", "" ].join("\t")
+    ].join("\n")
   end
 
   def partial_failure_csv

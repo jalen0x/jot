@@ -7,7 +7,7 @@ class TransactionImporter
     imported_count = 0
 
     ActiveRecord::Base.transaction do
-      CSV.parse(import_batch.raw_csv, headers: true).each do |row|
+      CSV.parse(import_batch.raw_csv, headers: true, col_sep: column_separator(import_batch)).each do |row|
         record_row(import_batch.user, row)
         imported_count += 1
       end
@@ -19,6 +19,10 @@ class TransactionImporter
   end
 
   private
+
+  def column_separator(import_batch)
+    import_batch.source_filename.to_s.downcase.end_with?(".tsv") ? "\t" : ","
+  end
 
   def record_row(user, row)
     transaction_kind = row.fetch("Type")

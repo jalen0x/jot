@@ -24,6 +24,20 @@ class DataExportsTest < ActionDispatch::IntegrationTest
     assert_equal [ "Client lunch" ], rows.map { |row| row["Comment"] }
   end
 
+  test "downloads current user's transaction TSV" do
+    user = create(:user)
+    create_transaction(user: user, comment: "Client lunch")
+    sign_in user
+
+    post data_exports_path, params: { file_format: "tsv" }
+
+    assert_response :success
+    assert_equal "text/tab-separated-values", response.media_type
+    assert_match(/transactions-\d{4}-\d{2}-\d{2}\.tsv/, response.headers.fetch("Content-Disposition"))
+    rows = CSV.parse(response.body, headers: true, col_sep: "\t")
+    assert_equal [ "Client lunch" ], rows.map { |row| row["Comment"] }
+  end
+
   private
 
   def create_transaction(user:, comment:)
