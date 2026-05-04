@@ -1,0 +1,11 @@
+<% content_for :title, "Edit tag group" %>
+
+<section class="mx-auto w-full max-w-3xl">
+  <div class="mb-6">
+    <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
+    <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Edit tag group</h1>
+    <p class="mt-2 text-sm text-body">Update the group name used to organize transaction tags.</p>
+  </div>
+
+  <%= render "form", transaction_tag_group: @transaction_tag_group, submit_label: "Update group", submitting_label: "Updating..." %>
+</section>

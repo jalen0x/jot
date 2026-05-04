@@ -26,10 +26,37 @@ class TransactionTagGroupsController < ApplicationController
     end
   end
 
+  # GET /transaction_tag_groups/:id/edit
+  def edit
+    @transaction_tag_group = scoped_tag_group
+    authorize @transaction_tag_group
+  end
+
+  # PATCH/PUT /transaction_tag_groups/:id
+  def update
+    tag_group = scoped_tag_group
+    authorize tag_group
+
+    if tag_group.update(tag_group_update_params)
+      redirect_to transaction_tag_groups_path, notice: "Tag group updated."
+    else
+      @transaction_tag_group = tag_group
+      render :edit, status: :unprocessable_content
+    end
+  end
+
   private
 
   def tag_group_params
     params.expect(transaction_tag_group: [ :name ])
+  end
+
+  def tag_group_update_params
+    params.expect(transaction_tag_group: [ :name ])
+  end
+
+  def scoped_tag_group
+    policy_scope(TransactionTagGroup).kept.find(params[:id])
   end
 
   def next_display_order
