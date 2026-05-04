@@ -51,7 +51,7 @@ class Api::V1::TransactionTagGroupsController < ApiController
   private
 
   def tag_group_params
-    params.expect(transaction_tag_group: [ :name ])
+    params.expect(transaction_tag_group: [ :name, :display_order ])
   end
 
   def next_display_order
