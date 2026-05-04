@@ -36,7 +36,7 @@ class DataExport
       transaction.transaction_kind,
       transaction.account.name,
       transaction.destination_account&.name,
-      transaction.transaction_category.name,
+      transaction.transaction_category&.name,
       transaction.source_amount_cents,
       transaction.destination_amount_cents,
       transaction.transaction_tags.map(&:name).join("; "),
