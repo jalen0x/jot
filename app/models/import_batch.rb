@@ -11,7 +11,7 @@ class ImportBatch < ApplicationRecord
   }
 
   validates :raw_csv, presence: true
-  validate :source_filename_must_be_csv_or_tsv
+  validate :source_filename_must_be_supported_format
 
   def as_json(_options = {})
     {
@@ -25,10 +25,10 @@ class ImportBatch < ApplicationRecord
 
   private
 
-  def source_filename_must_be_csv_or_tsv
+  def source_filename_must_be_supported_format
     return if source_filename.blank?
-    return if source_filename.to_s.downcase.end_with?(".csv", ".tsv")
+    return if source_filename.to_s.downcase.end_with?(".csv", ".tsv", ".json")
 
-    errors.add(:source_filename, "must be csv or tsv")
+    errors.add(:source_filename, "must be csv, tsv, or json")
   end
 end

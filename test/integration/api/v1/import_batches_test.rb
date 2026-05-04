@@ -39,6 +39,28 @@ class ApiV1ImportBatchesTest < ActionDispatch::IntegrationTest
     refute_includes batch_json.keys, "raw_csv"
   end
 
+  test "creates a JSON import batch for the token owner" do
+    user = create(:user)
+    raw_token = issue_token(user)
+
+    assert_enqueued_jobs 1, only: ImportBatchParserJob do
+      post api_v1_import_batches_path,
+        params: {
+          import_batch: {
+            source_filename: "transactions.json",
+            raw_csv: json_for(account: "Cash")
+          }
+        },
+        headers: json_headers(raw_token),
+        as: :json
+    end
+
+    assert_response :created
+    batch = user.import_batches.sole
+    assert_predicate batch, :pending?
+    assert_equal "transactions.json", batch.source_filename
+  end
+
   test "shows one import batch for the token owner" do
     user = create(:user)
     batch = ImportBatch.create!(user: user, source_filename: "transactions.csv", raw_csv: csv_for(account: "Cash"), status: :failed, error_message: "Account not found")
@@ -102,7 +124,7 @@ class ApiV1ImportBatchesTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_content
     assert_empty user.import_batches
     errors = JSON.parse(response.body).fetch("errors")
-    assert_includes errors, "Source filename must be csv or tsv"
+    assert_includes errors, "Source filename must be csv, tsv, or json"
   end
 
   private
@@ -123,5 +145,23 @@ class ApiV1ImportBatchesTest < ActionDispatch::IntegrationTest
       Transacted At,Type,Account,Destination Account,Category,Source Amount Cents,Destination Amount Cents,Tags,Comment
       2026-05-03T10:00:00Z,expense,#{account},,Food,1200,0,,Lunch
     CSV
+  end
+
+  def json_for(account:)
+    JSON.generate(
+      transactions: [
+        {
+          transacted_at: "2026-05-03T10:00:00Z",
+          transaction_kind: "expense",
+          account_name: account,
+          destination_account_name: nil,
+          transaction_category_name: "Food",
+          source_amount_cents: 1200,
+          destination_amount_cents: 0,
+          transaction_tag_names: [],
+          comment: "Lunch"
+        }
+      ]
+    )
   end
 end

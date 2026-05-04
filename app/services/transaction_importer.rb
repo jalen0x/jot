@@ -1,4 +1,5 @@
 require "csv"
+require "json"
 
 class TransactionImporter
   class ImportError < StandardError; end
@@ -7,21 +8,51 @@ class TransactionImporter
     imported_count = 0
 
     ActiveRecord::Base.transaction do
-      CSV.parse(import_batch.raw_csv, headers: true, col_sep: column_separator(import_batch)).each do |row|
+      rows_for(import_batch).each do |row|
         record_row(import_batch.user, row)
         imported_count += 1
       end
 
       import_batch.update!(status: :imported, imported_count: imported_count, error_message: "")
     end
-  rescue CSV::MalformedCSVError => error
+  rescue CSV::MalformedCSVError, JSON::ParserError => error
     raise ImportError, error.message
   end
 
   private
 
+  def rows_for(import_batch)
+    return json_rows(import_batch) if json_file?(import_batch)
+
+    CSV.parse(import_batch.raw_csv, headers: true, col_sep: column_separator(import_batch))
+  end
+
   def column_separator(import_batch)
     import_batch.source_filename.to_s.downcase.end_with?(".tsv") ? "\t" : ","
+  end
+
+  def json_file?(import_batch)
+    import_batch.source_filename.to_s.downcase.end_with?(".json")
+  end
+
+  def json_rows(import_batch)
+    JSON.parse(import_batch.raw_csv).fetch("transactions").map do |row|
+      {
+        "Transacted At" => row.fetch("transacted_at"),
+        "Timezone UTC Offset Minutes" => row["timezone_utc_offset_minutes"] || "0",
+        "Type" => row.fetch("transaction_kind"),
+        "Account" => row.fetch("account_name"),
+        "Destination Account" => row["destination_account_name"],
+        "Category" => row["transaction_category_name"],
+        "Source Amount Cents" => row.fetch("source_amount_cents"),
+        "Destination Amount Cents" => row["destination_amount_cents"] || "0",
+        "Tags" => Array(row["transaction_tag_names"]).join("; "),
+        "Hide Amount" => row["hide_amount"] || "0",
+        "Comment" => row["comment"],
+        "Latitude" => row["geo_latitude"],
+        "Longitude" => row["geo_longitude"]
+      }
+    end
   end
 
   def record_row(user, row)
