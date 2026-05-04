@@ -60,9 +60,9 @@ class TransactionsController < ApplicationController
     result = TransactionReversal.new.delete_transaction(transaction: transaction)
 
     if result.deleted?
-      redirect_to transactions_path, notice: "Transaction deleted."
+      redirect_to transactions_path, notice: "Transaction deleted.", status: :see_other
     else
-      redirect_to transactions_path, alert: result.transaction.errors.full_messages.to_sentence
+      redirect_to transactions_path, alert: result.transaction.errors.full_messages.to_sentence, status: :see_other
     end
   end
 

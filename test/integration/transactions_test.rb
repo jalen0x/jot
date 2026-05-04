@@ -98,6 +98,7 @@ class TransactionsTest < ActionDispatch::IntegrationTest
 
     delete transaction_picture_path(transaction, attachment)
 
+    assert_response :see_other
     assert_redirected_to transactions_path
     assert_not_predicate transaction.reload.pictures, :attached?
     refute_predicate transaction, :discarded?
@@ -270,6 +271,7 @@ class TransactionsTest < ActionDispatch::IntegrationTest
 
     delete transaction_path(transaction)
 
+    assert_response :see_other
     assert_redirected_to transactions_path
     assert_predicate transaction.reload, :discarded?
     assert_equal 5_000, account.reload.balance_cents

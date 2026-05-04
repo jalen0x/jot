@@ -74,6 +74,7 @@ class ApplicationLocksTest < ActionDispatch::IntegrationTest
 
     delete application_lock_path, params: { application_lock: { current_password: "password123" } }
 
+    assert_response :see_other
     assert_redirected_to application_lock_path
     assert_nil user.reload.application_lock
     follow_redirect!

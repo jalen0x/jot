@@ -28,7 +28,7 @@ class UserCustomExchangeRatesController < ApplicationController
     authorize exchange_rate
     exchange_rate.discard!
 
-    redirect_to user_custom_exchange_rates_path, notice: "Exchange rate deleted."
+    redirect_to user_custom_exchange_rates_path, notice: "Exchange rate deleted.", status: :see_other
   end
 
   private

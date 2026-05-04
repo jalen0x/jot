@@ -38,7 +38,7 @@ class ApplicationLocksController < ApplicationController
     authorize application_lock || :application_lock
 
     if application_lock.blank?
-      redirect_to application_lock_path, alert: "Application lock is not enabled."
+      redirect_to application_lock_path, alert: "Application lock is not enabled.", status: :see_other
     elsif !current_user.valid_password?(current_password_param)
       @application_lock = application_lock
       @application_lock.errors.add(:base, "Current password is incorrect.")
@@ -46,7 +46,7 @@ class ApplicationLocksController < ApplicationController
     else
       application_lock.destroy!
       clear_application_unlock
-      redirect_to application_lock_path, notice: "Application lock disabled."
+      redirect_to application_lock_path, notice: "Application lock disabled.", status: :see_other
     end
   end
 

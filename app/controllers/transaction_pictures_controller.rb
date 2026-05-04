@@ -7,6 +7,6 @@ class TransactionPicturesController < ApplicationController
     authorize transaction, :update?
     transaction.pictures.attachments.find(params[:id]).purge
 
-    redirect_to transactions_path, notice: "Transaction picture removed."
+    redirect_to transactions_path, notice: "Transaction picture removed.", status: :see_other
   end
 end
