@@ -4,6 +4,7 @@ zh-CN:
       close: "关闭弹窗"
   layouts:
     application:
+      insights: "洞察"
       profile: "个人资料"
   devise:
     passwords:
@@ -65,6 +66,52 @@ zh-CN:
       saving: "保存中..."
     update:
       updated: "汇率已更新。"
+  insight_explorers:
+    index:
+      title: "洞察探索器"
+      eyebrow: "洞察"
+      heading: "洞察探索器"
+      description: "保存可复用的洞察组件及其 JSON 配置。"
+      new: "新建探索器"
+      name: "名称"
+      display_order: "顺序"
+      status: "状态"
+      visible: "显示"
+      hidden: "隐藏"
+      actions: "操作"
+      edit: "编辑"
+      delete: "删除"
+      delete_confirm: "要删除这个洞察探索器吗？"
+      empty: "还没有洞察探索器。"
+    new:
+      title: "新建洞察探索器"
+      eyebrow: "洞察"
+      heading: "新建洞察探索器"
+      description: "为你的仪表盘创建一个保存的洞察配置。"
+      save: "创建探索器"
+      saving: "创建中..."
+    edit:
+      title: "编辑 %{name}"
+      eyebrow: "洞察"
+      heading: "编辑 %{name}"
+      description: "更新这个已保存的洞察配置。"
+      save: "保存探索器"
+      saving: "保存中..."
+    form:
+      save_failed: "洞察探索器无法保存。"
+      name: "名称"
+      display_order: "显示顺序"
+      hidden: "隐藏此探索器"
+      config_json: "配置 JSON"
+      config_json_help: "输入 JSON 对象，例如 {\"chart\":\"bar\"}。"
+      config_json_invalid: "配置 JSON 无效。"
+      cancel: "取消"
+    create:
+      created: "洞察探索器已创建。"
+    update:
+      updated: "洞察探索器已更新。"
+    destroy:
+      deleted: "洞察探索器已删除。"
   user_preferences:
     show:
       title: "偏好设置"
