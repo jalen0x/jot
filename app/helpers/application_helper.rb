@@ -4,6 +4,17 @@ module ApplicationHelper
     turbo_frame_request? ? { turbo_frame: "modal_content" } : {}
   end
 
+  def destructive_confirm_data(message, description: nil, accept: "Delete", reject: "Cancel", confirm_text: nil)
+    data = {
+      turbo_confirm: message,
+      turbo_confirm_accept: accept,
+      turbo_confirm_reject: reject
+    }
+    data[:turbo_confirm_description] = description if description.present?
+    data[:turbo_confirm_text] = confirm_text if confirm_text.present?
+    data
+  end
+
   # Returns a smart back URL that prioritizes HTTP referer with same-origin
   # checks, falling back to the provided path when no valid referer exists.
   def smart_back_url(fallback_path = root_path)

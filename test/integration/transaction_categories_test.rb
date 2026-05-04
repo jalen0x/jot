@@ -20,6 +20,7 @@ class TransactionCategoriesTest < ActionDispatch::IntegrationTest
     assert_select "h1", text: /categories/i
     assert_select "li", text: /#{own_category.name}/i
     assert_select "li", text: /Other Groceries/i, count: 0
+    assert_select "form[action='#{transaction_category_path(own_category)}'][data-turbo-confirm]"
   end
 
   test "creates a category for current user" do

@@ -65,7 +65,7 @@
               <td class="px-5 py-4"><%= api_token.expires_at ? l(api_token.expires_at, format: :long) : "Never" %></td>
               <td class="px-5 py-4"><%= api_token.last_used_at ? l(api_token.last_used_at, format: :long) : "Never" %></td>
               <td class="px-5 py-4 text-right">
-                <%= button_to "Revoke", api_token_path(api_token), method: :delete, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+                <%= button_to "Revoke", api_token_path(api_token), method: :delete, form: { data: destructive_confirm_data("Revoke this API token?", accept: "Revoke") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
               </td>
             </tr>
           <% end %>

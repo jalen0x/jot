@@ -67,6 +67,7 @@ class ApiTokensTest < ActionDispatch::IntegrationTest
     refute_match "Expired", response.body
     refute_match "Revoked", response.body
     refute_match "Other", response.body
+    assert_select "form[action='#{api_token_path(user.api_tokens.active.sole)}'][data-turbo-confirm]"
   end
 
   test "revokes only the signed-in user's token" do

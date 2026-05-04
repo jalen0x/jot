@@ -24,14 +24,14 @@
               <li class="flex items-center gap-2 rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
                 <span><%= tag.name %></span>
                 <%= link_to "Edit", edit_transaction_tag_path(tag), class: "text-fg-brand hover:underline" %>
-                <%= button_to "Delete", transaction_tag_path(tag), method: :delete, form_class: "inline", class: "font-medium text-danger hover:underline" %>
+                <%= button_to "Delete", transaction_tag_path(tag), method: :delete, form_class: "inline", form: { data: destructive_confirm_data("Delete this tag?") }, class: "font-medium text-danger hover:underline" %>
               </li>
             <% end %>
           </ul>
 
           <div class="mt-4 flex justify-end gap-2">
             <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_tag_group_path(group))) { "Edit group" } %>
-            <%= button_to "Delete group", transaction_tag_group_path(group), method: :delete, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+            <%= button_to "Delete group", transaction_tag_group_path(group), method: :delete, form: { data: destructive_confirm_data("Delete this tag group?") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
           </div>
         </li>
       <% end %>
@@ -44,7 +44,7 @@
               <li class="flex items-center gap-2 rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
                 <span><%= tag.name %></span>
                 <%= link_to "Edit", edit_transaction_tag_path(tag), class: "text-fg-brand hover:underline" %>
-                <%= button_to "Delete", transaction_tag_path(tag), method: :delete, form_class: "inline", class: "font-medium text-danger hover:underline" %>
+                <%= button_to "Delete", transaction_tag_path(tag), method: :delete, form_class: "inline", form: { data: destructive_confirm_data("Delete this tag?") }, class: "font-medium text-danger hover:underline" %>
               </li>
             <% end %>
           </ul>

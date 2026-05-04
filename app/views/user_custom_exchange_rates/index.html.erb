@@ -50,7 +50,7 @@
               <td class="px-5 py-4 font-medium text-heading"><%= exchange_rate.currency_code %></td>
               <td class="px-5 py-4"><%= exchange_rate.rate.to_s("F") %></td>
               <td class="px-5 py-4 text-right">
-                <%= button_to "Delete", user_custom_exchange_rate_path(exchange_rate), method: :delete, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+                <%= button_to "Delete", user_custom_exchange_rate_path(exchange_rate), method: :delete, form: { data: destructive_confirm_data("Delete this exchange rate?") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
               </td>
             </tr>
           <% end %>

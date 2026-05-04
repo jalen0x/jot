@@ -31,7 +31,7 @@
                 <%= number_to_currency(template.source_amount_cents / 100.0, unit: "") %> <%= template.account.currency_code %>
               </span>
               <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_template_path(template))) { "Edit" } %>
-              <%= button_to "Delete", transaction_template_path(template), method: :delete, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+              <%= button_to "Delete", transaction_template_path(template), method: :delete, form: { data: destructive_confirm_data("Delete this transaction template?") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
             </div>
           </div>
 

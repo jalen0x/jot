@@ -22,6 +22,7 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_select "li", text: /10.00 USD/
     assert_select "li", text: /1000 cents/, count: 0
     assert_select "li", text: /Other Groceries/i, count: 0
+    assert_select "form[action='#{transaction_path(transaction)}'][data-turbo-confirm]"
   end
 
   test "lists transaction dates using the signed-in user's date format" do
@@ -85,7 +86,7 @@ class TransactionsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "li", text: /receipt\.txt/i
-    assert_select "form[action='#{transaction_picture_path(transaction, attachment)}'] button", text: /remove picture/i
+    assert_select "form[action='#{transaction_picture_path(transaction, attachment)}'][data-turbo-confirm] button", text: /remove picture/i
   end
 
   test "removes one transaction picture for current user" do
