@@ -57,6 +57,8 @@ zh-CN:
       date_format_help: "用于交易日期等界面显示。"
       locale: "语言"
       locale_help: "用于登录后的界面文本。"
+      number_format: "数字格式"
+      number_format_help: "用于小数点和千位分隔符。"
       cancel: "取消"
       save: "保存偏好设置"
       saving: "保存中..."
@@ -67,5 +69,8 @@ zh-CN:
         year_month_day: "YYYY-MM-DD"
         month_day_year: "MM/DD/YYYY"
         day_month_year: "DD/MM/YYYY"
+      number_formats:
+        western: "1,234.56"
+        decimal_comma: "1.234,56"
     update:
       updated: "偏好设置已更新。"

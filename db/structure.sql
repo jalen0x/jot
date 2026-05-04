@@ -1652,9 +1652,11 @@ CREATE TABLE public.user_preferences (
     locale text DEFAULT 'en'::text NOT NULL,
     date_format text DEFAULT 'year_month_day'::text NOT NULL,
     default_account_id bigint,
+    number_format text DEFAULT 'western'::text NOT NULL,
     CONSTRAINT user_preferences_date_format_supported CHECK ((date_format = ANY (ARRAY['year_month_day'::text, 'month_day_year'::text, 'day_month_year'::text]))),
     CONSTRAINT user_preferences_default_currency_code_length CHECK ((char_length(default_currency_code) = 3)),
-    CONSTRAINT user_preferences_locale_supported CHECK ((locale = ANY (ARRAY['en'::text, 'zh-CN'::text])))
+    CONSTRAINT user_preferences_locale_supported CHECK ((locale = ANY (ARRAY['en'::text, 'zh-CN'::text]))),
+    CONSTRAINT user_preferences_number_format_supported CHECK ((number_format = ANY (ARRAY['western'::text, 'decimal_comma'::text])))
 );
 
 
@@ -1698,6 +1700,13 @@ COMMENT ON COLUMN public.user_preferences.date_format IS 'Preferred display orde
 --
 
 COMMENT ON COLUMN public.user_preferences.default_account_id IS 'User account selected by default on new transaction forms';
+
+
+--
+-- Name: COLUMN user_preferences.number_format; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_preferences.number_format IS 'Preferred decimal and grouping symbols for signed-in number text';
 
 
 --
@@ -2808,6 +2817,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260505060000'),
 ('20260505050000'),
 ('20260505040000'),
 ('20260505030000'),

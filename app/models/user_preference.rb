@@ -5,8 +5,14 @@ class UserPreference < ApplicationRecord
     "day_month_year" => "%d/%m/%Y"
   }.freeze
   DEFAULT_DATE_FORMAT = "year_month_day"
+  DEFAULT_NUMBER_FORMAT = "western"
+  NUMBER_FORMATS = {
+    "western" => { separator: ".", delimiter: "," },
+    "decimal_comma" => { separator: ",", delimiter: "." }
+  }.freeze
   SUPPORTED_DATE_FORMATS = DATE_FORMATS.keys.freeze
   SUPPORTED_LOCALES = %w[en zh-CN].freeze
+  SUPPORTED_NUMBER_FORMATS = NUMBER_FORMATS.keys.freeze
 
   belongs_to :default_account, class_name: "Account", optional: true
   belongs_to :user
@@ -14,10 +20,12 @@ class UserPreference < ApplicationRecord
   normalizes :default_currency_code, with: ->(currency) { currency.to_s.strip.upcase }
   normalizes :date_format, with: ->(date_format) { date_format.to_s.strip }
   normalizes :locale, with: ->(locale) { locale.to_s.strip }
+  normalizes :number_format, with: ->(number_format) { number_format.to_s.strip }
 
   validates :default_currency_code, format: { with: /\A[A-Z]{3}\z/ }
   validates :date_format, inclusion: { in: SUPPORTED_DATE_FORMATS }
   validates :locale, inclusion: { in: SUPPORTED_LOCALES }
+  validates :number_format, inclusion: { in: SUPPORTED_NUMBER_FORMATS }
   validates :user_id, uniqueness: true
   validate :default_account_must_be_available
 
@@ -25,17 +33,26 @@ class UserPreference < ApplicationRecord
     "#{DATE_FORMATS.fetch(date_format)} %H:%M"
   end
 
+  def self.number_format_options_for(number_format)
+    NUMBER_FORMATS.fetch(number_format).dup
+  end
+
   def as_json(_options = {})
     {
       default_currency_code: default_currency_code,
       default_account_id: default_account&.to_param,
       date_format: date_format,
-      locale: locale
+      locale: locale,
+      number_format: number_format
     }
   end
 
   def datetime_format
     self.class.datetime_format_for(date_format)
+  end
+
+  def number_format_options
+    self.class.number_format_options_for(number_format)
   end
 
   private
