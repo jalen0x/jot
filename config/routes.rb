@@ -20,6 +20,7 @@ Rails.application.routes.draw do
         resource :reconciliation_statement, only: :show, controller: "account_reconciliation_statements"
       end
       resource :user_preference, only: [ :show, :update ]
+      resource :exchange_rate_catalog, only: :show
       resources :user_custom_exchange_rates, only: [ :index, :show, :create, :update, :destroy ]
       resources :data_exports, only: :create
       resources :import_batches, only: [ :show, :create ]
