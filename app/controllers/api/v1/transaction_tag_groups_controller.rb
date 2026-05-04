@@ -7,6 +7,14 @@ class Api::V1::TransactionTagGroupsController < ApiController
     render json: { transaction_tag_groups: tag_groups.map(&:as_json) }
   end
 
+  # GET /api/v1/transaction_tag_groups/:id
+  def show
+    tag_group = scoped_tag_group
+    authorize tag_group
+
+    render json: { transaction_tag_group: tag_group.as_json }
+  end
+
   # POST /api/v1/transaction_tag_groups
   def create
     authorize TransactionTagGroup
