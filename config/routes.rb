@@ -40,6 +40,7 @@ Rails.application.routes.draw do
       resources :transaction_tags, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_templates, only: [ :index, :show, :create, :update, :destroy ]
       resource :transaction_count, only: :show
+      resource :transaction_amount_summary, only: :show
       resource :transaction_statistics, only: :show
       resources :transaction_trends, only: :index
       resources :transaction_deletions, only: :create

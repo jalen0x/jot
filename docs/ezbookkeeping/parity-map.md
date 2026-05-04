@@ -25,7 +25,7 @@
 | Income, expense, transfers, balance adjustment | Phase 1 | `TransactionRecorder` |
 | Transaction filters and list | Phase 1 | `LedgerQuery`, `TransactionsController` |
 | Dashboard | Phase 1 | `DashboardController` |
-| Transaction statistics and account balance trends | Phase 2 | `LedgerStatistics`, `LedgerTrends`, `AccountBalanceTrends` |
+| Transaction statistics, amount summaries, and account balance trends | Phase 2 | `LedgerStatistics`, `TransactionAmountSummary`, `LedgerTrends`, `AccountBalanceTrends` |
 | Account reconciliation statement | Phase 2 | `AccountReconciliation` |
 | Insights explorers | Phase 2 | `InsightExplorer` |
 | Data export | Phase 3 | `DataExport` |

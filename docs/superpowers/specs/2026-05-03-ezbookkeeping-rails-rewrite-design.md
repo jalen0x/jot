@@ -98,6 +98,7 @@ Verification:
 Entities and services:
 
 - `LedgerStatistics#summarize_transactions(user:, range:, filters:)` returns income, expense, balance, category totals, and account totals.
+- `TransactionAmountSummary#summarize_transactions(user:, range:)` returns income, expense, and net totals grouped by account currency.
 - `LedgerTrends#build_transaction_trends(user:, range:, aggregation:, filters:)` returns chart-ready time buckets.
 - `AccountBalanceTrends#build_account_balance_trends(user:, range:)` returns daily opening and closing balances for each kept account.
 - `AccountReconciliation#build_statement(account:, range:)` returns opening balance, closing balance, inflows, outflows, and ordered transactions.
