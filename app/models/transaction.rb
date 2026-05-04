@@ -23,9 +23,12 @@ class Transaction < ApplicationRecord
   validates :transacted_at, presence: true
   validates :source_amount_cents, numericality: { only_integer: true }
   validates :destination_amount_cents, numericality: { only_integer: true }
+  validates :geo_latitude, numericality: { greater_than_or_equal_to: -90, less_than_or_equal_to: 90 }, allow_nil: true
+  validates :geo_longitude, numericality: { greater_than_or_equal_to: -180, less_than_or_equal_to: 180 }, allow_nil: true
   validates :transaction_category, presence: true, unless: :balance_adjustment?
   validates :transaction_category, absence: true, if: :balance_adjustment?
   validates :destination_account, presence: true, if: :transfer?
+  validate :geo_location_pair
 
   def as_json(_options = {})
     {
@@ -40,7 +43,27 @@ class Transaction < ApplicationRecord
       destination_amount_cents: destination_amount_cents,
       hide_amount: hide_amount,
       comment: comment,
+      geo_location: geo_location_json,
       transaction_tag_ids: transaction_tags.map(&:to_param)
+    }
+  end
+
+  private
+
+  def geo_location_pair
+    if geo_latitude.present? && geo_longitude.blank?
+      errors.add(:geo_longitude, "can't be blank when latitude is present")
+    elsif geo_longitude.present? && geo_latitude.blank?
+      errors.add(:geo_latitude, "can't be blank when longitude is present")
+    end
+  end
+
+  def geo_location_json
+    return if geo_latitude.blank? && geo_longitude.blank?
+
+    {
+      latitude: geo_latitude.to_s,
+      longitude: geo_longitude.to_s
     }
   end
 end

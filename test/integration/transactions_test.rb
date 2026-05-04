@@ -22,6 +22,18 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_select "li", text: /Other Groceries/i, count: 0
   end
 
+  test "lists transaction location when present" do
+    user = create(:user)
+    transaction = create_transaction(user: user, comment: "Coffee")
+    transaction.update!(geo_latitude: 37.7749, geo_longitude: -122.4194)
+
+    sign_in user
+    get transactions_path
+
+    assert_response :success
+    assert_select "li", text: /37\.7749, -122\.4194/
+  end
+
   test "lists transaction pictures with remove controls" do
     user = create(:user)
     transaction = create_transaction(user: user, comment: "Groceries")
@@ -85,6 +97,8 @@ class TransactionsTest < ActionDispatch::IntegrationTest
         destination_amount_cents: "0",
         hide_amount: "0",
         comment: "Lunch",
+        geo_latitude: "37.7749",
+        geo_longitude: "-122.4194",
         pictures: [ uploaded_receipt ],
         transaction_tag_ids: [ tag.id.to_s ]
       }
@@ -97,6 +111,8 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal [ tag ], transaction.transaction_tags.to_a
     assert_predicate transaction.pictures, :attached?
     assert_equal [ "receipt.txt" ], transaction.pictures.map(&:filename).map(&:to_s)
+    assert_equal BigDecimal("37.7749"), transaction.geo_latitude
+    assert_equal BigDecimal("-122.4194"), transaction.geo_longitude
     assert_equal 3_800, account.reload.balance_cents
   end
 

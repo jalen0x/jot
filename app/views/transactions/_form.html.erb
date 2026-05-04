@@ -49,6 +49,11 @@
     <%= form.collection_select :transaction_tag_ids, transaction_tags, :id, :name, {}, multiple: true, class: field_classes %>
   </div>
 
+  <div class="mb-4 grid gap-4 sm:grid-cols-2">
+    <%= render FormField::InputComponent.new(form: form, field: :geo_latitude, label: "Latitude", type: :number) %>
+    <%= render FormField::InputComponent.new(form: form, field: :geo_longitude, label: "Longitude", type: :number) %>
+  </div>
+
   <div class="mb-4">
     <%= form.label :pictures, "Pictures", class: "block mb-2 text-sm font-medium text-heading" %>
     <%= form.file_field :pictures, multiple: true, class: "cursor-pointer bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full shadow-xs placeholder:text-body" %>

@@ -50,7 +50,8 @@ class Api::V1::TransactionsController < ApiController
       :destination_amount_cents,
       :hide_amount,
       :comment,
-      transaction_tag_ids: []
+      transaction_tag_ids: [],
+      geo_location: [ :latitude, :longitude ]
     ])
   end
 

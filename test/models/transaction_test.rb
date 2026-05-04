@@ -87,7 +87,67 @@ class TransactionTest < ActiveSupport::TestCase
     assert_includes transaction.errors[:transaction_category], "must be blank"
   end
 
+  test "location requires latitude and longitude together" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, category_type: :expense)
+
+    transaction = Transaction.new(
+      user: user,
+      account: account,
+      transaction_category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 10:00:00"),
+      timezone_utc_offset_minutes: 0,
+      source_amount_cents: 1500,
+      destination_amount_cents: 0,
+      geo_latitude: 37.7749
+    )
+
+    refute_predicate transaction, :valid?
+    assert_includes transaction.errors[:geo_longitude], "can't be blank when latitude is present"
+  end
+
+  test "database rejects out of range latitude" do
+    transaction = create_transaction_with_location(geo_latitude: 37.7749, geo_longitude: -122.4194)
+
+    error = assert_raises(ActiveRecord::StatementInvalid) do
+      transaction.update_column(:geo_latitude, 91)
+    end
+
+    assert_match(/transactions_geo_latitude_range/i, error.message)
+  end
+
+  test "database rejects half locations" do
+    transaction = create_transaction_with_location(geo_latitude: 37.7749, geo_longitude: -122.4194)
+
+    error = assert_raises(ActiveRecord::StatementInvalid) do
+      transaction.update_column(:geo_longitude, nil)
+    end
+
+    assert_match(/transactions_geo_location_pair/i, error.message)
+  end
+
   private
+
+  def create_transaction_with_location(geo_latitude:, geo_longitude:)
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, category_type: :expense)
+
+    Transaction.create!(
+      user: user,
+      account: account,
+      transaction_category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 10:00:00"),
+      timezone_utc_offset_minutes: 0,
+      source_amount_cents: 1500,
+      destination_amount_cents: 0,
+      geo_latitude: geo_latitude,
+      geo_longitude: geo_longitude
+    )
+  end
 
   def create_account(user:, name:)
     Account.create!(
