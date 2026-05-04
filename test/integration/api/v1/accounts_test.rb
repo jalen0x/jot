@@ -30,6 +30,38 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
     refute_includes account_json.keys, "user_id"
   end
 
+  test "shows one account for the token owner" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking", balance_cents: 12_300)
+    raw_token = issue_token(user)
+
+    get api_v1_account_path(account), headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ "account" ], body.keys
+    account_json = body.fetch("account")
+    assert_equal account.to_param, account_json.fetch("id")
+    assert_equal "Checking", account_json.fetch("name")
+    assert_equal "cash", account_json.fetch("account_category")
+    assert_equal "single_account", account_json.fetch("account_structure")
+    assert_equal "USD", account_json.fetch("currency_code")
+    assert_equal 12_300, account_json.fetch("balance_cents")
+    assert_equal false, account_json.fetch("hidden")
+    refute_includes account_json.keys, "user_id"
+  end
+
+  test "does not show another user's account" do
+    user = create(:user)
+    other_user = create(:user)
+    account = create_account(user: other_user, name: "Other Checking", balance_cents: 50_000)
+    raw_token = issue_token(user)
+
+    get api_v1_account_path(account), headers: json_headers(raw_token)
+
+    assert_response :not_found
+  end
+
   test "creates an account for the token owner" do
     user = create(:user)
     create_account(user: user, name: "Cash", balance_cents: 0)
