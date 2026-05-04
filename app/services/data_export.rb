@@ -3,6 +3,7 @@ require "csv"
 class DataExport
   HEADERS = [
     "Transacted At",
+    "Timezone UTC Offset Minutes",
     "Type",
     "Account",
     "Destination Account",
@@ -30,6 +31,7 @@ class DataExport
   def row_for(transaction)
     [
       transaction.transacted_at.iso8601,
+      transaction.timezone_utc_offset_minutes,
       transaction.transaction_kind,
       transaction.account.name,
       transaction.destination_account&.name,
