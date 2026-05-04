@@ -47,6 +47,65 @@ class ApiV1TransactionTagGroupsTest < ActionDispatch::IntegrationTest
     refute_includes group_json.keys, "user_id"
   end
 
+  test "updates a transaction tag group for the token owner" do
+    user = create(:user)
+    tag_group = create_tag_group(user: user, name: "Bills", display_order: 1)
+    raw_token = issue_token(user)
+
+    patch api_v1_transaction_tag_group_path(tag_group),
+      params: { transaction_tag_group: { name: "Subscriptions" } },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :success
+    assert_equal "Subscriptions", tag_group.reload.name
+
+    group_json = JSON.parse(response.body).fetch("transaction_tag_group")
+    assert_equal tag_group.to_param, group_json.fetch("id")
+    assert_equal "Subscriptions", group_json.fetch("name")
+    assert_equal 1, group_json.fetch("display_order")
+    refute_includes group_json.keys, "user_id"
+  end
+
+  test "does not update another user's transaction tag group" do
+    user = create(:user)
+    other_user = create(:user)
+    tag_group = create_tag_group(user: other_user, name: "Other", display_order: 1)
+    raw_token = issue_token(user)
+
+    patch api_v1_transaction_tag_group_path(tag_group),
+      params: { transaction_tag_group: { name: "Changed" } },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :not_found
+    assert_equal "Other", tag_group.reload.name
+  end
+
+  test "deletes a transaction tag group for the token owner" do
+    user = create(:user)
+    tag_group = create_tag_group(user: user, name: "Bills", display_order: 1)
+    raw_token = issue_token(user)
+
+    delete api_v1_transaction_tag_group_path(tag_group), headers: json_headers(raw_token)
+
+    assert_response :no_content
+    assert_empty response.body
+    assert_predicate tag_group.reload, :discarded?
+  end
+
+  test "does not delete another user's transaction tag group" do
+    user = create(:user)
+    other_user = create(:user)
+    tag_group = create_tag_group(user: other_user, name: "Other", display_order: 1)
+    raw_token = issue_token(user)
+
+    delete api_v1_transaction_tag_group_path(tag_group), headers: json_headers(raw_token)
+
+    assert_response :not_found
+    refute_predicate tag_group.reload, :discarded?
+  end
+
   private
 
   def issue_token(user)
