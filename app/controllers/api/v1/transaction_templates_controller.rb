@@ -71,6 +71,7 @@ class Api::V1::TransactionTemplatesController < ApiController
       :destination_amount_cents,
       :hide_amount,
       :hidden,
+      :display_order,
       :comment,
       :schedule_frequency,
       :schedule_rule,
