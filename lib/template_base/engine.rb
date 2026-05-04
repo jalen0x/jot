@@ -15,7 +15,7 @@ module TemplateBase
 
     initializer "template_base.view_paths" do
       ActiveSupport.on_load(:action_controller_base) do
-        prepend_view_path TemplateBase::ROOT.join("app", "views")
+        append_view_path TemplateBase::ROOT.join("app", "views")
       end
     end
   end
