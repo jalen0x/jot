@@ -4,3 +4,9 @@ import "controllers"
 import "src/confirm"
 
 import 'flowbite'
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service-worker.js")
+  })
+}
