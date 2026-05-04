@@ -2,9 +2,17 @@ en:
   components:
     modal:
       close: "Close modal"
+  layouts:
+    application:
+      profile: "Profile"
   oauth:
     github: "GitHub"
     sign_in_with: "Sign in with %{provider}"
+  user_avatars:
+    create:
+      updated: "Avatar updated."
+    destroy:
+      removed: "Avatar removed."
   user_preferences:
     show:
       title: "Preferences"
@@ -38,6 +46,32 @@ en:
         decimal_comma: "1.234,56"
     update:
       updated: "Preferences updated."
+  user_profiles:
+    show:
+      title: "Profile"
+      eyebrow: "Account"
+      heading: "Profile"
+      description: "Update your display name and avatar used across the ledger."
+      avatar_alt: "Profile avatar"
+      avatar_uploaded: "Avatar uploaded"
+      avatar_missing: "No avatar uploaded"
+      remove_avatar: "Remove avatar"
+      remove_avatar_confirm: "Remove your avatar?"
+      remove_avatar_accept: "Remove"
+      save_failed: "Profile could not be saved."
+      first_name: "First name"
+      last_name: "Last name"
+      cancel: "Cancel"
+      save: "Save profile"
+      saving: "Saving..."
+      avatar_heading: "Avatar"
+      avatar_description: "Upload a square image for your signed-in profile."
+      avatar_file: "Avatar image"
+      avatar_help: "PNG, JPEG, or WebP."
+      upload_avatar: "Upload avatar"
+      uploading: "Uploading..."
+    update:
+      updated: "Profile updated."
   users:
     omniauth_callbacks:
       failure: "We could not sign you in with GitHub right now."
