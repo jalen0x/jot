@@ -21,17 +21,17 @@ Rails.application.routes.draw do
       resources :transaction_tag_groups, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_tags, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_templates, only: [ :index, :show, :create, :update, :destroy ]
+      resource :transaction_count, only: :show
+      resource :transaction_statistics, only: :show
+      resources :transaction_trends, only: :index
+      resources :transaction_deletions, only: :create
+      resources :transaction_category_assignments, only: :create
+      resources :transaction_account_assignments, only: :create
+      resources :transaction_account_moves, only: :create
+      resources :transaction_tag_assignments, only: :create
+      resources :transaction_tag_removals, only: :create
+      resources :transaction_tag_clearances, only: :create
       resources :transactions, only: [ :index, :show, :create, :update, :destroy ] do
-        get :count, on: :collection
-        get :statistics, on: :collection
-        get :trends, on: :collection
-        post :batch_delete, on: :collection
-        post :batch_update_category, on: :collection
-        post :batch_update_account, on: :collection
-        post :move_between_accounts, on: :collection
-        post :batch_add_tags, on: :collection
-        post :batch_remove_tags, on: :collection
-        post :batch_clear_tags, on: :collection
         resources :pictures, controller: "transaction_pictures", only: [ :index, :create, :destroy ]
       end
     end
