@@ -97,13 +97,13 @@ class TransactionImporter
   def find_account(user, name)
     user.accounts.kept.find_by!(name: name)
   rescue ActiveRecord::RecordNotFound
-    raise ImportError, "Account not found: #{name}"
+    raise ImportError, "Account not found: #{name}", cause: nil
   end
 
   def find_category(user, name)
     user.transaction_categories.kept.find_by!(name: name)
   rescue ActiveRecord::RecordNotFound
-    raise ImportError, "Category not found: #{name}"
+    raise ImportError, "Category not found: #{name}", cause: nil
   end
 
   def tag_ids(user, value)

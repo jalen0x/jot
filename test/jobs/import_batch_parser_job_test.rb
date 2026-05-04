@@ -18,9 +18,12 @@ class ImportBatchParserJobTest < ActiveJob::TestCase
     create_category(user: user, name: "Food", category_type: :expense)
     batch = ImportBatch.create!(user: user, source_filename: "transactions.csv", raw_csv: csv_for(account: "Missing"))
 
-    ImportBatchParserJob.perform_now(batch.id)
+    error = assert_raises(TransactionImporter::ImportError) do
+      ImportBatchParserJob.perform_now(batch.id)
+    end
 
     assert_predicate batch.reload, :failed?
+    assert_equal "Account not found: Missing", error.message
     assert_equal "Account not found: Missing", batch.error_message
   end
 
@@ -28,10 +31,12 @@ class ImportBatchParserJobTest < ActiveJob::TestCase
     user = create(:user)
     batch = ImportBatch.create!(user: user, source_filename: "transactions.json", raw_csv: "{}")
 
-    perform_error = perform_parser_job_error_for(batch)
+    error = assert_raises(TransactionImporter::ImportError) do
+      ImportBatchParserJob.perform_now(batch.id)
+    end
 
-    assert_nil perform_error, "expected JSON import to fail the batch, but raised #{perform_error.inspect}"
     assert_predicate batch.reload, :failed?
+    assert_equal "JSON import must include a transactions array", error.message
     assert_equal "JSON import must include a transactions array", batch.error_message
   end
 
@@ -49,21 +54,16 @@ class ImportBatchParserJobTest < ActiveJob::TestCase
     }.to_json
     batch = ImportBatch.create!(user: user, source_filename: "transactions.json", raw_csv: raw_json)
 
-    perform_error = perform_parser_job_error_for(batch)
+    error = assert_raises(TransactionImporter::ImportError) do
+      ImportBatchParserJob.perform_now(batch.id)
+    end
 
-    assert_nil perform_error, "expected JSON import to fail the batch, but raised #{perform_error.inspect}"
     assert_predicate batch.reload, :failed?
+    assert_equal "JSON transaction is missing account_name", error.message
     assert_equal "JSON transaction is missing account_name", batch.error_message
   end
 
   private
-
-  def perform_parser_job_error_for(batch)
-    ImportBatchParserJob.perform_now(batch.id)
-    nil
-  rescue StandardError => error
-    error
-  end
 
   def csv_for(account:)
     <<~CSV
