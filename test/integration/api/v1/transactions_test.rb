@@ -162,7 +162,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    get count_api_v1_transactions_path, headers: json_headers(raw_token)
+    get api_v1_transaction_count_path, headers: json_headers(raw_token)
 
     assert_response :success
     assert_equal({ "count" => 1 }, JSON.parse(response.body))
@@ -193,7 +193,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    get count_api_v1_transactions_path, params: { account_id: matching_account.to_param }, headers: json_headers(raw_token)
+    get api_v1_transaction_count_path, params: { account_id: matching_account.to_param }, headers: json_headers(raw_token)
 
     assert_response :success
     assert_equal({ "count" => 1 }, JSON.parse(response.body))
@@ -253,7 +253,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    get statistics_api_v1_transactions_path,
+    get api_v1_transaction_statistics_path,
       params: { start_date: "2026-05-01", end_date: "2026-05-31", account_id: matching_account.to_param },
       headers: json_headers(raw_token)
 
@@ -272,7 +272,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     user = create(:user)
     raw_token = issue_token(user)
 
-    get statistics_api_v1_transactions_path,
+    get api_v1_transaction_statistics_path,
       params: { start_date: "not-a-date", end_date: "2026-05-31" },
       headers: json_headers(raw_token)
 
@@ -325,7 +325,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    get trends_api_v1_transactions_path,
+    get api_v1_transaction_trends_path,
       params: { start_date: "2026-05-01", end_date: "2026-05-03", aggregation: "day", account_id: matching_account.to_param },
       headers: json_headers(raw_token)
 
@@ -345,7 +345,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     user = create(:user)
     raw_token = issue_token(user)
 
-    get trends_api_v1_transactions_path,
+    get api_v1_transaction_trends_path,
       params: { start_date: "2026-05-01", end_date: "2026-05-03", aggregation: "week" },
       headers: json_headers(raw_token)
 
@@ -767,7 +767,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_delete_api_v1_transactions_path,
+    post api_v1_transaction_deletions_path,
       params: { transaction_ids: [ income.to_param, expense.to_param ] },
       headers: json_headers(raw_token),
       as: :json
@@ -804,7 +804,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_delete_api_v1_transactions_path,
+    post api_v1_transaction_deletions_path,
       params: { transaction_ids: [ transaction.to_param, other_transaction.to_param ] },
       headers: json_headers(raw_token),
       as: :json
@@ -840,7 +840,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_update_category_api_v1_transactions_path,
+    post api_v1_transaction_category_assignments_path,
       params: { transaction_ids: [ lunch.to_param, coffee.to_param ], transaction_category_id: new_category.to_param },
       headers: json_headers(raw_token),
       as: :json
@@ -877,7 +877,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_update_category_api_v1_transactions_path,
+    post api_v1_transaction_category_assignments_path,
       params: { transaction_ids: [ transaction.to_param, other_transaction.to_param ], transaction_category_id: new_category.to_param },
       headers: json_headers(raw_token),
       as: :json
@@ -903,7 +903,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_update_category_api_v1_transactions_path,
+    post api_v1_transaction_category_assignments_path,
       params: { transaction_ids: [ transaction.to_param ], transaction_category_id: income_category.to_param },
       headers: json_headers(raw_token),
       as: :json
@@ -938,7 +938,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_update_account_api_v1_transactions_path,
+    post api_v1_transaction_account_assignments_path,
       params: { transaction_ids: [ lunch.to_param, coffee.to_param ], account_id: new_account.to_param },
       headers: json_headers(raw_token),
       as: :json
@@ -970,7 +970,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_update_account_api_v1_transactions_path,
+    post api_v1_transaction_account_assignments_path,
       params: { transaction_ids: [ transfer.to_param ], account_id: new_destination.to_param, is_destination_account: "true" },
       headers: json_headers(raw_token),
       as: :json
@@ -1000,7 +1000,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_update_account_api_v1_transactions_path,
+    post api_v1_transaction_account_assignments_path,
       params: { transaction_ids: [ transaction.to_param ], account_id: other_account.to_param },
       headers: json_headers(raw_token),
       as: :json
@@ -1037,7 +1037,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_update_account_api_v1_transactions_path,
+    post api_v1_transaction_account_assignments_path,
       params: { transaction_ids: [ transaction.to_param, other_transaction.to_param ], account_id: new_account.to_param },
       headers: json_headers(raw_token),
       as: :json
@@ -1077,7 +1077,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post move_between_accounts_api_v1_transactions_path,
+    post api_v1_transaction_account_moves_path,
       params: { from_account_id: from_account.to_param, to_account_id: to_account.to_param },
       headers: json_headers(raw_token),
       as: :json
@@ -1109,7 +1109,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post move_between_accounts_api_v1_transactions_path,
+    post api_v1_transaction_account_moves_path,
       params: { from_account_id: from_account.to_param, to_account_id: other_account.to_param },
       headers: json_headers(raw_token),
       as: :json
@@ -1135,7 +1135,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post move_between_accounts_api_v1_transactions_path,
+    post api_v1_transaction_account_moves_path,
       params: { from_account_id: account.to_param, to_account_id: account.to_param },
       headers: json_headers(raw_token),
       as: :json
@@ -1173,7 +1173,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_add_tags_api_v1_transactions_path,
+    post api_v1_transaction_tag_assignments_path,
       params: { transaction_ids: [ lunch.to_param, coffee.to_param ], transaction_tag_ids: [ existing_tag.to_param, new_tag.to_param ] },
       headers: json_headers(raw_token),
       as: :json
@@ -1202,7 +1202,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     other_tag = create_tag(user: other_user, name: "Other")
     raw_token = issue_token(user)
 
-    post batch_add_tags_api_v1_transactions_path,
+    post api_v1_transaction_tag_assignments_path,
       params: { transaction_ids: [ transaction.to_param ], transaction_tag_ids: [ tag.to_param, other_tag.to_param ] },
       headers: json_headers(raw_token),
       as: :json
@@ -1237,7 +1237,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     tag = create_tag(user: user, name: "Meals")
     raw_token = issue_token(user)
 
-    post batch_add_tags_api_v1_transactions_path,
+    post api_v1_transaction_tag_assignments_path,
       params: { transaction_ids: [ transaction.to_param, other_transaction.to_param ], transaction_tag_ids: [ tag.to_param ] },
       headers: json_headers(raw_token),
       as: :json
@@ -1276,7 +1276,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_remove_tags_api_v1_transactions_path,
+    post api_v1_transaction_tag_removals_path,
       params: { transaction_ids: [ lunch.to_param, coffee.to_param ], transaction_tag_ids: [ meals_tag.to_param, business_tag.to_param ] },
       headers: json_headers(raw_token),
       as: :json
@@ -1306,7 +1306,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_remove_tags_api_v1_transactions_path,
+    post api_v1_transaction_tag_removals_path,
       params: { transaction_ids: [ transaction.to_param ], transaction_tag_ids: [ tag.to_param, other_tag.to_param ] },
       headers: json_headers(raw_token),
       as: :json
@@ -1342,7 +1342,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_remove_tags_api_v1_transactions_path,
+    post api_v1_transaction_tag_removals_path,
       params: { transaction_ids: [ transaction.to_param, other_transaction.to_param ], transaction_tag_ids: [ tag.to_param ] },
       headers: json_headers(raw_token),
       as: :json
@@ -1379,7 +1379,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_clear_tags_api_v1_transactions_path,
+    post api_v1_transaction_tag_clearances_path,
       params: { transaction_ids: [ lunch.to_param, coffee.to_param ] },
       headers: json_headers(raw_token),
       as: :json
@@ -1417,7 +1417,7 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     )
     raw_token = issue_token(user)
 
-    post batch_clear_tags_api_v1_transactions_path,
+    post api_v1_transaction_tag_clearances_path,
       params: { transaction_ids: [ transaction.to_param, other_transaction.to_param ] },
       headers: json_headers(raw_token),
       as: :json
