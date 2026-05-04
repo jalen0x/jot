@@ -19,7 +19,7 @@ Rails.application.routes.draw do
       resources :accounts, only: [ :index, :create ]
       resources :transaction_categories, only: [ :index, :create ]
       resources :transaction_tag_groups, only: [ :index, :create ]
-      resources :transaction_tags, only: [ :index, :create ]
+      resources :transaction_tags, only: [ :index, :create, :update, :destroy ]
       resources :transaction_templates, only: [ :index, :create, :update, :destroy ]
       resources :transactions, only: [ :index, :create, :update, :destroy ] do
         resources :pictures, controller: "transaction_pictures", only: [ :index, :create, :destroy ]
