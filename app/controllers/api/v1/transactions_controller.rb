@@ -19,9 +19,22 @@ class Api::V1::TransactionsController < ApiController
     end
   end
 
+  # PATCH/PUT /api/v1/transactions/:id
+  def update
+    transaction = scoped_transaction
+    authorize transaction
+    result = TransactionUpdater.new.update_transaction(transaction: transaction, attributes: transaction_params, tag_ids: transaction_tag_ids)
+
+    if result.updated?
+      render json: { transaction: result.transaction.as_json }
+    else
+      render json: { errors: result.transaction.errors.full_messages }, status: :unprocessable_content
+    end
+  end
+
   # DELETE /api/v1/transactions/:id
   def destroy
-    transaction = policy_scope(Transaction).kept.find(params[:id])
+    transaction = scoped_transaction
     authorize transaction
     result = TransactionReversal.new.delete_transaction(transaction: transaction)
 
@@ -57,5 +70,9 @@ class Api::V1::TransactionsController < ApiController
 
   def transaction_tag_ids
     Array(transaction_params[:transaction_tag_ids]).reject(&:blank?)
+  end
+
+  def scoped_transaction
+    policy_scope(Transaction).kept.find(params[:id])
   end
 end

@@ -367,6 +367,102 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_predicate transaction.reload.pictures, :attached?
   end
 
+  test "updates a transaction for the token owner" do
+    user = create(:user)
+    old_account = create_account(user: user, name: "Checking", balance_cents: 3_750)
+    new_account = create_account(user: user, name: "Savings", balance_cents: 10_000)
+    old_category = create_category(user: user, name: "Food", category_type: :expense)
+    new_category = create_category(user: user, name: "Travel", category_type: :expense)
+    old_tag = create_tag(user: user, name: "Old")
+    new_tag = create_tag(user: user, name: "New")
+    transaction = create_transaction(
+      user: user,
+      account: old_account,
+      category: old_category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch",
+      tags: [ old_tag ]
+    )
+    transaction.pictures.attach(io: StringIO.new("receipt"), filename: "receipt.txt", content_type: "text/plain", identify: false)
+    raw_token = issue_token(user)
+
+    patch api_v1_transaction_path(transaction),
+      params: {
+        transaction: {
+          transaction_kind: "expense",
+          account_id: new_account.to_param,
+          transaction_category_id: new_category.to_param,
+          transacted_at: "2026-05-04 13:00:00",
+          timezone_utc_offset_minutes: "0",
+          source_amount_cents: "2000",
+          destination_amount_cents: "0",
+          hide_amount: "true",
+          comment: "Flight",
+          geo_location: { latitude: "37.7749", longitude: "-122.4194" },
+          transaction_tag_ids: [ new_tag.to_param ]
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :success
+    assert_equal 5_000, old_account.reload.balance_cents
+    assert_equal 8_000, new_account.reload.balance_cents
+    assert_equal [ new_tag ], transaction.reload.transaction_tags.to_a
+    assert_predicate transaction.pictures, :attached?
+
+    transaction_json = JSON.parse(response.body).fetch("transaction")
+    assert_equal transaction.to_param, transaction_json.fetch("id")
+    assert_equal new_account.to_param, transaction_json.fetch("account_id")
+    assert_equal new_category.to_param, transaction_json.fetch("transaction_category_id")
+    assert_equal 2_000, transaction_json.fetch("source_amount_cents")
+    assert_equal true, transaction_json.fetch("hide_amount")
+    assert_equal "Flight", transaction_json.fetch("comment")
+    assert_equal({ "latitude" => "37.7749", "longitude" => "-122.4194" }, transaction_json.fetch("geo_location"))
+    assert_equal [ new_tag.to_param ], transaction_json.fetch("transaction_tag_ids")
+    refute_includes transaction_json.keys, "user_id"
+  end
+
+  test "does not update another user's transaction" do
+    user = create(:user)
+    other_user = create(:user)
+    other_account = create_account(user: other_user, name: "Other Checking", balance_cents: 3_750)
+    other_category = create_category(user: other_user, name: "Other Food", category_type: :expense)
+    transaction = create_transaction(
+      user: other_user,
+      account: other_account,
+      category: other_category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Other Lunch"
+    )
+    raw_token = issue_token(user)
+
+    patch api_v1_transaction_path(transaction),
+      params: {
+        transaction: {
+          transaction_kind: "expense",
+          account_id: other_account.to_param,
+          transaction_category_id: other_category.to_param,
+          transacted_at: "2026-05-04 13:00:00",
+          timezone_utc_offset_minutes: "0",
+          source_amount_cents: "2000",
+          destination_amount_cents: "0",
+          hide_amount: "false",
+          comment: "Changed"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :not_found
+    assert_equal "Other Lunch", transaction.reload.comment
+    assert_equal 3_750, other_account.reload.balance_cents
+  end
+
   test "deletes a transaction for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 3_750)
