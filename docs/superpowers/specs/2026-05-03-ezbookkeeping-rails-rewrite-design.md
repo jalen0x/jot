@@ -131,6 +131,7 @@ Import sources from source project:
 Architecture:
 
 - `DataExport` creates CSV/TSV exports from Rails ledger data.
+- `DataStatistics#summarize_user_data(user:)` returns data-management counts for the current user's kept ledger records.
 - `ImportFileParser` parses uploaded files in a Solid Queue job and persists a preview/import batch.
 - `TransactionImporter#import_transactions(import_batch:)` validates and records selected transactions through `TransactionRecorder`.
 - Import parsing never runs inline in controllers because large files and third-party formats are slow and failure-prone.

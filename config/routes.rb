@@ -31,6 +31,7 @@ Rails.application.routes.draw do
       resources :api_tokens, only: [ :index, :create, :destroy ]
       resources :external_authentications, only: [ :index, :destroy ]
       resources :user_custom_exchange_rates, only: [ :index, :show, :create, :update, :destroy ]
+      resource :data_statistics, only: :show
       resources :data_exports, only: :create
       resources :import_batches, only: [ :show, :create ]
       resources :ledger_clearances, only: :create
