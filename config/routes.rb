@@ -80,7 +80,7 @@ Rails.application.routes.draw do
   resources :receipt_recognitions, only: [ :new, :create, :show ]
   resources :transaction_categories, only: [ :index, :new, :create, :edit, :update, :destroy ]
   resources :transaction_tag_groups, only: [ :index, :new, :create, :edit, :update, :destroy ]
-  resources :transaction_tags, only: [ :new, :create, :edit, :update ]
+  resources :transaction_tags, only: [ :new, :create, :edit, :update, :destroy ]
   resources :transactions, only: [ :index, :new, :create, :edit, :update, :destroy ] do
     resources :pictures, controller: "transaction_pictures", only: :destroy
   end
