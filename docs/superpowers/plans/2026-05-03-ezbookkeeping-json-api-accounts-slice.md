@@ -118,6 +118,6 @@ Expected: clean working tree.
 
 ## Self-Review
 
-- Spec coverage: implements the first Phase 8 JSON API seam and uses the Phase 5 `ApiToken` boundary. It covers authentication, content negotiation, top-level response keys, and user scoping. It does not implement legacy ezBookkeeping `/v1/accounts/list.json` compatibility, write endpoints, pagination, MCP, or broader API resources.
+- Spec coverage: implements the first Phase 8 JSON API seam and uses the Phase 5 `ApiToken` boundary. It covers authentication, content negotiation, top-level response keys, and user scoping. It does not implement legacy ezBookkeeping `/v1/accounts/list.json` compatibility, write endpoints, pagination, or broader API resources. MCP is excluded from the Rails rewrite scope.
 - Placeholder scan: no TODO/TBD placeholders remain.
 - Type consistency: the plan consistently uses `ApiController`, `Api::V1::AccountsController`, `ApiToken.authenticate`, and `api_v1_accounts_path`.

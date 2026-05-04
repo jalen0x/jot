@@ -358,6 +358,6 @@ Expected: clean working tree.
 ## Self-Review
 
 - Spec coverage: extends the Phase 8 JSON API seam with setup resources needed by service clients before transaction creation: accounts, tag groups, and tags. It uses existing API token auth, content negotiation, top-level response keys, Pundit authorization, and current-user scoping.
-- Scope control: does not implement legacy ezBookkeeping `.json` paths, update/delete/batch endpoints, pagination, pictures, geo location, account sub-account creation, tag hidden updates, or MCP adapters.
+- Scope control: does not implement legacy ezBookkeeping `.json` paths, update/delete/batch endpoints, pagination, pictures, geo location, account sub-account creation, tag hidden updates, or MCP support. MCP is excluded from the Rails rewrite scope.
 - Placeholder scan: no TODO/TBD placeholders remain.
 - Type consistency: route helpers, controller names, JSON keys, and params consistently use `account`, `transaction_tag_group`, and `transaction_tag`.

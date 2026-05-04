@@ -4,7 +4,7 @@
 
 **Goal:** Add the Phase 5 API token foundation so signed-in users can issue and revoke API tokens without storing raw token values.
 
-**Architecture:** Use a Rails-native `ApiToken` model rather than copying Go JWT token internals. Store only a BCrypt digest, show the raw token exactly once after issuance, require the user's current password to issue a token, and soft-delete revoked tokens. Future JSON API/MCP adapters can authenticate with `ApiToken.authenticate(raw_token)`.
+**Architecture:** Use a Rails-native `ApiToken` model rather than copying Go JWT token internals. Store only a BCrypt digest, show the raw token exactly once after issuance, require the user's current password to issue a token, and soft-delete revoked tokens. The Rails-native JSON API authenticates with `ApiToken.authenticate(raw_token)`.
 
 **Tech Stack:** Rails 8.1, PostgreSQL `structure.sql`, Devise, Pundit, Minitest, FactoryBot, discard gem, BCrypt, SecureRandom, Flowbite semantic Tailwind classes.
 
@@ -172,6 +172,6 @@ Expected: clean working tree.
 
 ## Self-Review
 
-- Spec coverage: implements the Phase 5 API token foundation and the Phase 8 MCP prerequisite from the rewrite design. It does not yet add JSON API authentication middleware, MCP endpoints, session listing, 2FA, OIDC, or app lock.
+- Spec coverage: implements the Phase 5 API token foundation used by the Rails-native JSON API. It does not yet add JSON API authentication middleware, session listing, 2FA, OIDC, or app lock.
 - Placeholder scan: no TODO/TBD placeholders remain.
 - Type consistency: the plan consistently uses `ApiToken`, `ApiTokenIssuer`, `token_digest`, `raw_token`, and `api_tokens_path`.
