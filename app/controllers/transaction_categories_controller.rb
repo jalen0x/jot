@@ -25,6 +25,26 @@ class TransactionCategoriesController < ApplicationController
     end
   end
 
+  # GET /transaction_categories/:id/edit
+  def edit
+    @transaction_category = scoped_category
+    authorize @transaction_category
+  end
+
+  # PATCH/PUT /transaction_categories/:id
+  def update
+    category = scoped_category
+    authorize category
+    result = TransactionCategoryUpdater.new.update_category(category: category, attributes: category_update_params)
+
+    if result.updated?
+      redirect_to transaction_categories_path, notice: "Category updated."
+    else
+      @transaction_category = result.category
+      render :edit, status: :unprocessable_content
+    end
+  end
+
   private
 
   def category_attributes
@@ -33,6 +53,14 @@ class TransactionCategoriesController < ApplicationController
 
   def category_params
     params.expect(transaction_category: [ :name, :category_type, :icon_key, :color_hex, :comment ])
+  end
+
+  def category_update_params
+    params.expect(transaction_category: [ :name, :category_type, :icon_key, :color_hex, :hidden, :comment ])
+  end
+
+  def scoped_category
+    policy_scope(TransactionCategory).kept.find(params[:id])
   end
 
   def next_display_order
