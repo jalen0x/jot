@@ -18,6 +18,7 @@ Rails.application.routes.draw do
       resources :accounts, only: [ :index, :show, :create, :update, :destroy ] do
         resource :reconciliation_statement, only: :show, controller: "account_reconciliation_statements"
       end
+      resources :account_balance_trends, only: :index
       resource :user_preference, only: [ :show, :update ]
       resource :user_profile, only: [ :show, :update ]
       resource :user_avatar, only: [ :create, :destroy ]

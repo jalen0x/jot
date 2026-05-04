@@ -99,6 +99,7 @@ Entities and services:
 
 - `LedgerStatistics#summarize_transactions(user:, range:, filters:)` returns income, expense, balance, category totals, and account totals.
 - `LedgerTrends#build_transaction_trends(user:, range:, aggregation:, filters:)` returns chart-ready time buckets.
+- `AccountBalanceTrends#build_account_balance_trends(user:, range:)` returns daily opening and closing balances for each kept account.
 - `AccountReconciliation#build_statement(account:, range:)` returns opening balance, closing balance, inflows, outflows, and ordered transactions.
 - Saved explorer configuration uses `InsightExplorer` with structured JSONB data for chart dimensions and filters only. It must not store executable Ruby/JavaScript or arbitrary response handlers.
 
