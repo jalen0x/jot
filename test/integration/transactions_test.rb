@@ -136,6 +136,26 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal 3_800, account.reload.balance_cents
   end
 
+  test "defaults the new transaction account from the signed-in user's preference" do
+    user = create(:user)
+    create_account(user: user, balance_cents: 0, name: "Cash")
+    savings = create_account(user: user, balance_cents: 0, name: "Savings")
+    sign_in user
+
+    patch user_preference_path, params: {
+      user_preference: {
+        default_currency_code: "USD",
+        date_format: "year_month_day",
+        locale: "en",
+        default_account_id: savings.id.to_s
+      }
+    }
+    get new_transaction_path
+
+    assert_response :success
+    assert_select "select#transaction_account_id option[selected]", text: "Savings"
+  end
+
   test "deletes a transaction for current user" do
     user = create(:user)
     account = create_account(user: user, balance_cents: 3_800)

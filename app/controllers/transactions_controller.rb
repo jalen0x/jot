@@ -77,13 +77,15 @@ class TransactionsController < ApplicationController
   end
 
   def default_transaction_attributes
-    {
+    attributes = {
       transaction_kind: :expense,
       transacted_at: Time.current.change(sec: 0),
       timezone_utc_offset_minutes: 0,
       source_amount_cents: 0,
       destination_amount_cents: 0
     }
+    attributes[:account] = default_account if default_account.present?
+    attributes
   end
 
   def load_form_collections
@@ -100,5 +102,9 @@ class TransactionsController < ApplicationController
 
   def transaction_datetime_format
     current_user.user_preference&.datetime_format || UserPreference.datetime_format_for(UserPreference::DEFAULT_DATE_FORMAT)
+  end
+
+  def default_account
+    current_user.accounts.kept.find_by(id: current_user.user_preference&.default_account_id)
   end
 end

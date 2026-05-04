@@ -27,6 +27,12 @@
     </div>
 
     <div>
+      <%= form.label :default_account_id, t(".default_account"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.collection_select :default_account_id, @default_account_options, :id, :name, { include_blank: t(".default_account_none") }, class: field_classes %>
+      <p class="mt-2 text-sm text-body-subtle"><%= t(".default_account_help") %></p>
+    </div>
+
+    <div>
       <%= form.label :locale, t(".locale"), class: "mb-2 block text-sm font-medium text-heading" %>
       <%= form.select :locale, UserPreference::SUPPORTED_LOCALES.map { |locale| [ t(".locales.#{locale}"), locale ] }, {}, class: field_classes %>
       <p class="mt-2 text-sm text-body-subtle"><%= t(".locale_help") %></p>
