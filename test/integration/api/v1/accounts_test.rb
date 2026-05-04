@@ -308,6 +308,76 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
     refute_includes account_json.keys, "user_id"
   end
 
+  test "moves an account under the token owner's parent account" do
+    user = create(:user)
+    parent = create_account(user: user, name: "Savings", balance_cents: 0)
+    account = create_account(user: user, name: "Vacation", balance_cents: 12_300)
+    raw_token = issue_token(user)
+
+    patch api_v1_account_path(account),
+      params: { account: { parent_account_id: parent.to_param } },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :success
+    assert_equal parent, account.reload.parent_account
+
+    account_json = JSON.parse(response.body).fetch("account")
+    assert_equal parent.to_param, account_json.fetch("parent_account_id")
+  end
+
+  test "clears an account parent with a blank parent account id" do
+    user = create(:user)
+    parent = create_account(user: user, name: "Savings", balance_cents: 0)
+    account = create_account(user: user, name: "Vacation", balance_cents: 12_300)
+    account.update!(parent_account: parent)
+    raw_token = issue_token(user)
+
+    patch api_v1_account_path(account),
+      params: { account: { parent_account_id: "" } },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :success
+    assert_nil account.reload.parent_account
+
+    account_json = JSON.parse(response.body).fetch("account")
+    assert_nil account_json.fetch("parent_account_id")
+  end
+
+  test "rejects self parent account updates" do
+    user = create(:user)
+    parent = create_account(user: user, name: "Savings", balance_cents: 0)
+    account = create_account(user: user, name: "Vacation", balance_cents: 12_300)
+    account.update!(parent_account: parent)
+    raw_token = issue_token(user)
+
+    patch api_v1_account_path(account),
+      params: { account: { parent_account_id: account.to_param } },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_equal parent, account.reload.parent_account
+    assert_match(/Parent account/i, response.body)
+  end
+
+  test "rejects another user's parent account on update" do
+    user = create(:user)
+    account = create_account(user: user, name: "Vacation", balance_cents: 12_300)
+    other_parent = create_account(user: create(:user), name: "Other Savings", balance_cents: 0)
+    raw_token = issue_token(user)
+
+    patch api_v1_account_path(account),
+      params: { account: { parent_account_id: other_parent.to_param } },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_nil account.reload.parent_account
+    assert_match(/Parent account/i, response.body)
+  end
+
   test "rejects invalid account update params" do
     user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 12_300)

@@ -37,8 +37,11 @@ class Api::V1::AccountsController < ApiController
   def update
     account = scoped_account
     authorize account
+    update_params = account_update_params
+    account.assign_attributes(update_params.except(:parent_account_id))
+    assign_parent_account(account, update_params[:parent_account_id]) if update_params.key?(:parent_account_id)
 
-    if account.update(account_update_params)
+    if account.errors.empty? && account.save
       render json: { account: account.as_json }
     else
       render json: { errors: account.errors.full_messages }, status: :unprocessable_content
@@ -85,6 +88,7 @@ class Api::V1::AccountsController < ApiController
       :icon_key,
       :color_hex,
       :currency_code,
+      :parent_account_id,
       :comment,
       :hidden,
       :display_order
@@ -103,6 +107,23 @@ class Api::V1::AccountsController < ApiController
 
   def parent_account_id
     account_params[:parent_account_id].to_s
+  end
+
+  def assign_parent_account(account, parent_account_id)
+    account.parent_account = resolved_parent_account(account, parent_account_id)
+  end
+
+  def resolved_parent_account(account, parent_account_id)
+    return if parent_account_id.blank?
+
+    parent_account = current_user.accounts.kept.find(Account.decode_prefix_id(parent_account_id) || parent_account_id)
+    return parent_account unless parent_account == account
+
+    account.errors.add(:parent_account, "cannot be itself")
+    nil
+  rescue ActiveRecord::RecordNotFound
+    account.errors.add(:parent_account, "is unavailable")
+    nil
   end
 
   def next_display_order(parent_account)
