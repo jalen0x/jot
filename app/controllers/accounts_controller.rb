@@ -31,6 +31,26 @@ class AccountsController < ApplicationController
     end
   end
 
+  # GET /accounts/:id/edit
+  def edit
+    @account = scoped_account
+    authorize @account
+  end
+
+  # PATCH/PUT /accounts/:id
+  def update
+    account = scoped_account
+    authorize account
+    account.assign_attributes(account_update_params)
+
+    if account.save
+      redirect_to accounts_path, notice: "Account updated."
+    else
+      @account = account
+      render :edit, status: :unprocessable_content
+    end
+  end
+
   private
 
   def account_attributes
@@ -50,8 +70,24 @@ class AccountsController < ApplicationController
     ])
   end
 
+  def account_update_params
+    params.expect(account: [
+      :name,
+      :account_category,
+      :account_structure,
+      :icon_key,
+      :color_hex,
+      :currency_code,
+      :comment
+    ])
+  end
+
   def opening_balance_cents
     account_params[:opening_balance_cents].to_i
+  end
+
+  def scoped_account
+    policy_scope(Account).kept.find(params[:id])
   end
 
   def next_display_order

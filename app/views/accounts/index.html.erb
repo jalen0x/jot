@@ -28,6 +28,10 @@
           <% if account.comment.present? %>
             <p class="mt-4 text-sm text-body"><%= account.comment %></p>
           <% end %>
+
+          <div class="mt-4 flex justify-end">
+            <%= render(ButtonComponent.new(variant: :secondary, href: edit_account_path(account))) { "Edit" } %>
+          </div>
         </li>
       <% end %>
     </ul>
