@@ -24,6 +24,22 @@ class ImportBatchParserJobTest < ActiveJob::TestCase
     assert_equal "Account not found: Missing", batch.error_message
   end
 
+  test "marks invalid json imports as failed" do
+    user = create(:user)
+    batch = ImportBatch.create!(user: user, source_filename: "transactions.json", raw_csv: "{}")
+
+    perform_error = nil
+    begin
+      ImportBatchParserJob.perform_now(batch.id)
+    rescue StandardError => error
+      perform_error = error
+    end
+
+    assert_nil perform_error, "expected invalid JSON to fail the batch, but raised #{perform_error.inspect}"
+    assert_predicate batch.reload, :failed?
+    assert_equal "JSON import must include a transactions array", batch.error_message
+  end
+
   private
 
   def csv_for(account:)
