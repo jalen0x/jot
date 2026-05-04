@@ -24,6 +24,7 @@ Rails.application.routes.draw do
       resources :data_exports, only: :create
       resources :import_batches, only: [ :show, :create ]
       resources :ledger_clearances, only: :create
+      resources :insight_explorers, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_categories, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_tag_groups, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_tags, only: [ :index, :show, :create, :update, :destroy ]
