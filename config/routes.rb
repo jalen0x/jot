@@ -23,6 +23,7 @@ Rails.application.routes.draw do
       resources :user_custom_exchange_rates, only: [ :index, :show, :create, :update, :destroy ]
       resources :data_exports, only: :create
       resources :import_batches, only: [ :show, :create ]
+      resources :ledger_clearances, only: :create
       resources :transaction_categories, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_tag_groups, only: [ :index, :show, :create, :update, :destroy ]
       resources :transaction_tags, only: [ :index, :show, :create, :update, :destroy ]
