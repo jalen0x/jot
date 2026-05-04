@@ -14,6 +14,9 @@ class LedgerClearance
 
     ActiveRecord::Base.transaction do
       clear_transactions(user: user)
+      TransactionTemplateTagging.where(user: user).delete_all
+      user.insight_explorers.kept.update_all(discarded_at: now, updated_at: now)
+      user.transaction_templates.kept.update_all(discarded_at: now, updated_at: now)
       user.transaction_categories.kept.update_all(discarded_at: now, updated_at: now)
       user.transaction_tags.kept.update_all(discarded_at: now, updated_at: now)
       user.transaction_tag_groups.kept.update_all(discarded_at: now, updated_at: now)
