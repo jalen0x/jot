@@ -11,6 +11,7 @@ class ImportBatch < ApplicationRecord
   }
 
   validates :raw_csv, presence: true
+  validate :source_filename_must_be_csv_or_tsv
 
   def as_json(_options = {})
     {
@@ -20,5 +21,14 @@ class ImportBatch < ApplicationRecord
       imported_count: imported_count,
       error_message: error_message
     }
+  end
+
+  private
+
+  def source_filename_must_be_csv_or_tsv
+    return if source_filename.blank?
+    return if source_filename.to_s.downcase.end_with?(".csv", ".tsv")
+
+    errors.add(:source_filename, "must be csv or tsv")
   end
 end
