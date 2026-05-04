@@ -21,6 +21,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
     assert_select "li", text: /#{own_account.name}/i
     assert_select "li", text: /123.00 USD/
     assert_select "li", text: /Other Checking/i, count: 0
+    assert_select "a[href='#{account_reconciliation_statement_path(own_account)}']", text: /Reconcile/i
     assert_select "form[action='#{account_path(own_account)}'][data-turbo-confirm]"
   end
 

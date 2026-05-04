@@ -1,0 +1,88 @@
+<% content_for :title, t(".title", account_name: @account.name) %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+
+<section class="space-y-8">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="max-w-3xl space-y-3">
+      <p class="text-sm font-medium uppercase tracking-wide text-fg-brand"><%= t(".eyebrow") %></p>
+      <h1 class="text-3xl font-semibold tracking-tight text-heading"><%= t(".heading", account_name: @account.name) %></h1>
+      <p class="text-body"><%= t(".description") %></p>
+    </div>
+
+    <%= render(ButtonComponent.new(variant: :secondary, href: accounts_path)) { t(".back") } %>
+  </div>
+
+  <%= form_with url: account_reconciliation_statement_path(@account), method: :get, class: "bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs" do |form| %>
+    <% if @date_error.present? %>
+      <div class="mb-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm font-medium text-danger">
+        <%= @date_error %>
+      </div>
+    <% end %>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <%= form.label :start_date, t(".start_date"), class: "block mb-2 text-sm font-medium text-heading" %>
+        <%= form.date_field :start_date, value: @start_date, class: field_classes %>
+      </div>
+      <div>
+        <%= form.label :end_date, t(".end_date"), class: "block mb-2 text-sm font-medium text-heading" %>
+        <%= form.date_field :end_date, value: @end_date, class: field_classes %>
+      </div>
+    </div>
+    <div class="mt-4 flex justify-end">
+      <%= render(ButtonComponent.new(type: :submit)) { t(".update") } %>
+    </div>
+  <% end %>
+
+  <% if @statement.present? %>
+    <div class="grid gap-4 md:grid-cols-4">
+      <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
+        <p class="text-sm font-medium text-body-subtle"><%= t(".opening_balance") %></p>
+        <p class="mt-2 text-2xl font-semibold text-heading"><%= number_to_currency(@statement.opening_balance_cents / 100.0, unit: "") %> <%= @account.currency_code %></p>
+      </div>
+      <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
+        <p class="text-sm font-medium text-body-subtle"><%= t(".inflow") %></p>
+        <p class="mt-2 text-2xl font-semibold text-heading"><%= number_to_currency(@statement.inflow_cents / 100.0, unit: "") %> <%= @account.currency_code %></p>
+      </div>
+      <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
+        <p class="text-sm font-medium text-body-subtle"><%= t(".outflow") %></p>
+        <p class="mt-2 text-2xl font-semibold text-heading"><%= number_to_currency(@statement.outflow_cents / 100.0, unit: "") %> <%= @account.currency_code %></p>
+      </div>
+      <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
+        <p class="text-sm font-medium text-body-subtle"><%= t(".closing_balance") %></p>
+        <p class="mt-2 text-2xl font-semibold text-heading"><%= number_to_currency(@statement.closing_balance_cents / 100.0, unit: "") %> <%= @account.currency_code %></p>
+      </div>
+    </div>
+
+    <div class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+      <table class="w-full text-left text-sm text-body">
+        <thead class="border-b border-default bg-neutral-secondary-medium text-xs uppercase text-body-subtle">
+          <tr>
+            <th scope="col" class="px-5 py-3"><%= t(".transaction") %></th>
+            <th scope="col" class="px-5 py-3"><%= t(".kind") %></th>
+            <th scope="col" class="px-5 py-3"><%= t(".date") %></th>
+            <th scope="col" class="px-5 py-3 text-right"><%= t(".amount") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @statement.transactions.any? %>
+            <% @statement.transactions.each do |transaction| %>
+              <tr class="border-b border-default last:border-0">
+                <td class="px-5 py-4 font-medium text-heading"><%= transaction.comment.presence || transaction.transaction_kind.humanize %></td>
+                <td class="px-5 py-4"><%= transaction.transaction_kind.humanize %></td>
+                <td class="px-5 py-4"><%= transaction.transacted_at.to_date.iso8601 %></td>
+                <td class="px-5 py-4 text-right font-semibold text-heading">
+                  <%= number_to_currency(transaction.source_amount_cents / 100.0, unit: "") %> <%= transaction.account.currency_code %>
+                </td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr>
+              <td colspan="4" class="px-5 py-8 text-center text-body-subtle"><%= t(".empty") %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>

@@ -84,7 +84,9 @@ Rails.application.routes.draw do
   resources :transactions, only: [ :index, :new, :create, :edit, :update, :destroy ] do
     resources :pictures, controller: "transaction_pictures", only: :destroy
   end
-  resources :accounts, only: [ :index, :new, :create, :edit, :update, :destroy ]
+  resources :accounts, only: [ :index, :new, :create, :edit, :update, :destroy ] do
+    resource :reconciliation_statement, only: :show, controller: "account_reconciliation_statements"
+  end
 
   # Defines the root path route ("/")
   root "home#show"

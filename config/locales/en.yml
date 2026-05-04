@@ -2,6 +2,29 @@ en:
   components:
     modal:
       close: "Close modal"
+  account_reconciliation_statements:
+    show:
+      title: "%{account_name} reconciliation"
+      eyebrow: "Accounts"
+      heading: "%{account_name} reconciliation"
+      description: "Review opening balance, period movement, and closing balance for this account."
+      back: "Back to accounts"
+      start_date: "Start date"
+      end_date: "End date"
+      update: "Update statement"
+      invalid_dates: "Start date and end date must be valid ISO 8601 dates"
+      opening_balance: "Opening balance"
+      inflow: "Inflow"
+      outflow: "Outflow"
+      closing_balance: "Closing balance"
+      transaction: "Transaction"
+      kind: "Kind"
+      date: "Date"
+      amount: "Amount"
+      empty: "No transactions in this range."
+  accounts:
+    index:
+      reconcile: "Reconcile"
   layouts:
     application:
       insights: "Insights"
