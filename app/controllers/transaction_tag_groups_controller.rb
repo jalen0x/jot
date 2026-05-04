@@ -45,6 +45,15 @@ class TransactionTagGroupsController < ApplicationController
     end
   end
 
+  # DELETE /transaction_tag_groups/:id
+  def destroy
+    tag_group = scoped_tag_group
+    authorize tag_group
+    tag_group.discard!
+
+    redirect_to transaction_tag_groups_path, notice: "Tag group deleted.", status: :see_other
+  end
+
   private
 
   def tag_group_params

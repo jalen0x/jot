@@ -72,4 +72,28 @@ class TransactionTagGroupsTest < ActionDispatch::IntegrationTest
     assert_response :not_found
     assert_equal "Other Context", group.reload.name
   end
+
+  test "deletes a tag group for current user" do
+    user = create(:user)
+    group = TransactionTagGroup.create!(user: user, name: "Context", display_order: 1)
+    sign_in user
+
+    delete transaction_tag_group_path(group)
+
+    assert_response :see_other
+    assert_redirected_to transaction_tag_groups_path
+    assert_predicate group.reload, :discarded?
+  end
+
+  test "does not delete another user's tag group" do
+    user = create(:user)
+    other_user = create(:user)
+    group = TransactionTagGroup.create!(user: other_user, name: "Other Context", display_order: 1)
+    sign_in user
+
+    delete transaction_tag_group_path(group)
+
+    assert_response :not_found
+    assert_predicate group.reload, :kept?
+  end
 end
