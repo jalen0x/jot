@@ -36,5 +36,18 @@ class DataStatistics
       @transaction_template_count = transaction_template_count
       @scheduled_transaction_count = scheduled_transaction_count
     end
+
+    def as_json(_options = {})
+      {
+        account_count: account_count,
+        transaction_category_count: transaction_category_count,
+        transaction_tag_count: transaction_tag_count,
+        transaction_count: transaction_count,
+        transaction_picture_count: transaction_picture_count,
+        insight_explorer_count: insight_explorer_count,
+        transaction_template_count: transaction_template_count,
+        scheduled_transaction_count: scheduled_transaction_count
+      }
+    end
   end
 end
