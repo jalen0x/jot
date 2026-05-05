@@ -23,12 +23,37 @@ class Api::V1::DataExportsController < ApiController
   def export_data(export, file_format)
     case file_format
     when "tsv"
-      export.transactions_tsv(user: current_user)
+      export.transactions_tsv(user: current_user, filters: filter_params)
     when "json"
-      export.transactions_json(user: current_user)
+      export.transactions_json(user: current_user, filters: filter_params)
     else
-      export.transactions_csv(user: current_user)
+      export.transactions_csv(user: current_user, filters: filter_params)
     end
+  end
+
+  def filter_params
+    params.permit(
+      :transaction_kind,
+      :account_id,
+      :transaction_category_id,
+      :tag_id,
+      :keyword,
+      :minimum_amount_cents,
+      :maximum_amount_cents,
+      :start_date,
+      :end_date,
+      account_ids: [],
+      transaction_category_ids: [],
+      tag_filter: [
+        :without_tags,
+        {
+          include_any_ids: [],
+          include_all_ids: [],
+          exclude_any_ids: [],
+          exclude_all_ids: []
+        }
+      ]
+    )
   end
 
   def export_type(file_format)

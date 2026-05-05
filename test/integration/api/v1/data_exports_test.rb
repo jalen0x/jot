@@ -52,6 +52,25 @@ class ApiV1DataExportsTest < ActionDispatch::IntegrationTest
     assert_equal [ "Client lunch" ], transactions.map { |transaction| transaction.fetch("comment") }
   end
 
+  test "exports filtered transaction CSV" do
+    user = create(:user)
+    checking = create_account(user: user, name: "Checking")
+    savings = create_account(user: user, name: "Savings")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    create_transaction(user: user, account: checking, category: category, comment: "Client lunch")
+    create_transaction(user: user, account: savings, category: category, comment: "Client coffee")
+    create_transaction(user: user, account: checking, category: category, comment: "Family lunch")
+    raw_token = issue_token(user)
+
+    post api_v1_data_exports_path,
+      params: { account_ids: [ checking.to_param ], keyword: "client" },
+      headers: csv_headers(raw_token)
+
+    assert_response :success
+    rows = CSV.parse(response.body, headers: true)
+    assert_equal [ "Client lunch" ], rows.map { |row| row["Comment"] }
+  end
+
   test "requires token authentication" do
     post api_v1_data_exports_path, headers: { "Accept" => "text/csv" }
 
@@ -98,9 +117,9 @@ class ApiV1DataExportsTest < ActionDispatch::IntegrationTest
     }
   end
 
-  def create_transaction(user:, comment:)
-    account = create_account(user: user, name: "Cash")
-    category = create_category(user: user, name: "Food", category_type: :expense)
+  def create_transaction(user:, comment:, account: nil, category: nil)
+    account ||= create_account(user: user, name: "Cash")
+    category ||= create_category(user: user, name: "Food", category_type: :expense)
 
     Transaction.create!(
       user: user,

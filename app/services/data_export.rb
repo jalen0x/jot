@@ -18,32 +18,34 @@ class DataExport
     "Longitude"
   ].freeze
 
-  def transactions_csv(user:)
-    transactions_delimited(user: user, col_sep: ",")
+  def transactions_csv(user:, filters: {})
+    transactions_delimited(user: user, filters: filters, col_sep: ",")
   end
 
-  def transactions_tsv(user:)
-    transactions_delimited(user: user, col_sep: "\t")
+  def transactions_tsv(user:, filters: {})
+    transactions_delimited(user: user, filters: filters, col_sep: "\t")
   end
 
-  def transactions_json(user:)
-    JSON.generate(transactions: transactions_for(user).map { |transaction| json_for(transaction) })
+  def transactions_json(user:, filters: {})
+    JSON.generate(transactions: transactions_for(user, filters: filters).map { |transaction| json_for(transaction) })
   end
 
   private
 
-  def transactions_delimited(user:, col_sep:)
+  def transactions_delimited(user:, filters:, col_sep:)
     CSV.generate(headers: true, col_sep: col_sep) do |csv|
       csv << HEADERS
 
-      transactions_for(user).each do |transaction|
+      transactions_for(user, filters: filters).each do |transaction|
         csv << row_for(transaction)
       end
     end
   end
 
-  def transactions_for(user)
-    user.transactions.kept.includes(:account, :destination_account, :transaction_category, :transaction_tags).order(:transacted_at, :id)
+  def transactions_for(user, filters:)
+    LedgerQuery.new
+      .list_transactions(user: user, filters: filters)
+      .reorder(:transacted_at, :id)
   end
 
   def row_for(transaction)
