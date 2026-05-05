@@ -89,6 +89,26 @@ class ApiV1ApiTokensTest < ActionDispatch::IntegrationTest
     assert_predicate other_token.reload, :kept?
   end
 
+  test "revokes every other kept token for the token owner" do
+    user = create(:user)
+    raw_token = issue_token(user, name: "Auth")
+    current_token = user.api_tokens.find_by!(name: "Auth")
+    cli_token = create_token(user: user, name: "CLI")
+    expired_token = create_token(user: user, name: "Expired", expires_at: 1.minute.ago)
+    other_token = create_token(user: create(:user), name: "Other")
+
+    post api_v1_api_token_clearance_path, headers: json_headers(raw_token)
+
+    assert_response :created
+    body = JSON.parse(response.body)
+    assert_equal [ "api_token_clearance" ], body.keys
+    assert_equal 2, body.fetch("api_token_clearance").fetch("revoked_count")
+    assert_predicate current_token.reload, :kept?
+    assert_predicate cli_token.reload, :discarded?
+    assert_predicate expired_token.reload, :discarded?
+    assert_predicate other_token.reload, :kept?
+  end
+
   private
 
   def issue_token(user, name:)

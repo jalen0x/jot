@@ -30,6 +30,7 @@ Rails.application.routes.draw do
       resource :two_factor_authentication, only: [ :show, :create, :destroy ]
       resource :two_factor_recovery_codes, only: :create
       resources :api_tokens, only: [ :index, :create, :destroy ]
+      resource :api_token_clearance, only: :create
       resources :external_authentications, only: [ :index, :destroy ]
       resources :user_custom_exchange_rates, only: [ :index, :show, :create, :update, :destroy ]
       resource :data_statistics, only: :show
