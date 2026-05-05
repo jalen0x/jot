@@ -60,6 +60,12 @@
     </div>
 
     <div>
+      <%= form.label :fiscal_year_format, t(".fiscal_year_format"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.select :fiscal_year_format, UserPreference::SUPPORTED_FISCAL_YEAR_FORMATS.map { |format| [ t(".fiscal_year_formats.#{format}"), format ] }, {}, class: field_classes %>
+      <p class="mt-2 text-sm text-body-subtle"><%= t(".fiscal_year_format_help") %></p>
+    </div>
+
+    <div>
       <%= form.label :number_format, t(".number_format"), class: "mb-2 block text-sm font-medium text-heading" %>
       <%= form.select :number_format, UserPreference::SUPPORTED_NUMBER_FORMATS.map { |number_format| [ t(".number_formats.#{number_format}"), number_format ] }, {}, class: field_classes %>
       <p class="mt-2 text-sm text-body-subtle"><%= t(".number_format_help") %></p>
