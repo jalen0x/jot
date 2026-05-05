@@ -74,6 +74,22 @@ class TransactionReversalTest < ActiveSupport::TestCase
     assert_equal 3_500, account.reload.balance_cents
   end
 
+  test "does not delete transactions outside the user's transaction edit scope" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD", transaction_edit_scope: "today_or_later")
+    account = create_account(user: user, balance_cents: 3_800)
+    transaction = create_transaction(user: user, account: account, transaction_kind: :expense, source_amount_cents: 1_200)
+
+    travel_to Time.zone.parse("2026-05-04 12:00:00") do
+      result = TransactionReversal.new.delete_transaction(transaction: transaction)
+
+      refute_predicate result, :deleted?
+    end
+    assert_includes transaction.errors[:base], "Transaction is outside the editable date range"
+    refute_predicate transaction.reload, :discarded?
+    assert_equal 3_800, account.reload.balance_cents
+  end
+
   private
 
   def create_transaction(user:, account:, transaction_kind:, source_amount_cents:, destination_account: nil, destination_amount_cents: 0, category_type: transaction_kind)

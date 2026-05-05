@@ -5,6 +5,11 @@ class TransactionReversal
       return Result.new(deleted: false, transaction: transaction)
     end
 
+    unless TransactionEditScope.new.editable?(transaction: transaction)
+      transaction.errors.add(:base, "Transaction is outside the editable date range")
+      return Result.new(deleted: false, transaction: transaction)
+    end
+
     transaction.pictures.purge if transaction.pictures.attached?
 
     ActiveRecord::Base.transaction do

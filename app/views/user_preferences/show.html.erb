@@ -57,6 +57,12 @@
     </div>
 
     <div>
+      <%= form.label :transaction_edit_scope, t(".transaction_edit_scope"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.select :transaction_edit_scope, UserPreference::SUPPORTED_TRANSACTION_EDIT_SCOPES.map { |scope| [ t(".transaction_edit_scopes.#{scope}"), scope ] }, {}, class: field_classes %>
+      <p class="mt-2 text-sm text-body-subtle"><%= t(".transaction_edit_scope_help") %></p>
+    </div>
+
+    <div>
       <p class="mb-2 block text-sm font-medium text-heading"><%= t(".fiscal_year_start") %></p>
       <div class="grid gap-3 sm:grid-cols-2">
         <%= form.select :fiscal_year_start_month, UserPreference::SUPPORTED_FISCAL_YEAR_START_MONTHS.map { |month| [ month.to_s.rjust(2, "0"), month ] }, {}, class: field_classes, aria: { label: t(".fiscal_year_start_month") } %>

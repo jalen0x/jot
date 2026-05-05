@@ -122,6 +122,27 @@ class TransactionUpdaterTest < ActiveSupport::TestCase
     assert_equal 1_250, transaction.source_amount_cents
   end
 
+  test "rejects updates outside the user's transaction edit scope" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD", transaction_edit_scope: "today_or_later")
+    account = create_account(user: user, name: "Checking", balance_cents: 3_750)
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    transaction = create_transaction(user: user, account: account, category: category, transaction_kind: :expense, source_amount_cents: 1_250, comment: "Lunch")
+
+    travel_to Time.zone.parse("2026-05-04 12:00:00") do
+      result = TransactionUpdater.new.update_transaction(
+        transaction: transaction,
+        attributes: transaction_attributes(source_amount_cents: "2000"),
+        tag_ids: []
+      )
+
+      refute_predicate result, :updated?
+    end
+    assert_includes transaction.errors[:base], "Transaction is outside the editable date range"
+    assert_equal 3_750, account.reload.balance_cents
+    assert_equal 1_250, transaction.reload.source_amount_cents
+  end
+
   private
 
   def transaction_attributes(overrides)

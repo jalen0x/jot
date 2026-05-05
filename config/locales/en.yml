@@ -134,6 +134,8 @@ en:
       time_format_help: "Used when displaying transaction times."
       first_day_of_week: "First day of week"
       first_day_of_week_help: "Used when grouping ledger activity by week."
+      transaction_edit_scope: "Transaction edit scope"
+      transaction_edit_scope_help: "Controls which existing transactions can be edited or deleted."
       fiscal_year_start: "Fiscal year start"
       fiscal_year_start_month: "Fiscal year start month"
       fiscal_year_start_day: "Fiscal year start day"
@@ -157,6 +159,14 @@ en:
       time_formats:
         twenty_four_hour: "13:05"
         twelve_hour: "01:05 PM"
+      transaction_edit_scopes:
+        none: "Do not allow edits"
+        all: "All transactions"
+        today_or_later: "Today or later"
+        last_24_hours_or_later: "Last 24 hours"
+        this_week_or_later: "This week or later"
+        this_month_or_later: "This month or later"
+        this_year_or_later: "This year or later"
       fiscal_year_formats:
         start_year_end_year: "2026-2027"
         start_year_end_short_year: "2026-27"

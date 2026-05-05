@@ -18,6 +18,15 @@ class UserPreference < ApplicationRecord
     "twenty_four_hour" => "%H:%M",
     "twelve_hour" => "%I:%M %p"
   }.freeze
+  TRANSACTION_EDIT_SCOPES = %w[
+    none
+    all
+    today_or_later
+    last_24_hours_or_later
+    this_week_or_later
+    this_month_or_later
+    this_year_or_later
+  ].freeze
   DEFAULT_DATE_FORMAT = "year_month_day"
   DEFAULT_NUMBER_FORMAT = "western"
   DEFAULT_CURRENCY_DISPLAY_FORMAT = "code_after_amount"
@@ -25,6 +34,7 @@ class UserPreference < ApplicationRecord
   DEFAULT_EXPENSE_AMOUNT_COLOR = "danger"
   DEFAULT_INCOME_AMOUNT_COLOR = "success"
   DEFAULT_TIME_FORMAT = "twenty_four_hour"
+  DEFAULT_TRANSACTION_EDIT_SCOPE = "all"
   NUMBER_FORMATS = {
     "western" => { separator: ".", delimiter: "," },
     "decimal_comma" => { separator: ",", delimiter: "." }
@@ -51,6 +61,7 @@ class UserPreference < ApplicationRecord
   SUPPORTED_LOCALES = %w[en zh-CN].freeze
   SUPPORTED_NUMBER_FORMATS = NUMBER_FORMATS.keys.freeze
   SUPPORTED_TIME_FORMATS = TIME_FORMATS.keys.freeze
+  SUPPORTED_TRANSACTION_EDIT_SCOPES = TRANSACTION_EDIT_SCOPES
 
   belongs_to :default_account, class_name: "Account", optional: true
   belongs_to :user
@@ -65,6 +76,7 @@ class UserPreference < ApplicationRecord
   normalizes :locale, with: ->(locale) { locale.to_s.strip }
   normalizes :number_format, with: ->(number_format) { number_format.to_s.strip }
   normalizes :time_format, with: ->(time_format) { time_format.to_s.strip }
+  normalizes :transaction_edit_scope, with: ->(scope) { scope.to_s.strip }
 
   validates :default_currency_code, format: { with: /\A[A-Z]{3}\z/ }
   validates :coordinate_display_format, inclusion: { in: SUPPORTED_COORDINATE_DISPLAY_FORMATS }
@@ -79,6 +91,7 @@ class UserPreference < ApplicationRecord
   validates :locale, inclusion: { in: SUPPORTED_LOCALES }
   validates :number_format, inclusion: { in: SUPPORTED_NUMBER_FORMATS }
   validates :time_format, inclusion: { in: SUPPORTED_TIME_FORMATS }
+  validates :transaction_edit_scope, inclusion: { in: SUPPORTED_TRANSACTION_EDIT_SCOPES }
   validates :user_id, uniqueness: true
   validate :default_account_must_be_available
   validate :fiscal_year_start_must_be_valid
@@ -106,7 +119,8 @@ class UserPreference < ApplicationRecord
       income_amount_color: income_amount_color,
       locale: locale,
       number_format: number_format,
-      time_format: time_format
+      time_format: time_format,
+      transaction_edit_scope: transaction_edit_scope
     }
   end
 

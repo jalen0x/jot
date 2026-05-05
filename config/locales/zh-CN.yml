@@ -170,6 +170,8 @@ zh-CN:
       time_format_help: "用于交易时间等界面显示。"
       first_day_of_week: "每周开始日"
       first_day_of_week_help: "用于按周汇总账本活动。"
+      transaction_edit_scope: "交易编辑范围"
+      transaction_edit_scope_help: "控制哪些已有交易可以编辑或删除。"
       fiscal_year_start: "财政年度开始日"
       fiscal_year_start_month: "财政年度开始月份"
       fiscal_year_start_day: "财政年度开始日期"
@@ -193,6 +195,14 @@ zh-CN:
       time_formats:
         twenty_four_hour: "13:05"
         twelve_hour: "01:05 PM"
+      transaction_edit_scopes:
+        none: "不允许编辑"
+        all: "所有交易"
+        today_or_later: "今天及以后"
+        last_24_hours_or_later: "最近 24 小时"
+        this_week_or_later: "本周及以后"
+        this_month_or_later: "本月及以后"
+        this_year_or_later: "今年及以后"
       fiscal_year_formats:
         start_year_end_year: "2026-2027"
         start_year_end_short_year: "2026-27"
