@@ -72,6 +72,21 @@ class UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal 1, user.reload.user_preference.fiscal_year_start_day
   end
 
+  test "updates the signed-in user's fiscal year format" do
+    user = create(:user)
+    sign_in user
+
+    patch user_preference_path, params: {
+      user_preference: {
+        default_currency_code: "usd",
+        fiscal_year_format: "end_short_year"
+      }
+    }
+
+    assert_redirected_to user_preference_path
+    assert_equal "end_short_year", user.reload.user_preference.fiscal_year_format
+  end
+
   test "renders validation errors for an invalid currency" do
     user = create(:user)
     sign_in user

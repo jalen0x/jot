@@ -1726,9 +1726,11 @@ CREATE TABLE public.user_preferences (
     first_day_of_week integer DEFAULT 0 NOT NULL,
     fiscal_year_start_month integer DEFAULT 1 NOT NULL,
     fiscal_year_start_day integer DEFAULT 1 NOT NULL,
+    fiscal_year_format text DEFAULT 'start_year_end_year'::text NOT NULL,
     CONSTRAINT user_preferences_date_format_supported CHECK ((date_format = ANY (ARRAY['year_month_day'::text, 'month_day_year'::text, 'day_month_year'::text]))),
     CONSTRAINT user_preferences_default_currency_code_length CHECK ((char_length(default_currency_code) = 3)),
     CONSTRAINT user_preferences_first_day_of_week_supported CHECK (((first_day_of_week >= 0) AND (first_day_of_week <= 6))),
+    CONSTRAINT user_preferences_fiscal_year_format_supported CHECK ((fiscal_year_format = ANY (ARRAY['start_year_end_year'::text, 'start_year_end_short_year'::text, 'start_short_year_end_short_year'::text, 'end_year'::text, 'end_short_year'::text]))),
     CONSTRAINT user_preferences_fiscal_year_start_valid CHECK ((((fiscal_year_start_month = ANY (ARRAY[1, 3, 5, 7, 8, 10, 12])) AND ((fiscal_year_start_day >= 1) AND (fiscal_year_start_day <= 31))) OR ((fiscal_year_start_month = ANY (ARRAY[4, 6, 9, 11])) AND ((fiscal_year_start_day >= 1) AND (fiscal_year_start_day <= 30))) OR ((fiscal_year_start_month = 2) AND ((fiscal_year_start_day >= 1) AND (fiscal_year_start_day <= 28))))),
     CONSTRAINT user_preferences_locale_supported CHECK ((locale = ANY (ARRAY['en'::text, 'zh-CN'::text]))),
     CONSTRAINT user_preferences_number_format_supported CHECK ((number_format = ANY (ARRAY['western'::text, 'decimal_comma'::text])))
@@ -1803,6 +1805,13 @@ COMMENT ON COLUMN public.user_preferences.fiscal_year_start_month IS 'Preferred 
 --
 
 COMMENT ON COLUMN public.user_preferences.fiscal_year_start_day IS 'Preferred fiscal year start day';
+
+
+--
+-- Name: COLUMN user_preferences.fiscal_year_format; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_preferences.fiscal_year_format IS 'Preferred fiscal year label format';
 
 
 --
@@ -2943,6 +2952,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260505100000'),
 ('20260505090000'),
 ('20260505080000'),
 ('20260505070000'),

@@ -14,8 +14,16 @@ class UserPreference < ApplicationRecord
     1 => 31, 2 => 28, 3 => 31, 4 => 30, 5 => 31, 6 => 30,
     7 => 31, 8 => 31, 9 => 30, 10 => 31, 11 => 30, 12 => 31
   }.freeze
+  FISCAL_YEAR_FORMATS = %w[
+    start_year_end_year
+    start_year_end_short_year
+    start_short_year_end_short_year
+    end_year
+    end_short_year
+  ].freeze
   SUPPORTED_DATE_FORMATS = DATE_FORMATS.keys.freeze
   SUPPORTED_FIRST_DAYS_OF_WEEK = (0..6).freeze
+  SUPPORTED_FISCAL_YEAR_FORMATS = FISCAL_YEAR_FORMATS
   SUPPORTED_FISCAL_YEAR_START_DAYS = (1..31).freeze
   SUPPORTED_FISCAL_YEAR_START_MONTHS = FISCAL_YEAR_START_DAYS_BY_MONTH.keys.freeze
   SUPPORTED_LOCALES = %w[en zh-CN].freeze
@@ -26,6 +34,7 @@ class UserPreference < ApplicationRecord
 
   normalizes :default_currency_code, with: ->(currency) { currency.to_s.strip.upcase }
   normalizes :date_format, with: ->(date_format) { date_format.to_s.strip }
+  normalizes :fiscal_year_format, with: ->(fiscal_year_format) { fiscal_year_format.to_s.strip }
   normalizes :locale, with: ->(locale) { locale.to_s.strip }
   normalizes :number_format, with: ->(number_format) { number_format.to_s.strip }
 
@@ -34,6 +43,7 @@ class UserPreference < ApplicationRecord
   validates :first_day_of_week, inclusion: { in: SUPPORTED_FIRST_DAYS_OF_WEEK }
   validates :fiscal_year_start_day, inclusion: { in: SUPPORTED_FISCAL_YEAR_START_DAYS }
   validates :fiscal_year_start_month, inclusion: { in: SUPPORTED_FISCAL_YEAR_START_MONTHS }
+  validates :fiscal_year_format, inclusion: { in: SUPPORTED_FISCAL_YEAR_FORMATS }
   validates :locale, inclusion: { in: SUPPORTED_LOCALES }
   validates :number_format, inclusion: { in: SUPPORTED_NUMBER_FORMATS }
   validates :user_id, uniqueness: true
@@ -56,6 +66,7 @@ class UserPreference < ApplicationRecord
       first_day_of_week: first_day_of_week,
       fiscal_year_start_month: fiscal_year_start_month,
       fiscal_year_start_day: fiscal_year_start_day,
+      fiscal_year_format: fiscal_year_format,
       locale: locale,
       number_format: number_format
     }

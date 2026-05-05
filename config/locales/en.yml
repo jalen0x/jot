@@ -129,6 +129,8 @@ en:
       fiscal_year_start_month: "Fiscal year start month"
       fiscal_year_start_day: "Fiscal year start day"
       fiscal_year_start_help: "Used by fiscal-year reports and summaries."
+      fiscal_year_format: "Fiscal year format"
+      fiscal_year_format_help: "Controls how fiscal years are labeled."
       locale: "Language"
       locale_help: "Used for signed-in interface text."
       number_format: "Number format"
@@ -143,6 +145,12 @@ en:
         year_month_day: "YYYY-MM-DD"
         month_day_year: "MM/DD/YYYY"
         day_month_year: "DD/MM/YYYY"
+      fiscal_year_formats:
+        start_year_end_year: "2026-2027"
+        start_year_end_short_year: "2026-27"
+        start_short_year_end_short_year: "26-27"
+        end_year: "2027"
+        end_short_year: "27"
       number_formats:
         western: "1,234.56"
         decimal_comma: "1.234,56"

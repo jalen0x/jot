@@ -60,6 +60,15 @@ class UserPreferenceTest < ActiveSupport::TestCase
     assert_match(/user_preferences_fiscal_year_start_valid/i, ex.message)
   end
 
+  test "database rejects unsupported fiscal year formats" do
+    preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
+
+    ex = assert_raises(ActiveRecord::StatementInvalid) do
+      preference.update_column(:fiscal_year_format, "legacy_default")
+    end
+    assert_match(/user_preferences_fiscal_year_format_supported/i, ex.message)
+  end
+
   test "database rejects missing default account references" do
     preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
 

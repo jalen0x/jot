@@ -165,6 +165,8 @@ zh-CN:
       fiscal_year_start_month: "财政年度开始月份"
       fiscal_year_start_day: "财政年度开始日期"
       fiscal_year_start_help: "用于财政年度报表和汇总。"
+      fiscal_year_format: "财政年度格式"
+      fiscal_year_format_help: "控制财政年度标签的显示方式。"
       locale: "语言"
       locale_help: "用于登录后的界面文本。"
       number_format: "数字格式"
@@ -179,6 +181,12 @@ zh-CN:
         year_month_day: "YYYY-MM-DD"
         month_day_year: "MM/DD/YYYY"
         day_month_year: "DD/MM/YYYY"
+      fiscal_year_formats:
+        start_year_end_year: "2026-2027"
+        start_year_end_short_year: "2026-27"
+        start_short_year_end_short_year: "26-27"
+        end_year: "2027"
+        end_short_year: "27"
       number_formats:
         western: "1,234.56"
         decimal_comma: "1.234,56"
