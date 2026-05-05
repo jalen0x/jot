@@ -79,11 +79,29 @@ class DataExportTest < ActiveSupport::TestCase
     assert_equal "-122.4194", transaction_json.fetch("geo_longitude")
   end
 
+  test "exports only transactions matching ledger filters" do
+    user = create(:user)
+    checking = create_account(user: user, name: "Checking")
+    savings = create_account(user: user, name: "Savings")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    create_transaction(user: user, account: checking, category: category, comment: "Client lunch")
+    create_transaction(user: user, account: savings, category: category, comment: "Client coffee")
+    create_transaction(user: user, account: checking, category: category, comment: "Family lunch")
+
+    csv = DataExport.new.transactions_csv(
+      user: user,
+      filters: { account_ids: [ checking.to_param ], keyword: "client" }
+    )
+    rows = CSV.parse(csv, headers: true)
+
+    assert_equal [ "Client lunch" ], rows.map { |row| row["Comment"] }
+  end
+
   private
 
-  def create_transaction(user:, comment:, timezone_utc_offset_minutes: 0, hide_amount: false, geo_latitude: nil, geo_longitude: nil)
-    account = create_account(user: user, name: "Cash")
-    category = create_category(user: user, name: "Food", category_type: :expense)
+  def create_transaction(user:, comment:, account: nil, category: nil, timezone_utc_offset_minutes: 0, hide_amount: false, geo_latitude: nil, geo_longitude: nil)
+    account ||= create_account(user: user, name: "Cash")
+    category ||= create_category(user: user, name: "Food", category_type: :expense)
 
     Transaction.create!(
       user: user,
