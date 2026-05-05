@@ -8,7 +8,7 @@ class Api::V1::TransactionStatisticsController < ApiController
       filters: filter_params
     )
 
-    render json: { statistics: statistics_json(summary) }
+    render json: { statistics: summary }
   rescue Date::Error
     render json: { errors: [ "Start date and end date must be valid ISO 8601 dates" ] }, status: :unprocessable_content
   end
@@ -49,15 +49,5 @@ class Api::V1::TransactionStatisticsController < ApiController
     return if value.blank?
 
     Date.iso8601(value)
-  end
-
-  def statistics_json(summary)
-    {
-      income_cents: summary.income_cents,
-      expense_cents: summary.expense_cents,
-      net_cents: summary.net_cents,
-      category_totals: summary.category_totals,
-      account_totals: summary.account_totals
-    }
   end
 end

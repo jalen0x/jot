@@ -102,5 +102,15 @@ class LedgerStatistics
       @category_totals = category_totals
       @account_totals = account_totals
     end
+
+    def as_json(_options = {})
+      {
+        income_cents: income_cents,
+        expense_cents: expense_cents,
+        net_cents: net_cents,
+        category_totals: category_totals,
+        account_totals: account_totals
+      }
+    end
   end
 end
