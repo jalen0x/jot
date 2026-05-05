@@ -11,7 +11,9 @@ class TransactionCategoriesTest < ActionDispatch::IntegrationTest
     user = create(:user)
     other_user = create(:user)
     own_category = create_category(user: user, name: "Groceries")
+    child_category = create_category(user: user, name: "Produce", parent_category: own_category)
     create_category(user: other_user, name: "Other Groceries")
+    create_category(user: other_user, name: "Other Produce")
 
     sign_in user
     get transaction_categories_path
@@ -19,7 +21,9 @@ class TransactionCategoriesTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", text: /categories/i
     assert_select "li", text: /#{own_category.name}/i
+    assert_select "li", text: /#{child_category.name}/i
     assert_select "li", text: /Other Groceries/i, count: 0
+    assert_select "li", text: /Other Produce/i, count: 0
     assert_select "form[action='#{transaction_category_path(own_category)}'][data-turbo-confirm]"
   end
 
@@ -43,20 +47,46 @@ class TransactionCategoriesTest < ActionDispatch::IntegrationTest
     assert_predicate category, :income?
   end
 
+  test "creates a child category for current user's parent category" do
+    user = create(:user)
+    parent = create_category(user: user, name: "Food")
+    create_category(user: user, name: "Groceries", parent_category: parent, display_order: 1)
+    sign_in user
+
+    post transaction_categories_path, params: {
+      transaction_category: {
+        name: "Produce",
+        category_type: "expense",
+        parent_category_id: parent.to_param,
+        icon_key: "2",
+        color_hex: "22C55E",
+        comment: "Fresh food"
+      }
+    }
+
+    assert_redirected_to transaction_categories_path
+    category = user.transaction_categories.where(name: "Produce").sole
+    assert_equal parent, category.parent_category
+    assert_equal 2, category.display_order
+  end
+
   test "updates a category for current user" do
     user = create(:user)
+    parent = create_category(user: user, name: "Food")
     category = create_category(user: user, name: "Groceries")
     sign_in user
 
     get edit_transaction_category_path(category)
     assert_response :success
     assert_select "h1", text: /edit category/i
+    assert_select "select#transaction_category_parent_category_id option[value='#{parent.to_param}']", text: /Food/i
     assert_select "input#transaction_category_hidden"
 
     patch transaction_category_path(category), params: {
       transaction_category: {
         name: "Restaurants",
         category_type: "expense",
+        parent_category_id: parent.to_param,
         icon_key: "3",
         color_hex: "#22c55e",
         hidden: "1",
@@ -68,10 +98,32 @@ class TransactionCategoriesTest < ActionDispatch::IntegrationTest
     category.reload
     assert_equal "Restaurants", category.name
     assert_equal "expense", category.category_type
+    assert_equal parent, category.parent_category
     assert_equal 3, category.icon_key
     assert_equal "22C55E", category.color_hex
     assert_predicate category, :hidden?
     assert_equal "Dining out", category.comment
+  end
+
+  test "does not create a category under another user's parent category" do
+    user = create(:user)
+    other_parent = create_category(user: create(:user), name: "Other Food")
+    sign_in user
+
+    post transaction_categories_path, params: {
+      transaction_category: {
+        name: "Produce",
+        category_type: "expense",
+        parent_category_id: other_parent.to_param,
+        icon_key: "2",
+        color_hex: "22C55E",
+        comment: "Fresh food"
+      }
+    }
+
+    assert_response :unprocessable_content
+    assert_empty user.transaction_categories.where(name: "Produce")
+    assert_match(/Parent category/i, response.body)
   end
 
   test "does not update another user's category" do
@@ -122,14 +174,15 @@ class TransactionCategoriesTest < ActionDispatch::IntegrationTest
 
   private
 
-  def create_category(user:, name:)
+  def create_category(user:, name:, parent_category: nil, display_order: 1)
     TransactionCategory.create!(
       user: user,
       name: name,
       category_type: :expense,
+      parent_category: parent_category,
       icon_key: 1,
       color_hex: "F97316",
-      display_order: 1
+      display_order: display_order
     )
   end
 end

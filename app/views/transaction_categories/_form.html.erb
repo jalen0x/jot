@@ -27,6 +27,12 @@
     <%= render FormField::InputComponent.new(form: form, field: :color_hex, label: "Color", placeholder: "F97316", required: true) %>
   </div>
 
+  <% parent_category_options = [ [ "No parent", "" ] ] + Array(@parent_category_options).map { |parent_category| [ parent_category.name, parent_category.to_param ] } %>
+  <div class="mb-4">
+    <%= form.label :parent_category_id, "Parent category", class: "block mb-2 text-sm font-medium text-heading" %>
+    <%= form.select :parent_category_id, options_for_select(parent_category_options, transaction_category.parent_category&.to_param), {}, class: field_classes %>
+  </div>
+
   <% if transaction_category.persisted? %>
     <%= render FormField::CheckboxComponent.new(form: form, field: :hidden, label: "Hidden") %>
   <% end %>
