@@ -55,6 +55,13 @@ class ApplicationHelperTest < ActionView::TestCase
     assert_equal "122 deg 25 min 9.84 sec W, 37 deg 46 min 29.64 sec N", format_coordinates(BigDecimal("37.7749"), BigDecimal("-122.4194"))
   end
 
+  test "builds openstreetmap urls for coordinates" do
+    assert_equal(
+      "https://www.openstreetmap.org/?mlat=37.7749&mlon=-122.4194#map=16/37.7749/-122.4194",
+      map_location_url(BigDecimal("37.7749"), BigDecimal("-122.4194"))
+    )
+  end
+
   test "returns preferred semantic amount color classes" do
     @current_user = create(:user)
     UserPreference.create!(
