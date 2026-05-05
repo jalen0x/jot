@@ -65,6 +65,96 @@ class LedgerQueryTest < ActiveSupport::TestCase
     assert_equal [ matching ], transactions.to_a
   end
 
+  test "filters by any selected tags" do
+    user = create(:user)
+    business_tag = create_tag(user: user, name: "Business")
+    travel_tag = create_tag(user: user, name: "Travel")
+    personal_tag = create_tag(user: user, name: "Personal")
+    business = create_transaction(user: user, comment: "Business", transacted_at: Time.zone.parse("2026-05-03 11:00:00"))
+    travel = create_transaction(user: user, comment: "Travel", transacted_at: Time.zone.parse("2026-05-03 10:00:00"))
+    create_transaction(user: user, comment: "Personal", transacted_at: Time.zone.parse("2026-05-03 09:00:00")).tap { |transaction| tag(transaction, personal_tag) }
+    create_transaction(user: user, comment: "Untagged", transacted_at: Time.zone.parse("2026-05-03 08:00:00"))
+    tag(business, business_tag)
+    tag(travel, travel_tag)
+
+    transactions = LedgerQuery.new.list_transactions(
+      user: user,
+      filters: { tag_filter: { include_any_ids: [ business_tag.to_param, travel_tag.to_param ] } }
+    )
+
+    assert_equal [ business, travel ], transactions.to_a
+  end
+
+  test "filters by all selected tags" do
+    user = create(:user)
+    business_tag = create_tag(user: user, name: "Business")
+    reimbursable_tag = create_tag(user: user, name: "Reimbursable")
+    matching = create_transaction(user: user, comment: "Client lunch")
+    partial = create_transaction(user: user, comment: "Office coffee")
+    tag(matching, business_tag)
+    tag(matching, reimbursable_tag)
+    tag(partial, business_tag)
+
+    transactions = LedgerQuery.new.list_transactions(
+      user: user,
+      filters: { tag_filter: { include_all_ids: [ business_tag.to_param, reimbursable_tag.to_param ] } }
+    )
+
+    assert_equal [ matching ], transactions.to_a
+  end
+
+  test "excludes transactions with any selected tags" do
+    user = create(:user)
+    business_tag = create_tag(user: user, name: "Business")
+    reimbursable_tag = create_tag(user: user, name: "Reimbursable")
+    other_tag = create_tag(user: user, name: "Personal")
+    tagged_with_other = create_transaction(user: user, comment: "Dinner", transacted_at: Time.zone.parse("2026-05-03 11:00:00"))
+    untagged = create_transaction(user: user, comment: "Coffee", transacted_at: Time.zone.parse("2026-05-03 10:00:00"))
+    tag(tagged_with_other, other_tag)
+    tag(create_transaction(user: user, comment: "Client lunch", transacted_at: Time.zone.parse("2026-05-03 09:00:00")), business_tag)
+    tag(create_transaction(user: user, comment: "Taxi", transacted_at: Time.zone.parse("2026-05-03 08:00:00")), reimbursable_tag)
+
+    transactions = LedgerQuery.new.list_transactions(
+      user: user,
+      filters: { tag_filter: { exclude_any_ids: [ business_tag.to_param, reimbursable_tag.to_param ] } }
+    )
+
+    assert_equal [ tagged_with_other, untagged ], transactions.to_a
+  end
+
+  test "excludes transactions with all selected tags" do
+    user = create(:user)
+    business_tag = create_tag(user: user, name: "Business")
+    reimbursable_tag = create_tag(user: user, name: "Reimbursable")
+    only_business = create_transaction(user: user, comment: "Office coffee", transacted_at: Time.zone.parse("2026-05-03 11:00:00"))
+    untagged = create_transaction(user: user, comment: "Snack", transacted_at: Time.zone.parse("2026-05-03 10:00:00"))
+    matching_all = create_transaction(user: user, comment: "Client lunch", transacted_at: Time.zone.parse("2026-05-03 09:00:00"))
+    tag(only_business, business_tag)
+    tag(matching_all, business_tag)
+    tag(matching_all, reimbursable_tag)
+
+    transactions = LedgerQuery.new.list_transactions(
+      user: user,
+      filters: { tag_filter: { exclude_all_ids: [ business_tag.to_param, reimbursable_tag.to_param ] } }
+    )
+
+    assert_equal [ only_business, untagged ], transactions.to_a
+  end
+
+  test "filters transactions without tags" do
+    user = create(:user)
+    business_tag = create_tag(user: user, name: "Business")
+    untagged = create_transaction(user: user, comment: "Coffee")
+    tag(create_transaction(user: user, comment: "Client lunch"), business_tag)
+
+    transactions = LedgerQuery.new.list_transactions(
+      user: user,
+      filters: { tag_filter: { without_tags: "true" } }
+    )
+
+    assert_equal [ untagged ], transactions.to_a
+  end
+
   private
 
   def create_transaction(user:, comment:, transacted_at: Time.zone.parse("2026-05-03 10:00:00"), account: nil, category: nil)
@@ -111,5 +201,9 @@ class LedgerQueryTest < ActiveSupport::TestCase
 
   def create_tag(user:, name:)
     TransactionTag.create!(user: user, name: name, display_order: 1)
+  end
+
+  def tag(transaction, transaction_tag)
+    TransactionTagging.create!(user: transaction.user, ledger_transaction: transaction, transaction_tag: transaction_tag)
   end
 end
