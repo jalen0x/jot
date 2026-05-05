@@ -32,6 +32,11 @@ Concrete success criteria:
   - `mise exec -- bin/rubocop` within CI -> 397 files inspected, no offenses detected.
   - `mise exec -- bundle exec erb_lint --lint-all` within CI -> 68 files linted, no errors.
   - `mise exec -- bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error` within CI -> 0 security warnings.
+- Representative desktop/mobile visual audit:
+  - `mise exec -- bin/rails test tmp/visual_audit_test.rb` -> 1 run, 66 assertions, 0 failures, 0 errors.
+  - The one-off visual audit loaded 16 representative signed-in Rails UI flows at 1440x1100 and 390x900, plus the mobile navigation menu.
+  - Each captured page asserted no horizontal overflow via `document.documentElement.scrollWidth - document.documentElement.clientWidth`.
+  - Contact sheets generated at `tmp/visual-audit/desktop-contact-sheet.png` and `tmp/visual-audit/mobile-contact-sheet.png` were manually inspected; no blocking layout issues were observed in the representative top-level flows.
 
 ## Prompt-to-Artifact Checklist
 
@@ -61,7 +66,7 @@ Concrete success criteria:
 | Transaction pictures | Active Storage attachments, `TransactionPicture` PORO, UI/API controllers/tests | Covered | R2 config remains ENV-based. |
 | Geo locations and maps | transaction coordinate columns/validations, coordinate formatting, OpenStreetMap links/tests | Covered for first-cut Rails UI | Server-side tile/proxy adapters are deferred until concrete provider requirements exist. |
 | PWA | `/manifest`, `/service-worker`, `app/views/pwa/*`, `test/integration/pwa_test.rb` | Covered | Rails views/assets, no Vue build. |
-| Responsive Rails UI | Rails views and Flowbite/Tailwind conventions, integration tests, ERB lint, `test/system/navigation_test.rb` mobile-width overflow check | Partially covered | Mobile navigation is now system-tested for usability and no horizontal overflow. A full representative desktop/mobile visual audit is still needed before production cutover. |
+| Responsive Rails UI | Rails views and Flowbite/Tailwind conventions, integration tests, ERB lint, `test/system/navigation_test.rb` mobile-width overflow check, one-off representative desktop/mobile visual audit | Covered for representative cutover audit | Visual audit covered 16 signed-in top-level flows and the mobile menu with no horizontal overflow. This is not a pixel-perfect design signoff for every modal/subpage. |
 | Transaction templates and schedules | `TransactionTemplate`, `ScheduledTransactionCreator`, `ScheduledTransactionCreationJob`, UI/API/job/service tests | Covered | Uses template kind and schedule fields instead of source routes. |
 | Rails-native JSON API | `Api::V1::*` controllers, API integration tests, shared ledger filter param construction | Broadly covered | Route count is not a proxy for contract completeness; continue checking resource JSON as slices change. Ledger filter params are now plain hashes instead of `params.permit` pass-throughs. |
 | LLM receipt recognition | `ReceiptRecognition`, job/client/processor, UI/API tests | Covered | External call is job-owned. |
@@ -74,12 +79,12 @@ Do not mark the rewrite complete yet.
 
 Missing or weakly verified items:
 
-1. Responsive/mobile production readiness is partially verified by system tests, but there is still no recorded desktop/mobile visual audit for the whole chosen release scope.
-2. The audit relied on artifact existence for some broad areas; any final completion pass must inspect representative behavior for each user-facing workflow, not only file names or route names.
+1. Full `bin/ci` still cannot finish the final `gh signoff` step while local `main` is ahead of `origin/main`; all code, test, style, and security gates passed before that external signoff step.
+2. The audit still relies on artifact existence for some broad areas; any final completion pass must inspect representative behavior for each user-facing workflow, not only file names or route names.
 
 ## Recommended Next Action
 
 Continue with user-facing verification before declaring cutover readiness:
 
-1. Schedule a desktop/mobile visual audit pass for the main Rails UI flows before cutover.
-2. For any workflow still judged only by artifact existence, inspect the actual controller/view/API behavior and add the smallest missing regression test.
+1. For any workflow still judged only by artifact existence, inspect the actual controller/view/API behavior and add the smallest missing regression test.
+2. Resolve the external `gh signoff` blocker only when commits are ready to push or signoff is intentionally handled outside local CI.
