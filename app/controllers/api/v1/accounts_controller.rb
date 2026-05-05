@@ -76,6 +76,7 @@ class Api::V1::AccountsController < ApiController
       :currency_code,
       :parent_account_id,
       :opening_balance_cents,
+      :hidden,
       :comment
     ])
   end
