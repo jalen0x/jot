@@ -18,12 +18,18 @@ class NavigationTest < BrowserSystemTestCase
 
     assert_text "Transactions"
     assert_no_horizontal_overflow
+  ensure
+    resize_window_to_desktop
   end
 
   private
 
   def resize_window_to_mobile
     page.driver.browser.manage.window.resize_to(390, 900)
+  end
+
+  def resize_window_to_desktop
+    page.driver.browser.manage.window.resize_to(1400, 1400)
   end
 
   def assert_no_horizontal_overflow
