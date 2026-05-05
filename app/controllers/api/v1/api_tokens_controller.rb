@@ -4,7 +4,7 @@ class Api::V1::ApiTokensController < ApiController
     authorize ApiToken
     api_tokens = policy_scope(ApiToken).active.order(last_used_at: :desc, created_at: :desc)
 
-    render json: { api_tokens: api_tokens }
+    render json: { api_tokens: api_tokens.map { |api_token| api_token_json(api_token) } }
   end
 
   # POST /api/v1/api_tokens
@@ -39,5 +39,9 @@ class Api::V1::ApiTokensController < ApiController
 
   def api_token_params
     params.expect(api_token: [ :name, :expires_in_days, :current_password ])
+  end
+
+  def api_token_json(api_token)
+    api_token.as_json.merge(current: api_token == current_api_token)
   end
 end
