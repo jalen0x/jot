@@ -7,6 +7,7 @@ class ReceiptRecognitionClient
   class ResponseError < Error; end
 
   DEFAULT_BASE_URL = "https://api.openai.com/v1"
+  NETWORK_ERRORS = [ Timeout::Error, SocketError, EOFError, SystemCallError ].freeze
 
   def initialize(api_key: ENV["OPENAI_API_KEY"], model: ENV["OPENAI_RECEIPT_RECOGNITION_MODEL"], base_url: ENV.fetch("OPENAI_BASE_URL", DEFAULT_BASE_URL), timeout: 30)
     @api_key = api_key.to_s
@@ -53,6 +54,8 @@ class ReceiptRecognitionClient
     JSON.parse(response.body)
   rescue JSON::ParserError => error
     raise ResponseError, "recognition provider returned invalid JSON: #{error.message}"
+  rescue *NETWORK_ERRORS => error
+    raise ResponseError, "recognition provider request failed: #{error.class}"
   end
 
   def request_body(image_bytes:, content_type:)

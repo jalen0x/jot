@@ -41,6 +41,19 @@ class ReceiptRecognitionClientTest < ActiveSupport::TestCase
     assert_equal "USD", result.fetch("currency_code")
   end
 
+  test "wraps provider network failures" do
+    stub_request(:post, "https://api.openai.com/v1/responses").to_timeout
+
+    error = assert_raises(ReceiptRecognitionClient::ResponseError) do
+      ReceiptRecognitionClient.new(api_key: "test-key", model: "vision-model").recognize(
+        image_bytes: "receipt-bytes",
+        content_type: "image/png"
+      )
+    end
+
+    assert_match(/request failed/i, error.message)
+  end
+
   test "requires api key and model" do
     client = ReceiptRecognitionClient.new(api_key: "", model: "")
 
