@@ -1729,6 +1729,8 @@ CREATE TABLE public.user_preferences (
     fiscal_year_format text DEFAULT 'start_year_end_year'::text NOT NULL,
     currency_display_format text DEFAULT 'code_after_amount'::text NOT NULL,
     time_format text DEFAULT 'twenty_four_hour'::text NOT NULL,
+    coordinate_display_format text DEFAULT 'latitude_longitude_decimal_degrees'::text NOT NULL,
+    CONSTRAINT user_preferences_coordinate_display_format_supported CHECK ((coordinate_display_format = ANY (ARRAY['latitude_longitude_decimal_degrees'::text, 'longitude_latitude_decimal_degrees'::text, 'latitude_longitude_decimal_minutes'::text, 'longitude_latitude_decimal_minutes'::text, 'latitude_longitude_degrees_minutes_seconds'::text, 'longitude_latitude_degrees_minutes_seconds'::text]))),
     CONSTRAINT user_preferences_currency_display_format_supported CHECK ((currency_display_format = ANY (ARRAY['code_after_amount'::text, 'code_before_amount'::text, 'none'::text]))),
     CONSTRAINT user_preferences_date_format_supported CHECK ((date_format = ANY (ARRAY['year_month_day'::text, 'month_day_year'::text, 'day_month_year'::text]))),
     CONSTRAINT user_preferences_default_currency_code_length CHECK ((char_length(default_currency_code) = 3)),
@@ -1830,6 +1832,13 @@ COMMENT ON COLUMN public.user_preferences.currency_display_format IS 'Preferred 
 --
 
 COMMENT ON COLUMN public.user_preferences.time_format IS 'Preferred display format for signed-in time text';
+
+
+--
+-- Name: COLUMN user_preferences.coordinate_display_format; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_preferences.coordinate_display_format IS 'Preferred display format for geographic coordinates';
 
 
 --
@@ -2970,6 +2979,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260505130000'),
 ('20260505120000'),
 ('20260505110000'),
 ('20260505100000'),

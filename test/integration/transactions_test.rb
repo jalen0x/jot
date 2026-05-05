@@ -93,6 +93,24 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_select "li", text: /37\.7749, -122\.4194/
   end
 
+  test "lists transaction location using the signed-in user's coordinate display format" do
+    user = create(:user)
+    transaction = create_transaction(user: user, comment: "Coffee")
+    transaction.update!(geo_latitude: 37.7749, geo_longitude: -122.4194)
+    sign_in user
+
+    patch user_preference_path, params: {
+      user_preference: {
+        default_currency_code: "USD",
+        coordinate_display_format: "longitude_latitude_degrees_minutes_seconds"
+      }
+    }
+    get transactions_path
+
+    assert_response :success
+    assert_select "li", text: /122 deg 25 min 9\.84 sec W, 37 deg 46 min 29\.64 sec N/
+  end
+
   test "lists transaction pictures with remove controls" do
     user = create(:user)
     transaction = create_transaction(user: user, comment: "Groceries")

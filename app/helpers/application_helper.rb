@@ -1,4 +1,15 @@
 module ApplicationHelper
+  def format_coordinates(latitude, longitude)
+    coordinates = formatted_coordinates(latitude, longitude)
+
+    case preferred_coordinate_display_format
+    when /\Alongitude_latitude/
+      "#{coordinates.fetch(:longitude)}, #{coordinates.fetch(:latitude)}"
+    else
+      "#{coordinates.fetch(:latitude)}, #{coordinates.fetch(:longitude)}"
+    end
+  end
+
   def format_money(cents, currency_code, amount_options: {}, currency_class: nil)
     amount = number_to_currency(cents.to_f / 100, preferred_amount_format_options.merge(amount_options))
     code = currency_class.present? ? tag.span(currency_code, class: currency_class) : currency_code.to_s
@@ -53,5 +64,62 @@ module ApplicationHelper
 
   def preferred_currency_display_format
     current_user&.user_preference&.currency_display_format || UserPreference::DEFAULT_CURRENCY_DISPLAY_FORMAT
+  end
+
+  def preferred_coordinate_display_format
+    current_user&.user_preference&.coordinate_display_format || UserPreference::DEFAULT_COORDINATE_DISPLAY_FORMAT
+  end
+
+  def formatted_coordinates(latitude, longitude)
+    case preferred_coordinate_display_format
+    when /\A.+_decimal_minutes/
+      {
+        latitude: coordinate_decimal_minutes(latitude, :latitude),
+        longitude: coordinate_decimal_minutes(longitude, :longitude)
+      }
+    when /\A.+_degrees_minutes_seconds/
+      {
+        latitude: coordinate_degrees_minutes_seconds(latitude, :latitude),
+        longitude: coordinate_degrees_minutes_seconds(longitude, :longitude)
+      }
+    else
+      {
+        latitude: decimal_text(latitude),
+        longitude: decimal_text(longitude)
+      }
+    end
+  end
+
+  def coordinate_decimal_minutes(value, axis)
+    absolute_value = BigDecimal(value.to_s).abs
+    degrees = absolute_value.floor
+    minutes = ((absolute_value - degrees) * 60).round(3)
+
+    "#{degrees} deg #{decimal_text(minutes)} min #{coordinate_direction(value, axis)}"
+  end
+
+  def coordinate_degrees_minutes_seconds(value, axis)
+    absolute_value = BigDecimal(value.to_s).abs
+    degrees = absolute_value.floor
+    decimal_minutes = (absolute_value - degrees) * 60
+    minutes = decimal_minutes.floor
+    seconds = ((decimal_minutes - minutes) * 60).round(2)
+
+    "#{degrees} deg #{minutes} min #{decimal_text(seconds)} sec #{coordinate_direction(value, axis)}"
+  end
+
+  def coordinate_direction(value, axis)
+    if axis == :latitude
+      BigDecimal(value.to_s).negative? ? "S" : "N"
+    else
+      BigDecimal(value.to_s).negative? ? "W" : "E"
+    end
+  end
+
+  def decimal_text(value)
+    text = value.to_d.to_s("F")
+    return text unless text.include?(".")
+
+    text.sub(/0+\z/, "").sub(/\.\z/, "")
   end
 end
