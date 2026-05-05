@@ -69,7 +69,21 @@ class TransactionsController < ApplicationController
   private
 
   def filter_params
-    params.permit(:transaction_kind, :account_id, :transaction_category_id, :tag_id)
+    params.permit(
+      :transaction_kind,
+      :account_id,
+      :transaction_category_id,
+      :tag_id,
+      tag_filter: [
+        :without_tags,
+        {
+          include_any_ids: [],
+          include_all_ids: [],
+          exclude_any_ids: [],
+          exclude_all_ids: []
+        }
+      ]
+    )
   end
 
   def transaction_params

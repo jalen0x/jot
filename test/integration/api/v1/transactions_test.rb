@@ -492,6 +492,90 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal [ matching.to_param ], body.fetch("transactions").map { |item| item.fetch("id") }
   end
 
+  test "filters transactions by all selected tags" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    business_tag = create_tag(user: user, name: "Business")
+    reimbursable_tag = create_tag(user: user, name: "Reimbursable")
+    matching = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 11:00:00"),
+      source_amount_cents: 1_200,
+      comment: "Client lunch",
+      tags: [ business_tag, reimbursable_tag ]
+    )
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
+      source_amount_cents: 900,
+      comment: "Office coffee",
+      tags: [ business_tag ]
+    )
+    raw_token = issue_token(user)
+
+    get api_v1_transactions_path,
+      params: { tag_filter: { include_all_ids: [ business_tag.to_param, reimbursable_tag.to_param ] } },
+      headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ matching.to_param ], body.fetch("transactions").map { |item| item.fetch("id") }
+  end
+
+  test "applies tag filters to transaction aggregate endpoints" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Salary", category_type: :income)
+    business_tag = create_tag(user: user, name: "Business")
+    reimbursable_tag = create_tag(user: user, name: "Reimbursable")
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :income,
+      transacted_at: Time.zone.parse("2026-05-03 11:00:00"),
+      source_amount_cents: 5_000,
+      comment: "Consulting",
+      tags: [ business_tag, reimbursable_tag ]
+    )
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :income,
+      transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
+      source_amount_cents: 9_000,
+      comment: "Other consulting",
+      tags: [ business_tag ]
+    )
+    raw_token = issue_token(user)
+    filter_params = {
+      start_date: "2026-05-01",
+      end_date: "2026-05-31",
+      tag_filter: { include_all_ids: [ business_tag.to_param, reimbursable_tag.to_param ] }
+    }
+
+    get api_v1_transaction_count_path, params: filter_params, headers: json_headers(raw_token)
+    assert_response :success
+    assert_equal({ "count" => 1 }, JSON.parse(response.body))
+
+    get api_v1_transaction_statistics_path, params: filter_params, headers: json_headers(raw_token)
+    assert_response :success
+    assert_equal 5_000, JSON.parse(response.body).fetch("statistics").fetch("income_cents")
+
+    get api_v1_transaction_trends_path, params: filter_params.merge(aggregation: "day"), headers: json_headers(raw_token)
+    assert_response :success
+    may_3 = JSON.parse(response.body).fetch("trends").fetch("buckets").find { |bucket| bucket.fetch("starts_on") == "2026-05-03" }
+    assert_equal 5_000, may_3.fetch("income_cents")
+  end
+
   test "creates an expense transaction for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 5_000)
