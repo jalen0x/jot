@@ -2,9 +2,13 @@ class Api::V1::TransactionTagClearancesController < ApiController
   # POST /api/v1/transaction_tag_clearances
   def create
     authorize :transaction_tag_clearance
-    TransactionBatchTagClearer.new.clear_tags(transactions: transactions)
+    result = TransactionBatchTagClearer.new.clear_tags(transactions: transactions)
 
-    head :no_content
+    if result.cleared?
+      head :no_content
+    else
+      render json: { errors: result.transaction.errors.full_messages }, status: :unprocessable_content
+    end
   end
 
   private

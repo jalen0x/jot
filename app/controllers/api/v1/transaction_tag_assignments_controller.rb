@@ -2,9 +2,13 @@ class Api::V1::TransactionTagAssignmentsController < ApiController
   # POST /api/v1/transaction_tag_assignments
   def create
     authorize :transaction_tag_assignment
-    TransactionBatchTagAdder.new.add_tags(transactions: transactions, tags: transaction_tags)
+    result = TransactionBatchTagAdder.new.add_tags(transactions: transactions, tags: transaction_tags)
 
-    head :no_content
+    if result.added?
+      head :no_content
+    else
+      render json: { errors: result.transaction.errors.full_messages }, status: :unprocessable_content
+    end
   end
 
   private

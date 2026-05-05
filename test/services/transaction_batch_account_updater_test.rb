@@ -51,6 +51,25 @@ class TransactionBatchAccountUpdaterTest < ActiveSupport::TestCase
     assert_equal 10_000, new_account.reload.balance_cents
   end
 
+  test "rejects updates outside the user's transaction edit scope" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD", transaction_edit_scope: "today_or_later")
+    old_account = create_account(user: user, name: "Checking", balance_cents: 3_750)
+    new_account = create_account(user: user, name: "Savings", balance_cents: 10_000)
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    expense = create_transaction(user: user, account: old_account, category: category, transaction_kind: :expense, source_amount_cents: 1_250, comment: "Lunch")
+
+    travel_to Time.zone.parse("2026-05-04 12:00:00") do
+      result = TransactionBatchAccountUpdater.new.update_account(transactions: [ expense ], account: new_account)
+
+      refute_predicate result, :updated?
+      assert_includes result.transaction.errors[:base], "Transaction is outside the editable date range"
+    end
+    assert_equal old_account, expense.reload.account
+    assert_equal 3_750, old_account.reload.balance_cents
+    assert_equal 10_000, new_account.reload.balance_cents
+  end
+
   private
 
   def create_account(user:, name:, balance_cents:, currency_code: "USD")

@@ -2,9 +2,13 @@ class Api::V1::TransactionTagRemovalsController < ApiController
   # POST /api/v1/transaction_tag_removals
   def create
     authorize :transaction_tag_removal
-    TransactionBatchTagRemover.new.remove_tags(transactions: transactions, tags: transaction_tags)
+    result = TransactionBatchTagRemover.new.remove_tags(transactions: transactions, tags: transaction_tags)
 
-    head :no_content
+    if result.removed?
+      head :no_content
+    else
+      render json: { errors: result.transaction.errors.full_messages }, status: :unprocessable_content
+    end
   end
 
   private

@@ -1184,6 +1184,35 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal [ existing_tag, new_tag ], coffee.reload.transaction_tags.order(:id).to_a
   end
 
+  test "does not batch add tags outside the user's transaction edit scope" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD", transaction_edit_scope: "today_or_later")
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    tag = create_tag(user: user, name: "Meals")
+    transaction = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch"
+    )
+    raw_token = issue_token(user)
+
+    travel_to Time.zone.parse("2026-05-04 12:00:00") do
+      post api_v1_transaction_tag_assignments_path,
+        params: { transaction_ids: [ transaction.to_param ], transaction_tag_ids: [ tag.to_param ] },
+        headers: json_headers(raw_token),
+        as: :json
+    end
+
+    assert_response :unprocessable_content
+    assert_match(/Transaction is outside the editable date range/i, response.body)
+    assert_empty transaction.reload.transaction_tags
+  end
+
   test "does not batch add tags when one tag is unavailable" do
     user = create(:user)
     other_user = create(:user)
@@ -1287,6 +1316,36 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal [ personal_tag ], coffee.reload.transaction_tags.order(:id).to_a
   end
 
+  test "does not batch remove tags outside the user's transaction edit scope" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD", transaction_edit_scope: "today_or_later")
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    tag = create_tag(user: user, name: "Meals")
+    transaction = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch",
+      tags: [ tag ]
+    )
+    raw_token = issue_token(user)
+
+    travel_to Time.zone.parse("2026-05-04 12:00:00") do
+      post api_v1_transaction_tag_removals_path,
+        params: { transaction_ids: [ transaction.to_param ], transaction_tag_ids: [ tag.to_param ] },
+        headers: json_headers(raw_token),
+        as: :json
+    end
+
+    assert_response :unprocessable_content
+    assert_match(/Transaction is outside the editable date range/i, response.body)
+    assert_equal [ tag ], transaction.reload.transaction_tags.order(:id).to_a
+  end
+
   test "does not batch remove tags when one tag is unavailable" do
     user = create(:user)
     other_user = create(:user)
@@ -1388,6 +1447,36 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_empty response.body
     assert_empty lunch.reload.transaction_tags
     assert_empty coffee.reload.transaction_tags
+  end
+
+  test "does not batch clear tags outside the user's transaction edit scope" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD", transaction_edit_scope: "today_or_later")
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    tag = create_tag(user: user, name: "Meals")
+    transaction = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 1_250,
+      comment: "Lunch",
+      tags: [ tag ]
+    )
+    raw_token = issue_token(user)
+
+    travel_to Time.zone.parse("2026-05-04 12:00:00") do
+      post api_v1_transaction_tag_clearances_path,
+        params: { transaction_ids: [ transaction.to_param ] },
+        headers: json_headers(raw_token),
+        as: :json
+    end
+
+    assert_response :unprocessable_content
+    assert_match(/Transaction is outside the editable date range/i, response.body)
+    assert_equal [ tag ], transaction.reload.transaction_tags.order(:id).to_a
   end
 
   test "does not batch clear tags when one transaction is unavailable" do
