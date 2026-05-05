@@ -24,7 +24,7 @@
               <% end %>
             </div>
             <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
-              <%= number_to_currency(account.balance_cents / 100.0, unit: "") %> <%= account.currency_code %>
+              <%= format_money(account.balance_cents, account.currency_code) %>
             </span>
           </div>
 
@@ -46,7 +46,7 @@
                       <% end %>
                     </div>
                     <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
-                      <%= number_to_currency(sub_account.balance_cents / 100.0, unit: "") %> <%= sub_account.currency_code %>
+                      <%= format_money(sub_account.balance_cents, sub_account.currency_code) %>
                     </span>
                   </div>
 

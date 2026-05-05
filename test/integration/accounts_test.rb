@@ -30,6 +30,23 @@ class AccountsTest < ActionDispatch::IntegrationTest
     assert_select "form[action='#{account_path(own_account)}'][data-turbo-confirm]"
   end
 
+  test "formats balances with the signed-in user's money preferences" do
+    user = create(:user)
+    UserPreference.create!(
+      user: user,
+      default_currency_code: "USD",
+      number_format: "decimal_comma",
+      currency_display_format: "code_before_amount"
+    )
+    create_account(user: user, name: "Checking", balance_cents: 12_300)
+    sign_in user
+
+    get accounts_path
+
+    assert_response :success
+    assert_match(/USD 123,00/, response.body)
+  end
+
   test "creates an account for current user" do
     user = create(:user)
     sign_in user

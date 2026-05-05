@@ -32,14 +32,12 @@
         <% if @summary.amounts.any? %>
           <% @summary.amounts.each do |amount| %>
             <p class="text-3xl font-semibold text-heading">
-              <%= number_to_currency(amount.income_cents / 100.0, unit: "") %>
-              <span class="text-base font-medium text-body-subtle"><%= amount.currency_code %></span>
+              <%= format_money(amount.income_cents, amount.currency_code, currency_class: "text-base font-medium text-body-subtle") %>
             </p>
           <% end %>
         <% else %>
           <p class="text-3xl font-semibold text-heading">
-            <%= number_to_currency(0, unit: "") %>
-            <span class="text-base font-medium text-body-subtle"><%= @default_currency_code %></span>
+            <%= format_money(0, @default_currency_code, currency_class: "text-base font-medium text-body-subtle") %>
           </p>
         <% end %>
       </div>
@@ -50,14 +48,12 @@
         <% if @summary.amounts.any? %>
           <% @summary.amounts.each do |amount| %>
             <p class="text-3xl font-semibold text-heading">
-              <%= number_to_currency(amount.expense_cents / 100.0, unit: "") %>
-              <span class="text-base font-medium text-body-subtle"><%= amount.currency_code %></span>
+              <%= format_money(amount.expense_cents, amount.currency_code, currency_class: "text-base font-medium text-body-subtle") %>
             </p>
           <% end %>
         <% else %>
           <p class="text-3xl font-semibold text-heading">
-            <%= number_to_currency(0, unit: "") %>
-            <span class="text-base font-medium text-body-subtle"><%= @default_currency_code %></span>
+            <%= format_money(0, @default_currency_code, currency_class: "text-base font-medium text-body-subtle") %>
           </p>
         <% end %>
       </div>
@@ -68,14 +64,12 @@
         <% if @summary.amounts.any? %>
           <% @summary.amounts.each do |amount| %>
             <p class="text-3xl font-semibold text-heading">
-              <%= number_to_currency(amount.net_cents / 100.0, unit: "") %>
-              <span class="text-base font-medium text-body-subtle"><%= amount.currency_code %></span>
+              <%= format_money(amount.net_cents, amount.currency_code, currency_class: "text-base font-medium text-body-subtle") %>
             </p>
           <% end %>
         <% else %>
           <p class="text-3xl font-semibold text-heading">
-            <%= number_to_currency(0, unit: "") %>
-            <span class="text-base font-medium text-body-subtle"><%= @default_currency_code %></span>
+            <%= format_money(0, @default_currency_code, currency_class: "text-base font-medium text-body-subtle") %>
           </p>
         <% end %>
       </div>
@@ -93,7 +87,7 @@
           <li class="flex items-center justify-between px-5 py-4">
             <span class="font-medium text-heading"><%= amount.name %></span>
             <span class="text-sm font-semibold text-heading">
-              <%= number_to_currency(amount.amount_cents / 100.0, unit: "") %> <%= amount.currency_code %>
+              <%= format_money(amount.amount_cents, amount.currency_code) %>
             </span>
           </li>
         <% end %>

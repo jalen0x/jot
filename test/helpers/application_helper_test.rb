@@ -3,6 +3,8 @@ require "test_helper"
 class ApplicationHelperTest < ActionView::TestCase
   include ApplicationHelper
 
+  def current_user = @current_user
+
   test "returns modal frame data inside a turbo frame request" do
     def turbo_frame_request? = true
 
@@ -13,5 +15,28 @@ class ApplicationHelperTest < ActionView::TestCase
     def turbo_frame_request? = false
 
     assert_equal({}, modal_turbo_frame_data)
+  end
+
+  test "formats money with preferred currency code position and number format" do
+    @current_user = create(:user)
+    UserPreference.create!(
+      user: @current_user,
+      default_currency_code: "USD",
+      number_format: "decimal_comma",
+      currency_display_format: "code_before_amount"
+    )
+
+    assert_equal "USD 12,34", format_money(1234, "USD")
+  end
+
+  test "formats money without a currency code when preferred" do
+    @current_user = create(:user)
+    UserPreference.create!(
+      user: @current_user,
+      default_currency_code: "USD",
+      currency_display_format: "none"
+    )
+
+    assert_equal "12.34", format_money(1234, "USD")
   end
 end

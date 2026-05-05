@@ -154,6 +154,8 @@ zh-CN:
       save_failed: "偏好设置无法保存。"
       default_currency_code: "默认货币代码"
       default_currency_help: "作为新账户表单的初始货币。"
+      currency_display_format: "货币显示"
+      currency_display_format_help: "控制金额旁边的货币代码显示位置。"
       default_account: "默认账户"
       default_account_help: "新交易表单会自动选中此账户。"
       default_account_none: "不设置默认账户"
@@ -190,6 +192,10 @@ zh-CN:
       number_formats:
         western: "1,234.56"
         decimal_comma: "1.234,56"
+      currency_display_formats:
+        code_after_amount: "1,234.56 USD"
+        code_before_amount: "USD 1,234.56"
+        none: "1,234.56"
       weekdays:
         0: "周日"
         1: "周一"

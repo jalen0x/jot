@@ -4,8 +4,10 @@ class UserPreference < ApplicationRecord
     "month_day_year" => "%m/%d/%Y",
     "day_month_year" => "%d/%m/%Y"
   }.freeze
+  CURRENCY_DISPLAY_FORMATS = %w[code_after_amount code_before_amount none].freeze
   DEFAULT_DATE_FORMAT = "year_month_day"
   DEFAULT_NUMBER_FORMAT = "western"
+  DEFAULT_CURRENCY_DISPLAY_FORMAT = "code_after_amount"
   NUMBER_FORMATS = {
     "western" => { separator: ".", delimiter: "," },
     "decimal_comma" => { separator: ",", delimiter: "." }
@@ -22,6 +24,7 @@ class UserPreference < ApplicationRecord
     end_short_year
   ].freeze
   SUPPORTED_DATE_FORMATS = DATE_FORMATS.keys.freeze
+  SUPPORTED_CURRENCY_DISPLAY_FORMATS = CURRENCY_DISPLAY_FORMATS
   SUPPORTED_FIRST_DAYS_OF_WEEK = (0..6).freeze
   SUPPORTED_FISCAL_YEAR_FORMATS = FISCAL_YEAR_FORMATS
   SUPPORTED_FISCAL_YEAR_START_DAYS = (1..31).freeze
@@ -33,12 +36,14 @@ class UserPreference < ApplicationRecord
   belongs_to :user
 
   normalizes :default_currency_code, with: ->(currency) { currency.to_s.strip.upcase }
+  normalizes :currency_display_format, with: ->(format) { format.to_s.strip }
   normalizes :date_format, with: ->(date_format) { date_format.to_s.strip }
   normalizes :fiscal_year_format, with: ->(fiscal_year_format) { fiscal_year_format.to_s.strip }
   normalizes :locale, with: ->(locale) { locale.to_s.strip }
   normalizes :number_format, with: ->(number_format) { number_format.to_s.strip }
 
   validates :default_currency_code, format: { with: /\A[A-Z]{3}\z/ }
+  validates :currency_display_format, inclusion: { in: SUPPORTED_CURRENCY_DISPLAY_FORMATS }
   validates :date_format, inclusion: { in: SUPPORTED_DATE_FORMATS }
   validates :first_day_of_week, inclusion: { in: SUPPORTED_FIRST_DAYS_OF_WEEK }
   validates :fiscal_year_start_day, inclusion: { in: SUPPORTED_FISCAL_YEAR_START_DAYS }
@@ -62,6 +67,7 @@ class UserPreference < ApplicationRecord
     {
       default_currency_code: default_currency_code,
       default_account_id: default_account&.to_param,
+      currency_display_format: currency_display_format,
       date_format: date_format,
       first_day_of_week: first_day_of_week,
       fiscal_year_start_month: fiscal_year_start_month,
