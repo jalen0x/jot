@@ -29,6 +29,7 @@ class TransactionTemplateCreator
       source_amount_cents: attributes[:source_amount_cents].to_i,
       destination_amount_cents: attributes[:destination_amount_cents].to_i,
       hide_amount: ActiveModel::Type::Boolean.new.cast(attributes[:hide_amount]),
+      hidden: ActiveModel::Type::Boolean.new.cast(attributes.fetch(:hidden, false)),
       comment: attributes[:comment],
       schedule_frequency: attributes[:schedule_frequency].presence || "disabled",
       schedule_rule: attributes[:schedule_rule],
