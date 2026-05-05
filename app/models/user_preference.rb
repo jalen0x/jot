@@ -11,6 +11,7 @@ class UserPreference < ApplicationRecord
     "decimal_comma" => { separator: ",", delimiter: "." }
   }.freeze
   SUPPORTED_DATE_FORMATS = DATE_FORMATS.keys.freeze
+  SUPPORTED_FIRST_DAYS_OF_WEEK = (0..6).freeze
   SUPPORTED_LOCALES = %w[en zh-CN].freeze
   SUPPORTED_NUMBER_FORMATS = NUMBER_FORMATS.keys.freeze
 
@@ -24,6 +25,7 @@ class UserPreference < ApplicationRecord
 
   validates :default_currency_code, format: { with: /\A[A-Z]{3}\z/ }
   validates :date_format, inclusion: { in: SUPPORTED_DATE_FORMATS }
+  validates :first_day_of_week, inclusion: { in: SUPPORTED_FIRST_DAYS_OF_WEEK }
   validates :locale, inclusion: { in: SUPPORTED_LOCALES }
   validates :number_format, inclusion: { in: SUPPORTED_NUMBER_FORMATS }
   validates :user_id, uniqueness: true
@@ -42,6 +44,7 @@ class UserPreference < ApplicationRecord
       default_currency_code: default_currency_code,
       default_account_id: default_account&.to_param,
       date_format: date_format,
+      first_day_of_week: first_day_of_week,
       locale: locale,
       number_format: number_format
     }

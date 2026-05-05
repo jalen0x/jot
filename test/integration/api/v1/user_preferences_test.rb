@@ -17,6 +17,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal "en", user_preference_json["locale"]
     assert_equal "year_month_day", user_preference_json["date_format"]
     assert_equal "western", user_preference_json["number_format"]
+    assert_equal 0, user_preference_json["first_day_of_week"]
     refute_includes user_preference_json.keys, "user_id"
   end
 
@@ -26,18 +27,20 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     raw_token = issue_token(user)
 
     patch api_v1_user_preference_path,
-      params: { user_preference: { default_currency_code: "cad", locale: "zh-CN", date_format: "day_month_year", number_format: "decimal_comma", default_account_id: account.to_param } },
+      params: { user_preference: { default_currency_code: "cad", locale: "zh-CN", date_format: "day_month_year", number_format: "decimal_comma", first_day_of_week: 1, default_account_id: account.to_param } },
       headers: json_headers(raw_token),
       as: :json
 
     assert_response :success
     assert_equal "CAD", user.reload.user_preference.default_currency_code
+    assert_equal 1, user.reload.user_preference.first_day_of_week
 
     user_preference_json = JSON.parse(response.body).fetch("user_preference")
     assert_equal "CAD", user_preference_json.fetch("default_currency_code")
     assert_equal "zh-CN", user_preference_json["locale"]
     assert_equal "day_month_year", user_preference_json["date_format"]
     assert_equal "decimal_comma", user_preference_json["number_format"]
+    assert_equal 1, user_preference_json["first_day_of_week"]
     assert_equal account.to_param, user_preference_json["default_account_id"]
   end
 
@@ -96,6 +99,20 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_content
     assert_match(/Number format/i, response.body)
+  end
+
+  test "rejects unsupported first day of week updates" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD")
+    raw_token = issue_token(user)
+
+    patch api_v1_user_preference_path,
+      params: { user_preference: { default_currency_code: "usd", first_day_of_week: 7 } },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_match(/First day of week/i, response.body)
   end
 
   test "rejects another user's default account" do

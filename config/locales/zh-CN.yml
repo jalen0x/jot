@@ -159,6 +159,8 @@ zh-CN:
       default_account_none: "不设置默认账户"
       date_format: "日期格式"
       date_format_help: "用于交易日期等界面显示。"
+      first_day_of_week: "每周开始日"
+      first_day_of_week_help: "用于按周汇总账本活动。"
       locale: "语言"
       locale_help: "用于登录后的界面文本。"
       number_format: "数字格式"
@@ -176,6 +178,14 @@ zh-CN:
       number_formats:
         western: "1,234.56"
         decimal_comma: "1.234,56"
+      weekdays:
+        0: "周日"
+        1: "周一"
+        2: "周二"
+        3: "周三"
+        4: "周四"
+        5: "周五"
+        6: "周六"
     update:
       updated: "偏好设置已更新。"
   user_profiles:

@@ -123,6 +123,8 @@ en:
       default_account_none: "No default account"
       date_format: "Date format"
       date_format_help: "Used when displaying transaction dates."
+      first_day_of_week: "First day of week"
+      first_day_of_week_help: "Used when grouping ledger activity by week."
       locale: "Language"
       locale_help: "Used for signed-in interface text."
       number_format: "Number format"
@@ -140,6 +142,14 @@ en:
       number_formats:
         western: "1,234.56"
         decimal_comma: "1.234,56"
+      weekdays:
+        0: "Sunday"
+        1: "Monday"
+        2: "Tuesday"
+        3: "Wednesday"
+        4: "Thursday"
+        5: "Friday"
+        6: "Saturday"
     update:
       updated: "Preferences updated."
   user_profiles:

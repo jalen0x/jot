@@ -1,6 +1,7 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -1722,8 +1723,10 @@ CREATE TABLE public.user_preferences (
     date_format text DEFAULT 'year_month_day'::text NOT NULL,
     default_account_id bigint,
     number_format text DEFAULT 'western'::text NOT NULL,
+    first_day_of_week integer DEFAULT 0 NOT NULL,
     CONSTRAINT user_preferences_date_format_supported CHECK ((date_format = ANY (ARRAY['year_month_day'::text, 'month_day_year'::text, 'day_month_year'::text]))),
     CONSTRAINT user_preferences_default_currency_code_length CHECK ((char_length(default_currency_code) = 3)),
+    CONSTRAINT user_preferences_first_day_of_week_supported CHECK (((first_day_of_week >= 0) AND (first_day_of_week <= 6))),
     CONSTRAINT user_preferences_locale_supported CHECK ((locale = ANY (ARRAY['en'::text, 'zh-CN'::text]))),
     CONSTRAINT user_preferences_number_format_supported CHECK ((number_format = ANY (ARRAY['western'::text, 'decimal_comma'::text])))
 );
@@ -1776,6 +1779,13 @@ COMMENT ON COLUMN public.user_preferences.default_account_id IS 'User account se
 --
 
 COMMENT ON COLUMN public.user_preferences.number_format IS 'Preferred decimal and grouping symbols for signed-in number text';
+
+
+--
+-- Name: COLUMN user_preferences.first_day_of_week; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_preferences.first_day_of_week IS 'Preferred first day of week, where Sunday is 0 and Saturday is 6';
 
 
 --
@@ -2916,6 +2926,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260505080000'),
 ('20260505070000'),
 ('20260505060000'),
 ('20260505050000'),
