@@ -54,4 +54,18 @@ class ApplicationHelperTest < ActionView::TestCase
 
     assert_equal "122 deg 25 min 9.84 sec W, 37 deg 46 min 29.64 sec N", format_coordinates(BigDecimal("37.7749"), BigDecimal("-122.4194"))
   end
+
+  test "returns preferred semantic amount color classes" do
+    @current_user = create(:user)
+    UserPreference.create!(
+      user: @current_user,
+      default_currency_code: "USD",
+      expense_amount_color: "warning",
+      income_amount_color: "neutral"
+    )
+
+    assert_equal "text-fg-warning", amount_color_class(:expense)
+    assert_equal "text-heading", amount_color_class(:income)
+    assert_equal "text-heading", amount_color_class(:transfer)
+  end
 end

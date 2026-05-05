@@ -83,6 +83,18 @@
       <p class="mt-2 text-sm text-body-subtle"><%= t(".currency_display_format_help") %></p>
     </div>
 
+    <div class="grid gap-3 sm:grid-cols-2">
+      <div>
+        <%= form.label :expense_amount_color, t(".expense_amount_color"), class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.select :expense_amount_color, UserPreference::SUPPORTED_AMOUNT_COLORS.map { |color| [ t(".amount_colors.#{color}"), color ] }, {}, class: field_classes %>
+      </div>
+      <div>
+        <%= form.label :income_amount_color, t(".income_amount_color"), class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.select :income_amount_color, UserPreference::SUPPORTED_AMOUNT_COLORS.map { |color| [ t(".amount_colors.#{color}"), color ] }, {}, class: field_classes %>
+      </div>
+      <p class="text-sm text-body-subtle sm:col-span-2"><%= t(".amount_color_help") %></p>
+    </div>
+
     <div>
       <%= form.label :coordinate_display_format, t(".coordinate_display_format"), class: "mb-2 block text-sm font-medium text-heading" %>
       <%= form.select :coordinate_display_format, UserPreference::SUPPORTED_COORDINATE_DISPLAY_FORMATS.map { |format| [ t(".coordinate_display_formats.#{format}"), format ] }, {}, class: field_classes %>

@@ -1,4 +1,5 @@
 class UserPreference < ApplicationRecord
+  AMOUNT_COLORS = %w[success danger warning neutral].freeze
   DATE_FORMATS = {
     "year_month_day" => "%Y-%m-%d",
     "month_day_year" => "%m/%d/%Y",
@@ -21,6 +22,8 @@ class UserPreference < ApplicationRecord
   DEFAULT_NUMBER_FORMAT = "western"
   DEFAULT_CURRENCY_DISPLAY_FORMAT = "code_after_amount"
   DEFAULT_COORDINATE_DISPLAY_FORMAT = "latitude_longitude_decimal_degrees"
+  DEFAULT_EXPENSE_AMOUNT_COLOR = "danger"
+  DEFAULT_INCOME_AMOUNT_COLOR = "success"
   DEFAULT_TIME_FORMAT = "twenty_four_hour"
   NUMBER_FORMATS = {
     "western" => { separator: ".", delimiter: "," },
@@ -37,6 +40,7 @@ class UserPreference < ApplicationRecord
     end_year
     end_short_year
   ].freeze
+  SUPPORTED_AMOUNT_COLORS = AMOUNT_COLORS
   SUPPORTED_DATE_FORMATS = DATE_FORMATS.keys.freeze
   SUPPORTED_CURRENCY_DISPLAY_FORMATS = CURRENCY_DISPLAY_FORMATS
   SUPPORTED_COORDINATE_DISPLAY_FORMATS = COORDINATE_DISPLAY_FORMATS
@@ -55,7 +59,9 @@ class UserPreference < ApplicationRecord
   normalizes :default_currency_code, with: ->(currency) { currency.to_s.strip.upcase }
   normalizes :currency_display_format, with: ->(format) { format.to_s.strip }
   normalizes :date_format, with: ->(date_format) { date_format.to_s.strip }
+  normalizes :expense_amount_color, with: ->(color) { color.to_s.strip }
   normalizes :fiscal_year_format, with: ->(fiscal_year_format) { fiscal_year_format.to_s.strip }
+  normalizes :income_amount_color, with: ->(color) { color.to_s.strip }
   normalizes :locale, with: ->(locale) { locale.to_s.strip }
   normalizes :number_format, with: ->(number_format) { number_format.to_s.strip }
   normalizes :time_format, with: ->(time_format) { time_format.to_s.strip }
@@ -64,10 +70,12 @@ class UserPreference < ApplicationRecord
   validates :coordinate_display_format, inclusion: { in: SUPPORTED_COORDINATE_DISPLAY_FORMATS }
   validates :currency_display_format, inclusion: { in: SUPPORTED_CURRENCY_DISPLAY_FORMATS }
   validates :date_format, inclusion: { in: SUPPORTED_DATE_FORMATS }
+  validates :expense_amount_color, inclusion: { in: SUPPORTED_AMOUNT_COLORS }
   validates :first_day_of_week, inclusion: { in: SUPPORTED_FIRST_DAYS_OF_WEEK }
   validates :fiscal_year_start_day, inclusion: { in: SUPPORTED_FISCAL_YEAR_START_DAYS }
   validates :fiscal_year_start_month, inclusion: { in: SUPPORTED_FISCAL_YEAR_START_MONTHS }
   validates :fiscal_year_format, inclusion: { in: SUPPORTED_FISCAL_YEAR_FORMATS }
+  validates :income_amount_color, inclusion: { in: SUPPORTED_AMOUNT_COLORS }
   validates :locale, inclusion: { in: SUPPORTED_LOCALES }
   validates :number_format, inclusion: { in: SUPPORTED_NUMBER_FORMATS }
   validates :time_format, inclusion: { in: SUPPORTED_TIME_FORMATS }
@@ -90,10 +98,12 @@ class UserPreference < ApplicationRecord
       coordinate_display_format: coordinate_display_format,
       currency_display_format: currency_display_format,
       date_format: date_format,
+      expense_amount_color: expense_amount_color,
       first_day_of_week: first_day_of_week,
       fiscal_year_start_month: fiscal_year_start_month,
       fiscal_year_start_day: fiscal_year_start_day,
       fiscal_year_format: fiscal_year_format,
+      income_amount_color: income_amount_color,
       locale: locale,
       number_format: number_format,
       time_format: time_format

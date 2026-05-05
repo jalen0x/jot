@@ -1730,13 +1730,17 @@ CREATE TABLE public.user_preferences (
     currency_display_format text DEFAULT 'code_after_amount'::text NOT NULL,
     time_format text DEFAULT 'twenty_four_hour'::text NOT NULL,
     coordinate_display_format text DEFAULT 'latitude_longitude_decimal_degrees'::text NOT NULL,
+    expense_amount_color text DEFAULT 'danger'::text NOT NULL,
+    income_amount_color text DEFAULT 'success'::text NOT NULL,
     CONSTRAINT user_preferences_coordinate_display_format_supported CHECK ((coordinate_display_format = ANY (ARRAY['latitude_longitude_decimal_degrees'::text, 'longitude_latitude_decimal_degrees'::text, 'latitude_longitude_decimal_minutes'::text, 'longitude_latitude_decimal_minutes'::text, 'latitude_longitude_degrees_minutes_seconds'::text, 'longitude_latitude_degrees_minutes_seconds'::text]))),
     CONSTRAINT user_preferences_currency_display_format_supported CHECK ((currency_display_format = ANY (ARRAY['code_after_amount'::text, 'code_before_amount'::text, 'none'::text]))),
     CONSTRAINT user_preferences_date_format_supported CHECK ((date_format = ANY (ARRAY['year_month_day'::text, 'month_day_year'::text, 'day_month_year'::text]))),
     CONSTRAINT user_preferences_default_currency_code_length CHECK ((char_length(default_currency_code) = 3)),
+    CONSTRAINT user_preferences_expense_amount_color_supported CHECK ((expense_amount_color = ANY (ARRAY['success'::text, 'danger'::text, 'warning'::text, 'neutral'::text]))),
     CONSTRAINT user_preferences_first_day_of_week_supported CHECK (((first_day_of_week >= 0) AND (first_day_of_week <= 6))),
     CONSTRAINT user_preferences_fiscal_year_format_supported CHECK ((fiscal_year_format = ANY (ARRAY['start_year_end_year'::text, 'start_year_end_short_year'::text, 'start_short_year_end_short_year'::text, 'end_year'::text, 'end_short_year'::text]))),
     CONSTRAINT user_preferences_fiscal_year_start_valid CHECK ((((fiscal_year_start_month = ANY (ARRAY[1, 3, 5, 7, 8, 10, 12])) AND ((fiscal_year_start_day >= 1) AND (fiscal_year_start_day <= 31))) OR ((fiscal_year_start_month = ANY (ARRAY[4, 6, 9, 11])) AND ((fiscal_year_start_day >= 1) AND (fiscal_year_start_day <= 30))) OR ((fiscal_year_start_month = 2) AND ((fiscal_year_start_day >= 1) AND (fiscal_year_start_day <= 28))))),
+    CONSTRAINT user_preferences_income_amount_color_supported CHECK ((income_amount_color = ANY (ARRAY['success'::text, 'danger'::text, 'warning'::text, 'neutral'::text]))),
     CONSTRAINT user_preferences_locale_supported CHECK ((locale = ANY (ARRAY['en'::text, 'zh-CN'::text]))),
     CONSTRAINT user_preferences_number_format_supported CHECK ((number_format = ANY (ARRAY['western'::text, 'decimal_comma'::text]))),
     CONSTRAINT user_preferences_time_format_supported CHECK ((time_format = ANY (ARRAY['twenty_four_hour'::text, 'twelve_hour'::text])))
@@ -1839,6 +1843,20 @@ COMMENT ON COLUMN public.user_preferences.time_format IS 'Preferred display form
 --
 
 COMMENT ON COLUMN public.user_preferences.coordinate_display_format IS 'Preferred display format for geographic coordinates';
+
+
+--
+-- Name: COLUMN user_preferences.expense_amount_color; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_preferences.expense_amount_color IS 'Preferred semantic text color for expense amounts';
+
+
+--
+-- Name: COLUMN user_preferences.income_amount_color; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_preferences.income_amount_color IS 'Preferred semantic text color for income amounts';
 
 
 --
@@ -2979,6 +2997,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260505140000'),
 ('20260505130000'),
 ('20260505120000'),
 ('20260505110000'),

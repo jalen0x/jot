@@ -1,4 +1,22 @@
 module ApplicationHelper
+  AMOUNT_COLOR_CLASSES = {
+    "success" => "text-fg-success",
+    "danger" => "text-fg-danger",
+    "warning" => "text-fg-warning",
+    "neutral" => "text-heading"
+  }.freeze
+
+  def amount_color_class(transaction_kind)
+    case transaction_kind.to_s
+    when "expense"
+      AMOUNT_COLOR_CLASSES.fetch(preferred_expense_amount_color)
+    when "income"
+      AMOUNT_COLOR_CLASSES.fetch(preferred_income_amount_color)
+    else
+      AMOUNT_COLOR_CLASSES.fetch("neutral")
+    end
+  end
+
   def format_coordinates(latitude, longitude)
     coordinates = formatted_coordinates(latitude, longitude)
 
@@ -68,6 +86,14 @@ module ApplicationHelper
 
   def preferred_coordinate_display_format
     current_user&.user_preference&.coordinate_display_format || UserPreference::DEFAULT_COORDINATE_DISPLAY_FORMAT
+  end
+
+  def preferred_expense_amount_color
+    current_user&.user_preference&.expense_amount_color || UserPreference::DEFAULT_EXPENSE_AMOUNT_COLOR
+  end
+
+  def preferred_income_amount_color
+    current_user&.user_preference&.income_amount_color || UserPreference::DEFAULT_INCOME_AMOUNT_COLOR
   end
 
   def formatted_coordinates(latitude, longitude)

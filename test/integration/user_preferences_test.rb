@@ -132,6 +132,23 @@ class UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal "longitude_latitude_degrees_minutes_seconds", user.reload.user_preference.coordinate_display_format
   end
 
+  test "updates the signed-in user's amount colors" do
+    user = create(:user)
+    sign_in user
+
+    patch user_preference_path, params: {
+      user_preference: {
+        default_currency_code: "usd",
+        expense_amount_color: "warning",
+        income_amount_color: "neutral"
+      }
+    }
+
+    assert_redirected_to user_preference_path
+    assert_equal "warning", user.reload.user_preference.expense_amount_color
+    assert_equal "neutral", user.reload.user_preference.income_amount_color
+  end
+
   test "renders validation errors for an invalid currency" do
     user = create(:user)
     sign_in user

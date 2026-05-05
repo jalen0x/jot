@@ -163,6 +163,9 @@ zh-CN:
       default_account_none: "不设置默认账户"
       date_format: "日期格式"
       date_format_help: "用于交易日期等界面显示。"
+      expense_amount_color: "支出金额颜色"
+      income_amount_color: "收入金额颜色"
+      amount_color_help: "在交易列表中使用语义颜色显示收入和支出金额。"
       time_format: "时间格式"
       time_format_help: "用于交易时间等界面显示。"
       first_day_of_week: "每周开始日"
@@ -203,6 +206,11 @@ zh-CN:
         code_after_amount: "1,234.56 USD"
         code_before_amount: "USD 1,234.56"
         none: "1,234.56"
+      amount_colors:
+        success: "成功"
+        danger: "危险"
+        warning: "警告"
+        neutral: "中性"
       coordinate_display_formats:
         latitude_longitude_decimal_degrees: "纬度、经度十进制度"
         longitude_latitude_decimal_degrees: "经度、纬度十进制度"
