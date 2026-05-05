@@ -71,6 +71,12 @@
       <p class="mt-2 text-sm text-body-subtle"><%= t(".number_format_help") %></p>
     </div>
 
+    <div>
+      <%= form.label :currency_display_format, t(".currency_display_format"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.select :currency_display_format, UserPreference::SUPPORTED_CURRENCY_DISPLAY_FORMATS.map { |format| [ t(".currency_display_formats.#{format}"), format ] }, {}, class: field_classes %>
+      <p class="mt-2 text-sm text-body-subtle"><%= t(".currency_display_format_help") %></p>
+    </div>
+
     <div class="flex justify-end gap-3">
       <%= render(ButtonComponent.new(variant: :secondary, href: dashboard_path)) { t(".cancel") } %>
       <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: t(".saving") })) { t(".save") } %>

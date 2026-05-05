@@ -38,19 +38,19 @@
     <div class="grid gap-4 md:grid-cols-4">
       <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
         <p class="text-sm font-medium text-body-subtle"><%= t(".opening_balance") %></p>
-        <p class="mt-2 text-2xl font-semibold text-heading"><%= number_to_currency(@statement.opening_balance_cents / 100.0, unit: "") %> <%= @account.currency_code %></p>
+        <p class="mt-2 text-2xl font-semibold text-heading"><%= format_money(@statement.opening_balance_cents, @account.currency_code) %></p>
       </div>
       <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
         <p class="text-sm font-medium text-body-subtle"><%= t(".inflow") %></p>
-        <p class="mt-2 text-2xl font-semibold text-heading"><%= number_to_currency(@statement.inflow_cents / 100.0, unit: "") %> <%= @account.currency_code %></p>
+        <p class="mt-2 text-2xl font-semibold text-heading"><%= format_money(@statement.inflow_cents, @account.currency_code) %></p>
       </div>
       <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
         <p class="text-sm font-medium text-body-subtle"><%= t(".outflow") %></p>
-        <p class="mt-2 text-2xl font-semibold text-heading"><%= number_to_currency(@statement.outflow_cents / 100.0, unit: "") %> <%= @account.currency_code %></p>
+        <p class="mt-2 text-2xl font-semibold text-heading"><%= format_money(@statement.outflow_cents, @account.currency_code) %></p>
       </div>
       <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
         <p class="text-sm font-medium text-body-subtle"><%= t(".closing_balance") %></p>
-        <p class="mt-2 text-2xl font-semibold text-heading"><%= number_to_currency(@statement.closing_balance_cents / 100.0, unit: "") %> <%= @account.currency_code %></p>
+        <p class="mt-2 text-2xl font-semibold text-heading"><%= format_money(@statement.closing_balance_cents, @account.currency_code) %></p>
       </div>
     </div>
 
@@ -72,7 +72,7 @@
                 <td class="px-5 py-4"><%= transaction.transaction_kind.humanize %></td>
                 <td class="px-5 py-4"><%= transaction.transacted_at.to_date.iso8601 %></td>
                 <td class="px-5 py-4 text-right font-semibold text-heading">
-                  <%= number_to_currency(transaction.source_amount_cents / 100.0, unit: "") %> <%= transaction.account.currency_code %>
+                  <%= format_money(transaction.source_amount_cents, transaction.account.currency_code) %>
                 </td>
               </tr>
             <% end %>

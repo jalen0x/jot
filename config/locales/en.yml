@@ -118,6 +118,8 @@ en:
       save_failed: "Preferences could not be saved."
       default_currency_code: "Default currency code"
       default_currency_help: "Used as the starting currency on new account forms."
+      currency_display_format: "Currency display"
+      currency_display_format_help: "Controls where currency codes appear next to amounts."
       default_account: "Default account"
       default_account_help: "Selected automatically on new transaction forms."
       default_account_none: "No default account"
@@ -154,6 +156,10 @@ en:
       number_formats:
         western: "1,234.56"
         decimal_comma: "1.234,56"
+      currency_display_formats:
+        code_after_amount: "1,234.56 USD"
+        code_before_amount: "USD 1,234.56"
+        none: "1,234.56"
       weekdays:
         0: "Sunday"
         1: "Monday"

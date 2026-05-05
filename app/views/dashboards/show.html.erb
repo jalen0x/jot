@@ -18,8 +18,7 @@
         <% if @summary.account_balances.any? %>
           <% @summary.account_balances.each do |balance| %>
             <p class="text-3xl font-semibold text-heading">
-              <%= number_to_currency(balance.balance_cents / 100.0, unit: "") %>
-              <span class="text-base font-medium text-body-subtle"><%= balance.currency_code %></span>
+              <%= format_money(balance.balance_cents, balance.currency_code, currency_class: "text-base font-medium text-body-subtle") %>
             </p>
           <% end %>
         <% else %>
@@ -52,7 +51,7 @@
               <p class="mt-1 text-sm text-body-subtle"><%= transaction.account.name %> · <%= transaction.transaction_category.name %></p>
             </div>
             <p class="text-sm font-semibold text-heading">
-              <%= number_to_currency(transaction.source_amount_cents / 100.0, unit: "") %> <%= transaction.account.currency_code %>
+              <%= format_money(transaction.source_amount_cents, transaction.account.currency_code) %>
             </p>
           </li>
         <% end %>

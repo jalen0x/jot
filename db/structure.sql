@@ -1727,6 +1727,8 @@ CREATE TABLE public.user_preferences (
     fiscal_year_start_month integer DEFAULT 1 NOT NULL,
     fiscal_year_start_day integer DEFAULT 1 NOT NULL,
     fiscal_year_format text DEFAULT 'start_year_end_year'::text NOT NULL,
+    currency_display_format text DEFAULT 'code_after_amount'::text NOT NULL,
+    CONSTRAINT user_preferences_currency_display_format_supported CHECK ((currency_display_format = ANY (ARRAY['code_after_amount'::text, 'code_before_amount'::text, 'none'::text]))),
     CONSTRAINT user_preferences_date_format_supported CHECK ((date_format = ANY (ARRAY['year_month_day'::text, 'month_day_year'::text, 'day_month_year'::text]))),
     CONSTRAINT user_preferences_default_currency_code_length CHECK ((char_length(default_currency_code) = 3)),
     CONSTRAINT user_preferences_first_day_of_week_supported CHECK (((first_day_of_week >= 0) AND (first_day_of_week <= 6))),
@@ -1812,6 +1814,13 @@ COMMENT ON COLUMN public.user_preferences.fiscal_year_start_day IS 'Preferred fi
 --
 
 COMMENT ON COLUMN public.user_preferences.fiscal_year_format IS 'Preferred fiscal year label format';
+
+
+--
+-- Name: COLUMN user_preferences.currency_display_format; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_preferences.currency_display_format IS 'Preferred currency code placement for displayed amounts';
 
 
 --
@@ -2952,6 +2961,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260505110000'),
 ('20260505100000'),
 ('20260505090000'),
 ('20260505080000'),

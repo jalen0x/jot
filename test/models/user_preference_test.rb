@@ -69,6 +69,15 @@ class UserPreferenceTest < ActiveSupport::TestCase
     assert_match(/user_preferences_fiscal_year_format_supported/i, ex.message)
   end
 
+  test "database rejects unsupported currency display formats" do
+    preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
+
+    ex = assert_raises(ActiveRecord::StatementInvalid) do
+      preference.update_column(:currency_display_format, "symbol_before_amount")
+    end
+    assert_match(/user_preferences_currency_display_format_supported/i, ex.message)
+  end
+
   test "database rejects missing default account references" do
     preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
 
