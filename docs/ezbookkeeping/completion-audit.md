@@ -1,7 +1,7 @@
 # ezBookkeeping Rails Rewrite Completion Audit
 
-Last updated: 2026-05-05
-Audited commit: `2205685` (`Merge branch 'feature/transaction-map-link'`)
+Last updated: 2026-05-06
+Audited scope: current Rails rewrite state through the responsive navigation slice.
 
 ## Objective Restated
 
@@ -24,8 +24,9 @@ Concrete success criteria:
   - Rails routes include Rails-native API, Devise sessions, PWA routes, API tokens, 2FA, application lock, data export/import, ledger clearance, transaction templates, receipts, pictures, and transaction/statistics endpoints.
 - `rg --files app test config db docs | rg 'two_factor|application_lock|api_token|session|external_auth|data_export|import_batch|import_file_parser|transaction_importer|ledger_clearance|transaction_template|scheduled|receipt|manifest|service_worker|pwa|picture|exchange_rate|user_preference|insight|map|geo|statistics|trends|reconciliation'`
   - Rails artifacts exist for most named parity areas.
-- Latest verification at audited commit:
+- Latest verification for audited scope:
   - `mise exec -- bin/rails test` -> 627 runs, 3516 assertions, 0 failures, 0 errors.
+  - `mise exec -- bin/rails test:system` -> 4 runs, 14 assertions, 0 failures, 0 errors.
   - `mise exec -- bin/rubocop` -> 396 files inspected, no offenses detected.
   - `mise exec -- bundle exec erb_lint --lint-all` -> 68 files linted, no errors.
 
@@ -57,7 +58,7 @@ Concrete success criteria:
 | Transaction pictures | Active Storage attachments, `TransactionPicture` PORO, UI/API controllers/tests | Covered | R2 config remains ENV-based. |
 | Geo locations and maps | transaction coordinate columns/validations, coordinate formatting, OpenStreetMap links/tests | Covered for first-cut Rails UI | Server-side tile/proxy adapters are deferred until concrete provider requirements exist. |
 | PWA | `/manifest`, `/service-worker`, `app/views/pwa/*`, `test/integration/pwa_test.rb` | Covered | Rails views/assets, no Vue build. |
-| Responsive Rails UI | Rails views and Flowbite/Tailwind conventions, integration tests, ERB lint | Weakly verified | Needs real desktop/mobile visual audit before production cutover. |
+| Responsive Rails UI | Rails views and Flowbite/Tailwind conventions, integration tests, ERB lint, `test/system/navigation_test.rb` mobile-width overflow check | Partially covered | Mobile navigation is now system-tested for usability and no horizontal overflow. A full representative desktop/mobile visual audit is still needed before production cutover. |
 | Transaction templates and schedules | `TransactionTemplate`, `ScheduledTransactionCreator`, `ScheduledTransactionCreationJob`, UI/API/job/service tests | Covered | Uses template kind and schedule fields instead of source routes. |
 | Rails-native JSON API | `Api::V1::*` controllers and API integration tests | Broadly covered | Route count is not a proxy for contract completeness; continue checking resource JSON as slices change. |
 | LLM receipt recognition | `ReceiptRecognition`, job/client/processor, UI/API tests | Covered | External call is job-owned. |
@@ -70,7 +71,7 @@ Do not mark the rewrite complete yet.
 
 Missing or weakly verified items:
 
-1. Responsive/mobile production readiness is weakly verified: Rails has responsive views and PWA files, but no recorded desktop/mobile visual audit for the whole chosen release scope.
+1. Responsive/mobile production readiness is partially verified by system tests, but there is still no recorded desktop/mobile visual audit for the whole chosen release scope.
 2. The audit relied on artifact existence for some broad areas; any final completion pass must inspect representative behavior for each user-facing workflow, not only file names or route names.
 
 ## Recommended Next Action
