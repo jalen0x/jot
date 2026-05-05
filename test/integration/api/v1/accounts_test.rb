@@ -162,6 +162,7 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
           color_hex: "#22c55e",
           currency_code: "usd",
           opening_balance_cents: "12300",
+          hidden: "true",
           comment: "Main bank"
         }
       },
@@ -176,6 +177,7 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
     assert_equal "22C55E", account.color_hex
     assert_equal "USD", account.currency_code
     assert_equal 12_300, account.balance_cents
+    assert_equal true, account.hidden
     assert_equal 2, account.display_order
 
     opening_balance = user.transactions.balance_adjustment.sole
@@ -192,6 +194,7 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
     assert_equal 2, account_json.fetch("icon_key")
     assert_equal "22C55E", account_json.fetch("color_hex")
     assert_equal "USD", account_json.fetch("currency_code")
+    assert_equal true, account_json.fetch("hidden")
     assert_equal "Main bank", account_json.fetch("comment")
     refute_includes account_json.keys, "user_id"
   end
