@@ -70,6 +70,7 @@ Rails.application.routes.draw do
   resource :application_lock, only: [ :show, :create, :destroy ]
   resource :application_lock_session, only: [ :new, :create, :destroy ]
   resource :ledger_clearance, only: [ :new, :create ]
+  resource :exchange_rate_catalog, only: :show
   resources :api_tokens, only: [ :index, :create, :destroy ]
   resources :external_authentications, only: [ :index, :destroy ]
   resources :user_custom_exchange_rates, only: [ :index, :create, :edit, :update, :destroy ]

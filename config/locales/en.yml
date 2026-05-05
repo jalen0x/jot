@@ -25,6 +25,16 @@ en:
   accounts:
     index:
       reconcile: "Reconcile"
+  exchange_rate_catalogs:
+    show:
+      title: "Exchange rate catalog"
+      eyebrow: "Exchange rates"
+      heading: "Exchange rate catalog"
+      description: "Review provider rates and your custom overrides relative to the base currency."
+      manage_custom_rates: "Manage custom rates"
+      base_currency: "Base currency"
+      currency: "Currency"
+      rate: "Rate"
   layouts:
     application:
       insights: "Insights"
