@@ -37,6 +37,27 @@ class TransactionBatchDeleterTest < ActiveSupport::TestCase
     assert_equal 10_750, account.reload.balance_cents
   end
 
+  test "does not purge pictures when a later transaction makes the batch fail" do
+    user = create(:user)
+    account = create_account(user: user, balance_cents: 10_750)
+    income_category = create_category(user: user, name: "Salary", category_type: :income)
+    expense_category = create_category(user: user, name: "Food", category_type: :expense)
+    income = create_transaction(user: user, account: account, category: income_category, transaction_kind: :income, source_amount_cents: 2_000, comment: "Paycheck")
+    expense = create_transaction(user: user, account: account, category: expense_category, transaction_kind: :expense, source_amount_cents: 1_250, comment: "Lunch")
+    income.pictures.attach(io: StringIO.new("receipt"), filename: "receipt.txt", content_type: "text/plain", identify: false)
+    picture = income.pictures.blobs.sole
+    expense.discard!
+
+    result = TransactionBatchDeleter.new.delete_transactions(transactions: [ income, expense ])
+
+    refute_predicate result, :deleted?
+    assert_includes result.transaction.errors[:base], "Transaction is already deleted"
+    refute_predicate income.reload, :discarded?
+    assert_predicate income.pictures, :attached?
+    assert picture.service.exist?(picture.key)
+    assert_equal 10_750, account.reload.balance_cents
+  end
+
   private
 
   def create_account(user:, balance_cents: 0)
