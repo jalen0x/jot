@@ -59,5 +59,18 @@ class AccountReconciliation
       @outflow_cents = outflow_cents
       @transactions = transactions
     end
+
+    def as_json(_options = {})
+      {
+        account_id: account.to_param,
+        start_date: range.begin.to_date.iso8601,
+        end_date: range.end.to_date.iso8601,
+        opening_balance_cents: opening_balance_cents,
+        inflow_cents: inflow_cents,
+        outflow_cents: outflow_cents,
+        closing_balance_cents: closing_balance_cents,
+        transaction_ids: transactions.map(&:to_param)
+      }
+    end
   end
 end
