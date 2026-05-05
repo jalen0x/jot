@@ -1,7 +1,7 @@
 # ezBookkeeping Rails Rewrite Completion Audit
 
 Last updated: 2026-05-06
-Audited scope: current Rails rewrite state through the responsive navigation slice.
+Audited scope: current Rails rewrite state through the Brakeman ledger filter slice.
 
 ## Objective Restated
 
@@ -25,10 +25,13 @@ Concrete success criteria:
 - `rg --files app test config db docs | rg 'two_factor|application_lock|api_token|session|external_auth|data_export|import_batch|import_file_parser|transaction_importer|ledger_clearance|transaction_template|scheduled|receipt|manifest|service_worker|pwa|picture|exchange_rate|user_preference|insight|map|geo|statistics|trends|reconciliation'`
   - Rails artifacts exist for most named parity areas.
 - Latest verification for audited scope:
-  - `mise exec -- bin/rails test` -> 627 runs, 3516 assertions, 0 failures, 0 errors.
-  - `mise exec -- bin/rails test:system` -> 4 runs, 14 assertions, 0 failures, 0 errors.
-  - `mise exec -- bin/rubocop` -> 396 files inspected, no offenses detected.
-  - `mise exec -- bundle exec erb_lint --lint-all` -> 68 files linted, no errors.
+  - `mise exec -- bin/ci` on 2026-05-06 ran setup, setup idempotency, RuboCop, ERB lint, bundler-audit, importmap audit, Brakeman, Zeitwerk, Rails tests, and system tests successfully.
+  - `mise exec -- bin/ci` then failed only at `gh signoff` because local `main` is ahead of `origin/main`; no code/test/security gate failed.
+  - `mise exec -- bin/rails test` within CI -> 627 runs, 3516 assertions, 0 failures, 0 errors.
+  - `mise exec -- bin/rails test:system` within CI -> 4 runs, 14 assertions, 0 failures, 0 errors.
+  - `mise exec -- bin/rubocop` within CI -> 397 files inspected, no offenses detected.
+  - `mise exec -- bundle exec erb_lint --lint-all` within CI -> 68 files linted, no errors.
+  - `mise exec -- bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error` within CI -> 0 security warnings.
 
 ## Prompt-to-Artifact Checklist
 
@@ -60,10 +63,10 @@ Concrete success criteria:
 | PWA | `/manifest`, `/service-worker`, `app/views/pwa/*`, `test/integration/pwa_test.rb` | Covered | Rails views/assets, no Vue build. |
 | Responsive Rails UI | Rails views and Flowbite/Tailwind conventions, integration tests, ERB lint, `test/system/navigation_test.rb` mobile-width overflow check | Partially covered | Mobile navigation is now system-tested for usability and no horizontal overflow. A full representative desktop/mobile visual audit is still needed before production cutover. |
 | Transaction templates and schedules | `TransactionTemplate`, `ScheduledTransactionCreator`, `ScheduledTransactionCreationJob`, UI/API/job/service tests | Covered | Uses template kind and schedule fields instead of source routes. |
-| Rails-native JSON API | `Api::V1::*` controllers and API integration tests | Broadly covered | Route count is not a proxy for contract completeness; continue checking resource JSON as slices change. |
+| Rails-native JSON API | `Api::V1::*` controllers, API integration tests, shared ledger filter param construction | Broadly covered | Route count is not a proxy for contract completeness; continue checking resource JSON as slices change. Ledger filter params are now plain hashes instead of `params.permit` pass-throughs. |
 | LLM receipt recognition | `ReceiptRecognition`, job/client/processor, UI/API tests | Covered | External call is job-owned. |
 | `.claude/rules` architecture | Thin controllers, Pundit policies, service layer, jobs, ENV config patterns across inspected files | Broadly covered | Continue slice-by-slice enforcement; audit did not prove every file exhaustively. |
-| Verification gates | Latest `bin/rails test`, `bin/rubocop`, `erb_lint --lint-all` pass | Covered as current health signal | Green tests do not prove unresolved product-scope decisions. |
+| Verification gates | Latest `bin/ci` code/test/security gates pass; `gh signoff` fails because `main` is unpushed | Covered as current health signal, except external signoff | Green tests do not prove unresolved product-scope decisions. Full `bin/ci` cannot finish locally until signoff can run against pushed commits or signoff is intentionally skipped. |
 
 ## Current Completion Decision
 
