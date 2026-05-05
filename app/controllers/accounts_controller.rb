@@ -65,7 +65,7 @@ class AccountsController < ApplicationController
   def destroy
     account = scoped_account
     authorize account
-    account.discard!
+    AccountDiscarder.new.discard_account(account: account)
 
     redirect_to accounts_path, notice: "Account deleted.", status: :see_other
   end

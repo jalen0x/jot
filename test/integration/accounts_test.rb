@@ -182,6 +182,24 @@ class AccountsTest < ActionDispatch::IntegrationTest
     assert_predicate account.reload, :discarded?
   end
 
+  test "deletes child accounts with their parent account" do
+    user = create(:user)
+    other_user = create(:user)
+    parent = create_account(user: user, name: "Savings", account_structure: :multi_sub_accounts)
+    child = create_account(user: user, name: "Vacation", parent_account: parent)
+    other_parent = create_account(user: other_user, name: "Other Savings", account_structure: :multi_sub_accounts)
+    other_child = create_account(user: other_user, name: "Other Vacation", parent_account: other_parent)
+    sign_in user
+
+    delete account_path(parent)
+
+    assert_response :see_other
+    assert_predicate parent.reload, :discarded?
+    assert_predicate child.reload, :discarded?
+    assert_predicate other_parent.reload, :kept?
+    assert_predicate other_child.reload, :kept?
+  end
+
   test "does not delete another user's account" do
     user = create(:user)
     other_user = create(:user)

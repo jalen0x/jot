@@ -166,6 +166,24 @@ class TransactionCategoriesTest < ActionDispatch::IntegrationTest
     assert_predicate category.reload, :discarded?
   end
 
+  test "deletes child categories with their parent category" do
+    user = create(:user)
+    other_user = create(:user)
+    parent = create_category(user: user, name: "Food")
+    child = create_category(user: user, name: "Produce", parent_category: parent)
+    other_parent = create_category(user: other_user, name: "Other Food")
+    other_child = create_category(user: other_user, name: "Other Produce", parent_category: other_parent)
+    sign_in user
+
+    delete transaction_category_path(parent)
+
+    assert_response :see_other
+    assert_predicate parent.reload, :discarded?
+    assert_predicate child.reload, :discarded?
+    assert_predicate other_parent.reload, :kept?
+    assert_predicate other_child.reload, :kept?
+  end
+
   test "does not delete another user's category" do
     user = create(:user)
     other_user = create(:user)

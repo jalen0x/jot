@@ -59,7 +59,7 @@ class TransactionCategoriesController < ApplicationController
   def destroy
     category = scoped_category
     authorize category
-    category.discard!
+    TransactionCategoryDiscarder.new.discard_category(category: category)
 
     redirect_to transaction_categories_path, notice: "Category deleted.", status: :see_other
   end
