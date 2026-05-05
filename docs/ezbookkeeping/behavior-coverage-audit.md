@@ -47,4 +47,4 @@ Purpose: close the completion-audit risk that broad parity rows were judged by a
 
 ## Remaining Non-Behavior Blocker
 
-`mise exec -- bin/ci` passed setup, style, security, Zeitwerk, Rails tests, and system tests on 2026-05-06, then failed only at `gh signoff` because local `main` is ahead of `origin/main`. That is an external signoff/push-state blocker, not a product behavior gap.
+No product behavior gap remains in this audit. The final release gate is `mise exec -- bin/ci` on the completion-audit commit after pushing to `origin/main` and configuring `gh` to target `jalen0x/jot` for signoff.

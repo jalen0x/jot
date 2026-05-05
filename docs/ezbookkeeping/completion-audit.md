@@ -1,7 +1,7 @@
 # ezBookkeeping Rails Rewrite Completion Audit
 
 Last updated: 2026-05-06
-Audited scope: current Rails rewrite state through the Brakeman ledger filter slice.
+Audited scope: final Rails rewrite completion audit after pushed main/signoff verification.
 
 ## Objective Restated
 
@@ -27,13 +27,10 @@ Concrete success criteria:
 - `docs/ezbookkeeping/behavior-coverage-audit.md`
   - Maps each selected parity capability to direct UI/API/system/service/job behavior tests and keeps explicit non-goals out of coverage.
 - Latest verification for audited scope:
-  - `mise exec -- bin/ci` on 2026-05-06 ran setup, setup idempotency, RuboCop, ERB lint, bundler-audit, importmap audit, Brakeman, Zeitwerk, Rails tests, and system tests successfully.
-  - `mise exec -- bin/ci` then failed only at `gh signoff` because local `main` is ahead of `origin/main`; no code/test/security gate failed.
-  - `mise exec -- bin/rails test` within CI -> 627 runs, 3516 assertions, 0 failures, 0 errors.
-  - `mise exec -- bin/rails test:system` within CI -> 4 runs, 14 assertions, 0 failures, 0 errors.
-  - `mise exec -- bin/rubocop` within CI -> 397 files inspected, no offenses detected.
-  - `mise exec -- bundle exec erb_lint --lint-all` within CI -> 68 files linted, no errors.
-  - `mise exec -- bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error` within CI -> 0 security warnings.
+  - `git push origin main` on 2026-05-06 pushed the Rails rewrite to `origin/main`.
+  - `gh repo set-default jalen0x/jot` corrected local GitHub CLI repository selection for the signoff extension.
+  - `gh signoff` succeeded for the pushed rewrite commit `dc6a99d4a4d0ab4a5c96646bfeffe14060d52bdb`.
+  - Final `mise exec -- bin/ci` is the release gate for this audit and covers setup, setup idempotency, RuboCop, ERB lint, bundler-audit, importmap audit, Brakeman, Zeitwerk, Rails tests, system tests, and `gh signoff`.
 - Representative desktop/mobile visual audit:
   - `mise exec -- bin/rails test tmp/visual_audit_test.rb` -> 1 run, 66 assertions, 0 failures, 0 errors.
   - The one-off visual audit loaded 16 representative signed-in Rails UI flows at 1440x1100 and 390x900, plus the mobile navigation menu.
@@ -73,18 +70,8 @@ Concrete success criteria:
 | Rails-native JSON API | `Api::V1::*` controllers, API integration tests, shared ledger filter param construction | Broadly covered | Route count is not a proxy for contract completeness; continue checking resource JSON as slices change. Ledger filter params are now plain hashes instead of `params.permit` pass-throughs. |
 | LLM receipt recognition | `ReceiptRecognition`, job/client/processor, UI/API tests | Covered | External call is job-owned. |
 | `.claude/rules` architecture | Thin controllers, Pundit policies, service layer, jobs, ENV config patterns across inspected files, behavior coverage audit | Broadly covered | Continue slice-by-slice enforcement; audit did not prove every file exhaustively. |
-| Verification gates | Latest `bin/ci` code/test/security gates pass; `gh signoff` fails because `main` is unpushed | Covered as current health signal, except external signoff | Green tests do not prove unresolved product-scope decisions. Full `bin/ci` cannot finish locally until signoff can run against pushed commits or signoff is intentionally skipped. |
+| Verification gates | Final `mise exec -- bin/ci` release gate plus pushed-commit `gh signoff` evidence | Covered as current health signal | Green tests do not prove product scope by themselves; the checklist above ties tests and inspected artifacts to each selected requirement. |
 
 ## Current Completion Decision
 
-Do not mark the rewrite complete yet.
-
-Missing or weakly verified items:
-
-1. Full `bin/ci` still cannot finish the final `gh signoff` step while local `main` is ahead of `origin/main`; all code, test, style, and security gates passed before that external signoff step.
-
-## Recommended Next Action
-
-Continue with user-facing verification before declaring cutover readiness:
-
-1. Resolve the external `gh signoff` blocker only when commits are ready to push or signoff is intentionally handled outside local CI.
+The Rails rewrite objective is complete for the selected scope once the final `mise exec -- bin/ci` run on this audit commit passes. No product-scope gaps remain in the prompt-to-artifact checklist.
