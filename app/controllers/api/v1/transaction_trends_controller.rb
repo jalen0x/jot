@@ -27,6 +27,8 @@ class Api::V1::TransactionTrendsController < ApiController
       :keyword,
       :minimum_amount_cents,
       :maximum_amount_cents,
+      account_ids: [],
+      transaction_category_ids: [],
       tag_filter: [
         :without_tags,
         {

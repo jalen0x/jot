@@ -66,6 +66,8 @@ class Api::V1::TransactionsController < ApiController
       :maximum_amount_cents,
       :start_date,
       :end_date,
+      account_ids: [],
+      transaction_category_ids: [],
       tag_filter: [
         :without_tags,
         {
