@@ -23,6 +23,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal 1, user_preference_json["fiscal_year_start_day"]
     assert_equal "start_year_end_year", user_preference_json["fiscal_year_format"]
     assert_equal "code_after_amount", user_preference_json["currency_display_format"]
+    assert_equal "latitude_longitude_decimal_degrees", user_preference_json["coordinate_display_format"]
     refute_includes user_preference_json.keys, "user_id"
   end
 
@@ -32,7 +33,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     raw_token = issue_token(user)
 
     patch api_v1_user_preference_path,
-      params: { user_preference: { default_currency_code: "cad", locale: "zh-CN", date_format: "day_month_year", time_format: "twelve_hour", number_format: "decimal_comma", first_day_of_week: 1, fiscal_year_start_month: 4, fiscal_year_start_day: 1, fiscal_year_format: "end_short_year", currency_display_format: "code_before_amount", default_account_id: account.to_param } },
+      params: { user_preference: { default_currency_code: "cad", locale: "zh-CN", date_format: "day_month_year", time_format: "twelve_hour", number_format: "decimal_comma", first_day_of_week: 1, fiscal_year_start_month: 4, fiscal_year_start_day: 1, fiscal_year_format: "end_short_year", currency_display_format: "code_before_amount", coordinate_display_format: "longitude_latitude_decimal_degrees", default_account_id: account.to_param } },
       headers: json_headers(raw_token),
       as: :json
 
@@ -44,6 +45,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal 1, user.reload.user_preference.fiscal_year_start_day
     assert_equal "end_short_year", user.reload.user_preference.fiscal_year_format
     assert_equal "code_before_amount", user.reload.user_preference.currency_display_format
+    assert_equal "longitude_latitude_decimal_degrees", user.reload.user_preference.coordinate_display_format
 
     user_preference_json = JSON.parse(response.body).fetch("user_preference")
     assert_equal "CAD", user_preference_json.fetch("default_currency_code")
@@ -56,6 +58,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal 1, user_preference_json["fiscal_year_start_day"]
     assert_equal "end_short_year", user_preference_json["fiscal_year_format"]
     assert_equal "code_before_amount", user_preference_json["currency_display_format"]
+    assert_equal "longitude_latitude_decimal_degrees", user_preference_json["coordinate_display_format"]
     assert_equal account.to_param, user_preference_json["default_account_id"]
   end
 
@@ -184,6 +187,20 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_content
     assert_match(/Time format/i, response.body)
+  end
+
+  test "rejects unsupported coordinate display format updates" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD")
+    raw_token = issue_token(user)
+
+    patch api_v1_user_preference_path,
+      params: { user_preference: { default_currency_code: "usd", coordinate_display_format: "map_tile" } },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_match(/Coordinate display format/i, response.body)
   end
 
   test "rejects another user's default account" do

@@ -154,6 +154,8 @@ zh-CN:
       save_failed: "偏好设置无法保存。"
       default_currency_code: "默认货币代码"
       default_currency_help: "作为新账户表单的初始货币。"
+      coordinate_display_format: "坐标显示"
+      coordinate_display_format_help: "用于显示已保存的交易位置。"
       currency_display_format: "货币显示"
       currency_display_format_help: "控制金额旁边的货币代码显示位置。"
       default_account: "默认账户"
@@ -201,6 +203,13 @@ zh-CN:
         code_after_amount: "1,234.56 USD"
         code_before_amount: "USD 1,234.56"
         none: "1,234.56"
+      coordinate_display_formats:
+        latitude_longitude_decimal_degrees: "纬度、经度十进制度"
+        longitude_latitude_decimal_degrees: "经度、纬度十进制度"
+        latitude_longitude_decimal_minutes: "纬度、经度十进制分"
+        longitude_latitude_decimal_minutes: "经度、纬度十进制分"
+        latitude_longitude_degrees_minutes_seconds: "纬度、经度度分秒"
+        longitude_latitude_degrees_minutes_seconds: "经度、纬度度分秒"
       weekdays:
         0: "周日"
         1: "周一"

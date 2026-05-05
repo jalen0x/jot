@@ -117,6 +117,21 @@ class UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal "twelve_hour", user.reload.user_preference.time_format
   end
 
+  test "updates the signed-in user's coordinate display format" do
+    user = create(:user)
+    sign_in user
+
+    patch user_preference_path, params: {
+      user_preference: {
+        default_currency_code: "usd",
+        coordinate_display_format: "longitude_latitude_degrees_minutes_seconds"
+      }
+    }
+
+    assert_redirected_to user_preference_path
+    assert_equal "longitude_latitude_degrees_minutes_seconds", user.reload.user_preference.coordinate_display_format
+  end
+
   test "renders validation errors for an invalid currency" do
     user = create(:user)
     sign_in user

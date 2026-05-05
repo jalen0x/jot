@@ -39,4 +39,19 @@ class ApplicationHelperTest < ActionView::TestCase
 
     assert_equal "12.34", format_money(1234, "USD")
   end
+
+  test "formats coordinates in the default latitude longitude decimal degrees format" do
+    assert_equal "37.7749, -122.4194", format_coordinates(BigDecimal("37.7749"), BigDecimal("-122.4194"))
+  end
+
+  test "formats coordinates with preferred order and units" do
+    @current_user = create(:user)
+    UserPreference.create!(
+      user: @current_user,
+      default_currency_code: "USD",
+      coordinate_display_format: "longitude_latitude_degrees_minutes_seconds"
+    )
+
+    assert_equal "122 deg 25 min 9.84 sec W, 37 deg 46 min 29.64 sec N", format_coordinates(BigDecimal("37.7749"), BigDecimal("-122.4194"))
+  end
 end

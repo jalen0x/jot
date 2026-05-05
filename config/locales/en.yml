@@ -118,6 +118,8 @@ en:
       save_failed: "Preferences could not be saved."
       default_currency_code: "Default currency code"
       default_currency_help: "Used as the starting currency on new account forms."
+      coordinate_display_format: "Coordinate display"
+      coordinate_display_format_help: "Used when displaying saved transaction locations."
       currency_display_format: "Currency display"
       currency_display_format_help: "Controls where currency codes appear next to amounts."
       default_account: "Default account"
@@ -165,6 +167,13 @@ en:
         code_after_amount: "1,234.56 USD"
         code_before_amount: "USD 1,234.56"
         none: "1,234.56"
+      coordinate_display_formats:
+        latitude_longitude_decimal_degrees: "Latitude, longitude decimal degrees"
+        longitude_latitude_decimal_degrees: "Longitude, latitude decimal degrees"
+        latitude_longitude_decimal_minutes: "Latitude, longitude decimal minutes"
+        longitude_latitude_decimal_minutes: "Longitude, latitude decimal minutes"
+        latitude_longitude_degrees_minutes_seconds: "Latitude, longitude degrees minutes seconds"
+        longitude_latitude_degrees_minutes_seconds: "Longitude, latitude degrees minutes seconds"
       weekdays:
         0: "Sunday"
         1: "Monday"
