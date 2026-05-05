@@ -27,6 +27,12 @@
     </div>
   </div>
 
+  <% parent_account_options = [ [ "No parent", "" ] ] + Array(@parent_account_options).map { |parent_account| [ parent_account.name, parent_account.to_param ] } %>
+  <div class="mb-4">
+    <%= form.label :parent_account_id, "Parent account", class: "block mb-2 text-sm font-medium text-heading" %>
+    <%= form.select :parent_account_id, options_for_select(parent_account_options, account.parent_account&.to_param), {}, class: field_classes %>
+  </div>
+
   <div class="mb-4 grid gap-4 sm:grid-cols-3">
     <div>
       <%= form.label :icon_key, "Icon", class: "block mb-2 text-sm font-medium text-heading" %>

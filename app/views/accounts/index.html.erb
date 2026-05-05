@@ -32,6 +32,38 @@
             <p class="mt-4 text-sm text-body"><%= account.comment %></p>
           <% end %>
 
+          <% sub_accounts = @sub_accounts_by_parent_id.fetch(account.id, []) %>
+          <% if sub_accounts.any? %>
+            <ul class="mt-4 space-y-3 border-t border-default pt-4">
+              <% sub_accounts.each do |sub_account| %>
+                <li id="<%= dom_id(sub_account) %>" class="rounded-base bg-neutral-primary p-4">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 class="text-base font-semibold text-heading"><%= sub_account.name %></h3>
+                      <p class="mt-1 text-sm text-body-subtle"><%= sub_account.currency_code %> · <%= sub_account.account_category.humanize %></p>
+                      <% if sub_account.hidden? %>
+                        <span class="mt-2 inline-flex rounded-base bg-neutral-secondary-medium px-2.5 py-1 text-xs font-medium text-body-subtle">Hidden</span>
+                      <% end %>
+                    </div>
+                    <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
+                      <%= number_to_currency(sub_account.balance_cents / 100.0, unit: "") %> <%= sub_account.currency_code %>
+                    </span>
+                  </div>
+
+                  <% if sub_account.comment.present? %>
+                    <p class="mt-3 text-sm text-body"><%= sub_account.comment %></p>
+                  <% end %>
+
+                  <div class="mt-3 flex justify-end gap-2">
+                    <%= render(ButtonComponent.new(variant: :secondary, href: account_reconciliation_statement_path(sub_account))) { t(".reconcile") } %>
+                    <%= render(ButtonComponent.new(variant: :secondary, href: edit_account_path(sub_account))) { "Edit" } %>
+                    <%= button_to "Delete", account_path(sub_account), method: :delete, form: { data: destructive_confirm_data("Delete this account?") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+                  </div>
+                </li>
+              <% end %>
+            </ul>
+          <% end %>
+
           <div class="mt-4 flex justify-end gap-2">
             <%= render(ButtonComponent.new(variant: :secondary, href: account_reconciliation_statement_path(account))) { t(".reconcile") } %>
             <%= render(ButtonComponent.new(variant: :secondary, href: edit_account_path(account))) { "Edit" } %>
