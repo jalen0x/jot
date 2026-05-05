@@ -10,7 +10,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
   test "lists only current user accounts" do
     user = create(:user)
     other_user = create(:user)
-    own_account = create_account(user: user, name: "Checking", balance_cents: 12_300)
+    own_account = create_account(user: user, name: "Checking", balance_cents: 12_300, hidden: true)
     create_account(user: other_user, name: "Other Checking")
 
     sign_in user
@@ -20,6 +20,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
     assert_select "h1", text: /accounts/i
     assert_select "li", text: /#{own_account.name}/i
     assert_select "li", text: /123.00 USD/
+    assert_select "li", text: /Hidden/i
     assert_select "li", text: /Other Checking/i, count: 0
     assert_select "a[href='#{account_reconciliation_statement_path(own_account)}']", text: /Reconcile/i
     assert_select "form[action='#{account_path(own_account)}'][data-turbo-confirm]"
@@ -38,6 +39,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
         color_hex: "22C55E",
         currency_code: "USD",
         opening_balance_cents: "1234",
+        hidden: "1",
         comment: "Wallet"
       }
     }
@@ -46,6 +48,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
     assert_redirected_to accounts_path
     assert_equal "Cash", account.name
     assert_equal 1234, account.balance_cents
+    assert_predicate account, :hidden?
   end
 
   test "updates an account for current user without changing its balance" do
@@ -57,6 +60,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", text: /edit account/i
     assert_select "input#account_opening_balance_cents", count: 0
+    assert_select "input#account_hidden"
 
     patch account_path(account), params: {
       account: {
@@ -66,6 +70,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
         icon_key: "3",
         color_hex: "#f97316",
         currency_code: "eur",
+        hidden: "1",
         comment: "Primary account"
       }
     }
@@ -78,6 +83,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
     assert_equal 3, account.icon_key
     assert_equal "F97316", account.color_hex
     assert_equal "EUR", account.currency_code
+    assert_predicate account, :hidden?
     assert_equal "Primary account", account.comment
     assert_equal 12_300, account.balance_cents
   end
@@ -131,7 +137,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
 
   private
 
-  def create_account(user:, name:, balance_cents: 0)
+  def create_account(user:, name:, balance_cents: 0, hidden: false)
     Account.create!(
       user: user,
       name: name,
@@ -141,6 +147,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
       color_hex: "2563EB",
       currency_code: "USD",
       balance_cents: balance_cents,
+      hidden: hidden,
       display_order: 1
     )
   end

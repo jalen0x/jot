@@ -19,6 +19,9 @@
             <div>
               <h2 class="text-lg font-semibold text-heading"><%= account.name %></h2>
               <p class="mt-1 text-sm text-body-subtle"><%= account.currency_code %> · <%= account.account_category.humanize %></p>
+              <% if account.hidden? %>
+                <span class="mt-2 inline-flex rounded-base bg-neutral-secondary-medium px-2.5 py-1 text-xs font-medium text-body-subtle">Hidden</span>
+              <% end %>
             </div>
             <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
               <%= number_to_currency(account.balance_cents / 100.0, unit: "") %> <%= account.currency_code %>
