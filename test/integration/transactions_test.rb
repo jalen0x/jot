@@ -43,6 +43,24 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_select "li", text: /05\/03\/2026 10:00/
   end
 
+  test "lists transaction times using the signed-in user's time format" do
+    user = create(:user)
+    transaction = create_transaction(user: user, comment: "Groceries")
+    transaction.update!(transacted_at: Time.zone.parse("2026-05-03 13:05:00"))
+    sign_in user
+
+    patch user_preference_path, params: {
+      user_preference: {
+        default_currency_code: "USD",
+        time_format: "twelve_hour"
+      }
+    }
+    get transactions_path
+
+    assert_response :success
+    assert_select "li", text: /2026-05-03 01:05 PM/
+  end
+
   test "lists transaction amounts using the signed-in user's number format" do
     user = create(:user)
     transaction = create_transaction(user: user, comment: "Groceries")

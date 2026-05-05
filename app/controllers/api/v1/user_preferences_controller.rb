@@ -25,7 +25,7 @@ class Api::V1::UserPreferencesController < ApiController
   end
 
   def user_preference_params
-    params.expect(user_preference: [ :default_currency_code, :currency_display_format, :date_format, :default_account_id, :first_day_of_week, :fiscal_year_start_month, :fiscal_year_start_day, :fiscal_year_format, :locale, :number_format ])
+    params.expect(user_preference: [ :default_currency_code, :currency_display_format, :date_format, :default_account_id, :first_day_of_week, :fiscal_year_start_month, :fiscal_year_start_day, :fiscal_year_format, :locale, :number_format, :time_format ])
   end
 
   def assign_user_preference_attributes

@@ -161,6 +161,8 @@ zh-CN:
       default_account_none: "不设置默认账户"
       date_format: "日期格式"
       date_format_help: "用于交易日期等界面显示。"
+      time_format: "时间格式"
+      time_format_help: "用于交易时间等界面显示。"
       first_day_of_week: "每周开始日"
       first_day_of_week_help: "用于按周汇总账本活动。"
       fiscal_year_start: "财政年度开始日"
@@ -183,6 +185,9 @@ zh-CN:
         year_month_day: "YYYY-MM-DD"
         month_day_year: "MM/DD/YYYY"
         day_month_year: "DD/MM/YYYY"
+      time_formats:
+        twenty_four_hour: "13:05"
+        twelve_hour: "01:05 PM"
       fiscal_year_formats:
         start_year_end_year: "2026-2027"
         start_year_end_short_year: "2026-27"

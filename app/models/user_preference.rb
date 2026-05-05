@@ -5,9 +5,14 @@ class UserPreference < ApplicationRecord
     "day_month_year" => "%d/%m/%Y"
   }.freeze
   CURRENCY_DISPLAY_FORMATS = %w[code_after_amount code_before_amount none].freeze
+  TIME_FORMATS = {
+    "twenty_four_hour" => "%H:%M",
+    "twelve_hour" => "%I:%M %p"
+  }.freeze
   DEFAULT_DATE_FORMAT = "year_month_day"
   DEFAULT_NUMBER_FORMAT = "western"
   DEFAULT_CURRENCY_DISPLAY_FORMAT = "code_after_amount"
+  DEFAULT_TIME_FORMAT = "twenty_four_hour"
   NUMBER_FORMATS = {
     "western" => { separator: ".", delimiter: "," },
     "decimal_comma" => { separator: ",", delimiter: "." }
@@ -31,6 +36,7 @@ class UserPreference < ApplicationRecord
   SUPPORTED_FISCAL_YEAR_START_MONTHS = FISCAL_YEAR_START_DAYS_BY_MONTH.keys.freeze
   SUPPORTED_LOCALES = %w[en zh-CN].freeze
   SUPPORTED_NUMBER_FORMATS = NUMBER_FORMATS.keys.freeze
+  SUPPORTED_TIME_FORMATS = TIME_FORMATS.keys.freeze
 
   belongs_to :default_account, class_name: "Account", optional: true
   belongs_to :user
@@ -41,6 +47,7 @@ class UserPreference < ApplicationRecord
   normalizes :fiscal_year_format, with: ->(fiscal_year_format) { fiscal_year_format.to_s.strip }
   normalizes :locale, with: ->(locale) { locale.to_s.strip }
   normalizes :number_format, with: ->(number_format) { number_format.to_s.strip }
+  normalizes :time_format, with: ->(time_format) { time_format.to_s.strip }
 
   validates :default_currency_code, format: { with: /\A[A-Z]{3}\z/ }
   validates :currency_display_format, inclusion: { in: SUPPORTED_CURRENCY_DISPLAY_FORMATS }
@@ -51,12 +58,13 @@ class UserPreference < ApplicationRecord
   validates :fiscal_year_format, inclusion: { in: SUPPORTED_FISCAL_YEAR_FORMATS }
   validates :locale, inclusion: { in: SUPPORTED_LOCALES }
   validates :number_format, inclusion: { in: SUPPORTED_NUMBER_FORMATS }
+  validates :time_format, inclusion: { in: SUPPORTED_TIME_FORMATS }
   validates :user_id, uniqueness: true
   validate :default_account_must_be_available
   validate :fiscal_year_start_must_be_valid
 
-  def self.datetime_format_for(date_format)
-    "#{DATE_FORMATS.fetch(date_format)} %H:%M"
+  def self.datetime_format_for(date_format, time_format = DEFAULT_TIME_FORMAT)
+    "#{DATE_FORMATS.fetch(date_format)} #{TIME_FORMATS.fetch(time_format)}"
   end
 
   def self.number_format_options_for(number_format)
@@ -74,12 +82,13 @@ class UserPreference < ApplicationRecord
       fiscal_year_start_day: fiscal_year_start_day,
       fiscal_year_format: fiscal_year_format,
       locale: locale,
-      number_format: number_format
+      number_format: number_format,
+      time_format: time_format
     }
   end
 
   def datetime_format
-    self.class.datetime_format_for(date_format)
+    self.class.datetime_format_for(date_format, time_format)
   end
 
   def number_format_options
