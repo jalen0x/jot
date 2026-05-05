@@ -28,7 +28,8 @@ class TransactionCategoryUpdater
   def parent_category_for(category, parent_category_id)
     return if parent_category_id.blank?
 
-    parent_category = category.user.transaction_categories.kept.find(decoded_id(category.user.transaction_categories.kept, parent_category_id))
+    parent_categories = category.user.transaction_categories.kept.where(parent_category_id: nil)
+    parent_category = parent_categories.find(decoded_id(parent_categories, parent_category_id))
     return parent_category unless parent_category == category
 
     category.errors.add(:parent_category, "cannot be itself")

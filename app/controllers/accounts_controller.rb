@@ -115,7 +115,7 @@ class AccountsController < ApplicationController
   def parent_account
     return if parent_account_id.blank?
 
-    @parent_account ||= current_user.accounts.kept.find(Account.decode_prefix_id(parent_account_id) || parent_account_id)
+    @parent_account ||= root_parent_accounts.find(Account.decode_prefix_id(parent_account_id) || parent_account_id)
   end
 
   def parent_account_id
@@ -129,7 +129,7 @@ class AccountsController < ApplicationController
   def resolved_parent_account(account, parent_account_id)
     return if parent_account_id.blank?
 
-    parent_account = current_user.accounts.kept.find(Account.decode_prefix_id(parent_account_id) || parent_account_id)
+    parent_account = root_parent_accounts.find(Account.decode_prefix_id(parent_account_id) || parent_account_id)
     return parent_account unless parent_account == account
 
     account.errors.add(:parent_account, "cannot be itself")
@@ -148,9 +148,13 @@ class AccountsController < ApplicationController
   end
 
   def parent_account_options(excluding: nil)
-    scope = current_user.accounts.kept.order(:display_order, :name)
+    scope = root_parent_accounts.order(:display_order, :name)
     scope = scope.where.not(id: excluding.id) if excluding
     scope
+  end
+
+  def root_parent_accounts
+    current_user.accounts.kept.where(parent_account_id: nil)
   end
 
   def default_account_attributes

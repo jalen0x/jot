@@ -61,7 +61,7 @@ class Api::V1::TransactionCategoriesController < ApiController
     parent_category_id = category_params[:parent_category_id]
     return if parent_category_id.blank?
 
-    current_user.transaction_categories.kept.find(TransactionCategory.decode_prefix_id(parent_category_id) || parent_category_id)
+    root_parent_categories.find(TransactionCategory.decode_prefix_id(parent_category_id) || parent_category_id)
   rescue ActiveRecord::RecordNotFound
     category.errors.add(:parent_category, "is unavailable")
     nil
@@ -73,5 +73,9 @@ class Api::V1::TransactionCategoriesController < ApiController
 
   def scoped_category
     policy_scope(TransactionCategory).kept.find(params[:id])
+  end
+
+  def root_parent_categories
+    current_user.transaction_categories.kept.where(parent_category_id: nil)
   end
 end
