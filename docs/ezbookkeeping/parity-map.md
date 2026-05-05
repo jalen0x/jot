@@ -44,7 +44,7 @@
 | OIDC/Gitea/Nextcloud external auth | Deferred | Add only when a concrete provider requirement exists |
 | Application lock | Phase 5 | `ApplicationLock` resources |
 | Transaction pictures | Phase 6 | Active Storage attachments |
-| Geo locations and maps | Phase 6 | transaction location columns and map adapters |
+| Geo locations and maps | Phase 6 | transaction location columns, coordinate formatting, OpenStreetMap links; tile/proxy adapters only when provider requirements exist |
 | PWA and responsive mobile UI | Phase 6 | Rails views/assets |
 | Transaction templates and schedules | Phase 7 | `TransactionTemplate`, recurring job |
 | Rails-native JSON API | Phase 8 | `Api::V1` resource controllers with top-level JSON keys |

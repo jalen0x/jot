@@ -206,6 +206,7 @@ Verification:
 Architecture:
 
 - Transaction pictures use Active Storage. Production storage remains Cloudflare R2 through ENV config, following project R2 rules.
+- First-cut maps use transaction coordinates plus external OpenStreetMap links. Server-side tile proxying waits for a concrete provider requirement.
 - Map tile/proxy requests are external I/O and should use adapter/job/cache boundaries where possible. Inline proxying is an explicit exception only if documented with timeout, cache, rate limit, and failure behavior.
 - PWA files stay in Rails views/assets, not a separate Vue build.
 - UI is one responsive Rails/Hotwire interface first; mobile-only routes are added only when the UX concept is genuinely different.

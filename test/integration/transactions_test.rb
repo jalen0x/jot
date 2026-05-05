@@ -108,6 +108,11 @@ class TransactionsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "li", text: /37\.7749, -122\.4194/
+    assert_select "a[href=?][target=?][rel=?]",
+      "https://www.openstreetmap.org/?mlat=37.7749&mlon=-122.4194#map=16/37.7749/-122.4194",
+      "_blank",
+      "noopener",
+      text: "Open map"
   end
 
   test "lists transaction location using the signed-in user's coordinate display format" do

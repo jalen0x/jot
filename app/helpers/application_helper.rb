@@ -28,6 +28,14 @@ module ApplicationHelper
     end
   end
 
+  def map_location_url(latitude, longitude)
+    formatted_latitude = decimal_text(latitude)
+    formatted_longitude = decimal_text(longitude)
+    query = "mlat=#{formatted_latitude}&mlon=#{formatted_longitude}"
+
+    "https://www.openstreetmap.org/?#{query}#map=16/#{formatted_latitude}/#{formatted_longitude}"
+  end
+
   def format_money(cents, currency_code, amount_options: {}, currency_class: nil)
     amount = number_to_currency(cents.to_f / 100, preferred_amount_format_options.merge(amount_options))
     code = currency_class.present? ? tag.span(currency_code, class: currency_class) : currency_code.to_s
