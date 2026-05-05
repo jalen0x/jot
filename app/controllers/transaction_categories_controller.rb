@@ -78,7 +78,7 @@ class TransactionCategoriesController < ApplicationController
     parent_category_id = category_params[:parent_category_id]
     return if parent_category_id.blank?
 
-    current_user.transaction_categories.kept.find(TransactionCategory.decode_prefix_id(parent_category_id) || parent_category_id)
+    root_parent_categories.find(TransactionCategory.decode_prefix_id(parent_category_id) || parent_category_id)
   rescue ActiveRecord::RecordNotFound
     category.errors.add(:parent_category, "is unavailable")
     nil
@@ -93,9 +93,13 @@ class TransactionCategoriesController < ApplicationController
   end
 
   def parent_category_options(excluding: nil)
-    scope = current_user.transaction_categories.kept.order(:category_type, :display_order, :name)
+    scope = root_parent_categories.order(:category_type, :display_order, :name)
     scope = scope.where.not(id: excluding.id) if excluding
     scope
+  end
+
+  def root_parent_categories
+    current_user.transaction_categories.kept.where(parent_category_id: nil)
   end
 
   def default_category_attributes

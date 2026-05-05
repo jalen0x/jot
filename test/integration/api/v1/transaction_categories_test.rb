@@ -190,6 +190,31 @@ class ApiV1TransactionCategoriesTest < ActionDispatch::IntegrationTest
     assert_match(/Parent category is unavailable/i, response.body)
   end
 
+  test "rejects a child category as parent category" do
+    user = create(:user)
+    parent = create_category(user: user, name: "Food", category_type: :expense, display_order: 1)
+    child = create_category(user: user, name: "Groceries", category_type: :expense, parent_category: parent, display_order: 2)
+    raw_token = issue_token(user)
+
+    post api_v1_transaction_categories_path,
+      params: {
+        transaction_category: {
+          name: "Produce",
+          category_type: "expense",
+          parent_category_id: child.to_param,
+          icon_key: "2",
+          color_hex: "F97316",
+          comment: "Too deep"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_empty user.transaction_categories.where(name: "Produce")
+    assert_match(/Parent category is unavailable/i, response.body)
+  end
+
   test "rejects another user's parent category on update" do
     user = create(:user)
     category = create_category(user: user, name: "Dining", category_type: :expense, display_order: 1)
@@ -205,6 +230,33 @@ class ApiV1TransactionCategoriesTest < ActionDispatch::IntegrationTest
           icon_key: "1",
           color_hex: "F97316",
           comment: "Meals",
+          hidden: "false"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_nil category.reload.parent_category
+    assert_match(/Parent category is unavailable/i, response.body)
+  end
+
+  test "rejects a child category as parent category on update" do
+    user = create(:user)
+    parent = create_category(user: user, name: "Food", category_type: :expense, display_order: 1)
+    child = create_category(user: user, name: "Groceries", category_type: :expense, parent_category: parent, display_order: 2)
+    category = create_category(user: user, name: "Produce", category_type: :expense, display_order: 3)
+    raw_token = issue_token(user)
+
+    patch api_v1_transaction_category_path(category),
+      params: {
+        transaction_category: {
+          name: "Produce",
+          category_type: "expense",
+          parent_category_id: child.to_param,
+          icon_key: "1",
+          color_hex: "F97316",
+          comment: "Too deep",
           hidden: "false"
         }
       },

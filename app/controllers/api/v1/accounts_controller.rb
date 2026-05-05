@@ -103,7 +103,7 @@ class Api::V1::AccountsController < ApiController
   def parent_account
     return if parent_account_id.blank?
 
-    @parent_account ||= current_user.accounts.kept.find(Account.decode_prefix_id(parent_account_id) || parent_account_id)
+    @parent_account ||= root_parent_accounts.find(Account.decode_prefix_id(parent_account_id) || parent_account_id)
   end
 
   def parent_account_id
@@ -117,7 +117,7 @@ class Api::V1::AccountsController < ApiController
   def resolved_parent_account(account, parent_account_id)
     return if parent_account_id.blank?
 
-    parent_account = current_user.accounts.kept.find(Account.decode_prefix_id(parent_account_id) || parent_account_id)
+    parent_account = root_parent_accounts.find(Account.decode_prefix_id(parent_account_id) || parent_account_id)
     return parent_account unless parent_account == account
 
     account.errors.add(:parent_account, "cannot be itself")
@@ -133,5 +133,9 @@ class Api::V1::AccountsController < ApiController
 
   def scoped_account
     policy_scope(Account).kept.find(params[:id])
+  end
+
+  def root_parent_accounts
+    current_user.accounts.kept.where(parent_account_id: nil)
   end
 end

@@ -79,6 +79,7 @@ class TransactionCategoriesTest < ActionDispatch::IntegrationTest
   test "updates a category for current user" do
     user = create(:user)
     parent = create_category(user: user, name: "Food")
+    child_parent = create_category(user: user, name: "Produce", parent_category: parent)
     category = create_category(user: user, name: "Groceries")
     sign_in user
 
@@ -86,6 +87,7 @@ class TransactionCategoriesTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", text: /edit category/i
     assert_select "select#transaction_category_parent_category_id option[value='#{parent.to_param}']", text: /Food/i
+    assert_select "select#transaction_category_parent_category_id option[value='#{child_parent.to_param}']", count: 0
     assert_select "input#transaction_category_hidden"
 
     patch transaction_category_path(category), params: {
@@ -109,6 +111,28 @@ class TransactionCategoriesTest < ActionDispatch::IntegrationTest
     assert_equal "22C55E", category.color_hex
     assert_predicate category, :hidden?
     assert_equal "Dining out", category.comment
+  end
+
+  test "does not create a category under a child category" do
+    user = create(:user)
+    parent = create_category(user: user, name: "Food")
+    child = create_category(user: user, name: "Groceries", parent_category: parent)
+    sign_in user
+
+    post transaction_categories_path, params: {
+      transaction_category: {
+        name: "Produce",
+        category_type: "expense",
+        parent_category_id: child.to_param,
+        icon_key: "2",
+        color_hex: "22C55E",
+        comment: "Too deep"
+      }
+    }
+
+    assert_response :unprocessable_content
+    assert_empty user.transaction_categories.where(name: "Produce")
+    assert_match(/Parent category/i, response.body)
   end
 
   test "does not create a category under another user's parent category" do

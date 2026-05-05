@@ -86,6 +86,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
   test "updates an account for current user without changing its balance" do
     user = create(:user)
     parent = create_account(user: user, name: "Savings", account_structure: :multi_sub_accounts)
+    child_parent = create_account(user: user, name: "Emergency Fund", parent_account: parent)
     account = create_account(user: user, name: "Checking", balance_cents: 12_300)
     sign_in user
 
@@ -93,6 +94,7 @@ class AccountsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", text: /edit account/i
     assert_select "select#account_parent_account_id option[value='#{parent.to_param}']", text: /Savings/i
+    assert_select "select#account_parent_account_id option[value='#{child_parent.to_param}']", count: 0
     assert_select "input#account_opening_balance_cents", count: 0
     assert_select "input#account_hidden"
 
@@ -122,6 +124,30 @@ class AccountsTest < ActionDispatch::IntegrationTest
     assert_predicate account, :hidden?
     assert_equal "Primary account", account.comment
     assert_equal 12_300, account.balance_cents
+  end
+
+  test "does not create an account under a child account" do
+    user = create(:user)
+    parent = create_account(user: user, name: "Savings", account_structure: :multi_sub_accounts)
+    child = create_account(user: user, name: "Vacation Savings", parent_account: parent)
+    sign_in user
+
+    post accounts_path, params: {
+      account: {
+        name: "Nested Savings",
+        account_category: "savings_account",
+        account_structure: "single_account",
+        parent_account_id: child.to_param,
+        icon_key: "2",
+        color_hex: "22C55E",
+        currency_code: "USD",
+        opening_balance_cents: "0",
+        comment: "Too deep"
+      }
+    }
+
+    assert_response :not_found
+    assert_empty user.accounts.where(name: "Nested Savings")
   end
 
   test "does not update another user's account" do

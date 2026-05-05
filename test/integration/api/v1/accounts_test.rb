@@ -262,6 +262,35 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
     assert_match(/Parent account/i, response.body)
   end
 
+  test "rejects a child account as a parent account" do
+    user = create(:user)
+    parent = create_account(user: user, name: "Savings", balance_cents: 0)
+    child = create_account(user: user, name: "Vacation Savings", balance_cents: 0)
+    child.update!(parent_account: parent)
+    raw_token = issue_token(user)
+
+    post api_v1_accounts_path,
+      params: {
+        account: {
+          name: "Nested Savings",
+          account_category: "savings_account",
+          account_structure: "single_account",
+          parent_account_id: child.to_param,
+          icon_key: "2",
+          color_hex: "#22c55e",
+          currency_code: "usd",
+          opening_balance_cents: "0",
+          comment: "Too deep"
+        }
+      },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_empty user.accounts.where(name: "Nested Savings")
+    assert_match(/Parent account/i, response.body)
+  end
+
   test "updates an account for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 12_300)
@@ -373,6 +402,24 @@ class ApiV1AccountsTest < ActionDispatch::IntegrationTest
 
     patch api_v1_account_path(account),
       params: { account: { parent_account_id: other_parent.to_param } },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_nil account.reload.parent_account
+    assert_match(/Parent account/i, response.body)
+  end
+
+  test "rejects a child account as parent on update" do
+    user = create(:user)
+    parent = create_account(user: user, name: "Savings", balance_cents: 0)
+    child = create_account(user: user, name: "Vacation Savings", balance_cents: 0)
+    child.update!(parent_account: parent)
+    account = create_account(user: user, name: "Nested Savings", balance_cents: 12_300)
+    raw_token = issue_token(user)
+
+    patch api_v1_account_path(account),
+      params: { account: { parent_account_id: child.to_param } },
       headers: json_headers(raw_token),
       as: :json
 
