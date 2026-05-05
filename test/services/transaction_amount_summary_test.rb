@@ -29,6 +29,26 @@ class TransactionAmountSummaryTest < ActiveSupport::TestCase
     assert_amount summary.amounts.second, currency_code: "USD", income_cents: 5_200, expense_cents: 1_200, net_cents: 4_000
   end
 
+  test "summarizes only transactions matching ledger filters" do
+    user = create(:user)
+    checking = create_account(user: user, name: "Checking", currency_code: "USD")
+    savings = create_account(user: user, name: "Savings", currency_code: "USD")
+    range = Time.zone.parse("2026-05-01 00:00:00")..Time.zone.parse("2026-05-31 23:59:59")
+
+    create_transaction(user: user, account: checking, transaction_kind: :income, source_amount_cents: 5_000, transacted_at: Time.zone.parse("2026-05-03 09:00:00"), comment: "Client invoice")
+    create_transaction(user: user, account: savings, transaction_kind: :income, source_amount_cents: 200, transacted_at: Time.zone.parse("2026-05-03 10:00:00"), comment: "Client invoice")
+    create_transaction(user: user, account: checking, transaction_kind: :expense, source_amount_cents: 1_200, transacted_at: Time.zone.parse("2026-05-04 09:00:00"), comment: "Personal lunch")
+
+    summary = TransactionAmountSummary.new.summarize_transactions(
+      user: user,
+      range: range,
+      filters: { account_ids: [ checking.to_param ], keyword: "client" }
+    )
+
+    assert_equal [ "USD" ], summary.amounts.map(&:currency_code)
+    assert_amount summary.amounts.first, currency_code: "USD", income_cents: 5_000, expense_cents: 0, net_cents: 5_000
+  end
+
   private
 
   def assert_amount(amount, currency_code:, income_cents:, expense_cents:, net_cents:)
@@ -52,7 +72,7 @@ class TransactionAmountSummaryTest < ActiveSupport::TestCase
     )
   end
 
-  def create_transaction(user:, account:, transaction_kind:, source_amount_cents:, transacted_at:, destination_account: nil, destination_amount_cents: 0)
+  def create_transaction(user:, account:, transaction_kind:, source_amount_cents:, transacted_at:, destination_account: nil, destination_amount_cents: 0, comment: transaction_kind.to_s.humanize)
     Transaction.create!(
       user: user,
       account: account,
@@ -63,7 +83,7 @@ class TransactionAmountSummaryTest < ActiveSupport::TestCase
       timezone_utc_offset_minutes: 0,
       source_amount_cents: source_amount_cents,
       destination_amount_cents: destination_amount_cents,
-      comment: transaction_kind.to_s.humanize
+      comment: comment
     )
   end
 
