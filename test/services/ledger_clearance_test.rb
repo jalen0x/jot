@@ -25,6 +25,48 @@ class LedgerClearanceTest < ActiveSupport::TestCase
     assert_equal 7_000, other_account.reload.balance_cents
   end
 
+  test "clears transactions for one account including destination transfers" do
+    user = create(:user)
+    target_account = create_account(user: user, name: "Savings", balance_cents: 800)
+    checking_account = create_account(user: user, name: "Checking", balance_cents: 2_500)
+    expense_category = create_category(user: user, category_type: :expense)
+    transfer_category = create_category(user: user, category_type: :transfer)
+    expense = create_transaction(user: user, account: target_account, category: expense_category, amount_cents: 1_200)
+    transfer = create_transaction(
+      user: user,
+      account: checking_account,
+      destination_account: target_account,
+      category: transfer_category,
+      transaction_kind: :transfer,
+      amount_cents: 2_000,
+      destination_amount_cents: 2_000
+    )
+    other_transaction = create_transaction(user: user, account: checking_account, category: expense_category, amount_cents: 500)
+
+    result = LedgerClearance.new.clear_account_transactions(user: user, account: target_account)
+
+    assert_predicate result, :cleared?
+    assert_predicate expense.reload, :discarded?
+    assert_predicate transfer.reload, :discarded?
+    assert_predicate other_transaction.reload, :kept?
+    assert_equal 0, target_account.reload.balance_cents
+    assert_equal 4_500, checking_account.reload.balance_cents
+  end
+
+  test "rejects hidden and parent accounts for account transaction clearance" do
+    user = create(:user)
+    hidden_account = create_account(user: user, name: "Hidden Cash", balance_cents: 800, hidden: true)
+    parent_account = create_account(user: user, name: "Parent", account_structure: :multi_sub_accounts)
+
+    hidden_result = LedgerClearance.new.clear_account_transactions(user: user, account: hidden_account)
+    parent_result = LedgerClearance.new.clear_account_transactions(user: user, account: parent_account)
+
+    refute_predicate hidden_result, :cleared?
+    assert_equal [ "Cannot clear transactions for a hidden account" ], hidden_result.errors
+    refute_predicate parent_result, :cleared?
+    assert_equal [ "Cannot clear transactions for a parent account" ], parent_result.errors
+  end
+
   test "clears all current user's ledger data without touching another user" do
     user = create(:user)
     other_user = create(:user)
@@ -72,7 +114,7 @@ class LedgerClearanceTest < ActiveSupport::TestCase
 
   private
 
-  def create_account(user:, name:, balance_cents: 0, account_structure: :single_account, parent_account: nil)
+  def create_account(user:, name:, balance_cents: 0, account_structure: :single_account, parent_account: nil, hidden: false)
     Account.create!(
       user: user,
       parent_account: parent_account,
@@ -83,6 +125,7 @@ class LedgerClearanceTest < ActiveSupport::TestCase
       color_hex: "22C55E",
       currency_code: "USD",
       balance_cents: balance_cents,
+      hidden: hidden,
       display_order: 1
     )
   end
@@ -127,16 +170,25 @@ class LedgerClearanceTest < ActiveSupport::TestCase
     template
   end
 
-  def create_transaction(user:, account:, category:)
+  def create_transaction(
+    user:,
+    account:,
+    category:,
+    transaction_kind: :expense,
+    amount_cents: 1_200,
+    destination_account: nil,
+    destination_amount_cents: 0
+  )
     Transaction.create!(
       user: user,
       account: account,
+      destination_account: destination_account,
       transaction_category: category,
-      transaction_kind: :expense,
+      transaction_kind: transaction_kind,
       transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
       timezone_utc_offset_minutes: 0,
-      source_amount_cents: 1_200,
-      destination_amount_cents: 0,
+      source_amount_cents: amount_cents,
+      destination_amount_cents: destination_amount_cents,
       comment: "Clear me"
     )
   end
