@@ -25,6 +25,31 @@ class ApiV1TransactionAmountSummariesTest < ActionDispatch::IntegrationTest
     ], body.fetch("transaction_amount_summary").fetch("amounts")
   end
 
+  test "filters transaction amount summary with ledger filters" do
+    user = create(:user)
+    checking = create_account(user: user, name: "Checking", currency_code: "USD")
+    savings = create_account(user: user, name: "Savings", currency_code: "USD")
+    create_transaction(user: user, account: checking, transaction_kind: :income, source_amount_cents: 5_000, transacted_at: Time.zone.parse("2026-05-03 09:00:00"), comment: "Client invoice")
+    create_transaction(user: user, account: savings, transaction_kind: :income, source_amount_cents: 200, transacted_at: Time.zone.parse("2026-05-03 10:00:00"), comment: "Client invoice")
+    create_transaction(user: user, account: checking, transaction_kind: :expense, source_amount_cents: 1_200, transacted_at: Time.zone.parse("2026-05-04 09:00:00"), comment: "Personal lunch")
+    raw_token = issue_token(user)
+
+    get api_v1_transaction_amount_summary_path,
+      params: {
+        start_date: "2026-05-01",
+        end_date: "2026-05-31",
+        account_ids: [ checking.to_param ],
+        keyword: "client"
+      },
+      headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [
+      { "currency_code" => "USD", "income_cents" => 5_000, "expense_cents" => 0, "net_cents" => 5_000 }
+    ], body.fetch("transaction_amount_summary").fetch("amounts")
+  end
+
   test "rejects invalid transaction amount summary dates" do
     user = create(:user)
     raw_token = issue_token(user)
@@ -64,7 +89,7 @@ class ApiV1TransactionAmountSummariesTest < ActionDispatch::IntegrationTest
     )
   end
 
-  def create_transaction(user:, account:, transaction_kind:, source_amount_cents:, transacted_at:)
+  def create_transaction(user:, account:, transaction_kind:, source_amount_cents:, transacted_at:, comment: transaction_kind.to_s.humanize)
     Transaction.create!(
       user: user,
       account: account,
@@ -74,7 +99,7 @@ class ApiV1TransactionAmountSummariesTest < ActionDispatch::IntegrationTest
       timezone_utc_offset_minutes: 0,
       source_amount_cents: source_amount_cents,
       destination_amount_cents: 0,
-      comment: transaction_kind.to_s.humanize
+      comment: comment
     )
   end
 

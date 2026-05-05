@@ -1,10 +1,10 @@
 class TransactionAmountSummary
   Amount = Struct.new(:currency_code, :income_cents, :expense_cents, :net_cents, keyword_init: true)
 
-  def summarize_transactions(user:, range:)
+  def summarize_transactions(user:, range:, filters: {})
     totals = Hash.new { |hash, key| hash[key] = { income_cents: 0, expense_cents: 0 } }
 
-    user.transactions.kept.includes(:account).where(transacted_at: range).find_each do |transaction|
+    LedgerQuery.new.list_transactions(user: user, filters: filters).where(transacted_at: range).each do |transaction|
       next unless transaction.income? || transaction.expense?
 
       currency_code = transaction.account.currency_code

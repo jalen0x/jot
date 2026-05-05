@@ -2,7 +2,7 @@ class Api::V1::TransactionAmountSummariesController < ApiController
   # GET /api/v1/transaction_amount_summary
   def show
     authorize :transaction_amount_summary
-    summary = TransactionAmountSummary.new.summarize_transactions(user: current_user, range: summary_range)
+    summary = TransactionAmountSummary.new.summarize_transactions(user: current_user, range: summary_range, filters: filter_params)
 
     render json: { transaction_amount_summary: summary_json(summary) }
   rescue Date::Error
@@ -10,6 +10,29 @@ class Api::V1::TransactionAmountSummariesController < ApiController
   end
 
   private
+
+  def filter_params
+    params.permit(
+      :transaction_kind,
+      :account_id,
+      :transaction_category_id,
+      :tag_id,
+      :keyword,
+      :minimum_amount_cents,
+      :maximum_amount_cents,
+      account_ids: [],
+      transaction_category_ids: [],
+      tag_filter: [
+        :without_tags,
+        {
+          include_any_ids: [],
+          include_all_ids: [],
+          exclude_any_ids: [],
+          exclude_all_ids: []
+        }
+      ]
+    )
+  end
 
   def summary_range
     start_date = parsed_date(params[:start_date]) || Time.zone.today.beginning_of_month
