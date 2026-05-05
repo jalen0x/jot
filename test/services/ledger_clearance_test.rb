@@ -25,6 +25,28 @@ class LedgerClearanceTest < ActiveSupport::TestCase
     assert_equal 7_000, other_account.reload.balance_cents
   end
 
+  test "purges pictures when clearing transactions" do
+    user = create(:user)
+    other_user = create(:user)
+    account = create_account(user: user, name: "Cash", balance_cents: 4_500)
+    other_account = create_account(user: other_user, name: "Other Cash", balance_cents: 7_000)
+    transaction = create_transaction(user: user, account: account, category: create_category(user: user, category_type: :expense))
+    other_transaction = create_transaction(user: other_user, account: other_account, category: create_category(user: other_user, category_type: :expense))
+    transaction.pictures.attach(io: StringIO.new("receipt"), filename: "receipt.txt", content_type: "text/plain", identify: false)
+    other_transaction.pictures.attach(io: StringIO.new("other receipt"), filename: "other-receipt.txt", content_type: "text/plain", identify: false)
+    picture = transaction.pictures.blobs.sole
+    other_picture = other_transaction.pictures.blobs.sole
+
+    LedgerClearance.new.clear_transactions(user: user)
+
+    assert_predicate transaction.reload, :discarded?
+    refute_predicate transaction.pictures, :attached?
+    refute picture.service.exist?(picture.key)
+    assert_predicate other_transaction.reload, :kept?
+    assert_predicate other_transaction.pictures, :attached?
+    assert other_picture.service.exist?(other_picture.key)
+  end
+
   test "clears transactions for one account including destination transfers" do
     user = create(:user)
     target_account = create_account(user: user, name: "Savings", balance_cents: 800)
@@ -82,6 +104,8 @@ class LedgerClearanceTest < ActiveSupport::TestCase
     template = create_template(user: user, account: account, category: category, tag: tag, name: "Rent")
     transaction = create_transaction(user: user, account: account, category: category)
     create_tagging(user: user, transaction: transaction, tag: tag)
+    transaction.pictures.attach(io: StringIO.new("receipt"), filename: "receipt.txt", content_type: "text/plain", identify: false)
+    picture = transaction.pictures.blobs.sole
     other_category = create_category(user: other_user, category_type: :expense)
     other_tag_group = create_tag_group(user: other_user)
     other_tag = create_tag(user: other_user, tag_group: other_tag_group)
@@ -94,6 +118,8 @@ class LedgerClearanceTest < ActiveSupport::TestCase
     assert_equal 0, TransactionTagging.where(user: user).count
     assert_equal 0, TransactionTemplateTagging.where(user: user).count
     assert_predicate transaction.reload, :discarded?
+    refute_predicate transaction.pictures, :attached?
+    refute picture.service.exist?(picture.key)
     assert_predicate account.reload, :discarded?
     assert_predicate parent_account.reload, :discarded?
     assert_equal 0, account.balance_cents

@@ -1,11 +1,10 @@
 class LedgerClearance
   def clear_transactions(user:)
     now = Time.current
+    purge_transaction_pictures(user)
 
     ActiveRecord::Base.transaction do
-      TransactionTagging.where(user: user).delete_all
-      user.transactions.kept.update_all(discarded_at: now, updated_at: now)
-      user.accounts.kept.update_all(balance_cents: 0, updated_at: now)
+      clear_transaction_rows(user: user, now: now)
     end
   end
 
@@ -21,9 +20,10 @@ class LedgerClearance
 
   def clear_all_data(user:)
     now = Time.current
+    purge_transaction_pictures(user)
 
     ActiveRecord::Base.transaction do
-      clear_transactions(user: user)
+      clear_transaction_rows(user: user, now: now)
       TransactionTemplateTagging.where(user: user).delete_all
       user.insight_explorers.kept.update_all(discarded_at: now, updated_at: now)
       user.transaction_templates.kept.update_all(discarded_at: now, updated_at: now)
@@ -36,6 +36,18 @@ class LedgerClearance
   end
 
   private
+
+  def clear_transaction_rows(user:, now:)
+    TransactionTagging.where(user: user).delete_all
+    user.transactions.kept.update_all(discarded_at: now, updated_at: now)
+    user.accounts.kept.update_all(balance_cents: 0, updated_at: now)
+  end
+
+  def purge_transaction_pictures(user)
+    user.transactions.kept.with_attached_pictures.find_each do |transaction|
+      transaction.pictures.purge if transaction.pictures.attached?
+    end
+  end
 
   def account_clearance_errors(user, account)
     errors = []
