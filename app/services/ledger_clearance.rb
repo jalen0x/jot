@@ -12,7 +12,10 @@ class LedgerClearance
     errors = account_clearance_errors(user, account)
     return Result.new(cleared: false, errors: errors) if errors.any?
 
-    result = TransactionBatchDeleter.new.delete_transactions(transactions: account_transactions(user, account))
+    result = TransactionBatchDeleter.new.delete_transactions(
+      transactions: account_transactions(user, account),
+      enforce_transaction_edit_scope: false
+    )
     return Result.new(cleared: true) if result.deleted?
 
     Result.new(cleared: false, errors: result.transaction.errors.full_messages)
