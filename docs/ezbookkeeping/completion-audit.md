@@ -24,6 +24,8 @@ Concrete success criteria:
   - Rails routes include Rails-native API, Devise sessions, PWA routes, API tokens, 2FA, application lock, data export/import, ledger clearance, transaction templates, receipts, pictures, and transaction/statistics endpoints.
 - `rg --files app test config db docs | rg 'two_factor|application_lock|api_token|session|external_auth|data_export|import_batch|import_file_parser|transaction_importer|ledger_clearance|transaction_template|scheduled|receipt|manifest|service_worker|pwa|picture|exchange_rate|user_preference|insight|map|geo|statistics|trends|reconciliation'`
   - Rails artifacts exist for most named parity areas.
+- `docs/ezbookkeeping/behavior-coverage-audit.md`
+  - Maps each selected parity capability to direct UI/API/system/service/job behavior tests and keeps explicit non-goals out of coverage.
 - Latest verification for audited scope:
   - `mise exec -- bin/ci` on 2026-05-06 ran setup, setup idempotency, RuboCop, ERB lint, bundler-audit, importmap audit, Brakeman, Zeitwerk, Rails tests, and system tests successfully.
   - `mise exec -- bin/ci` then failed only at `gh signoff` because local `main` is ahead of `origin/main`; no code/test/security gate failed.
@@ -42,7 +44,7 @@ Concrete success criteria:
 
 | Requirement | Evidence | Status | Notes / gaps |
 | --- | --- | --- | --- |
-| Source inventory and traceability | `Ezbookkeeping::SourceInventory`, `docs/ezbookkeeping/parity-map.md`, `docs/ezbookkeeping/data-migration-map.md`, source inventory command output | Covered | Inventory is a traceability aid, not completion proof. |
+| Source inventory and traceability | `Ezbookkeeping::SourceInventory`, `docs/ezbookkeeping/parity-map.md`, `docs/ezbookkeeping/data-migration-map.md`, source inventory command output, `docs/ezbookkeeping/behavior-coverage-audit.md` | Covered | Inventory is a traceability aid, not completion proof. |
 | Scope: full Rails rewrite, no legacy API/frontend compatibility | `docs/ezbookkeeping/parity-map.md` scope decisions; routes are Rails-native `/api/v1/*` and standard Rails resources | Covered | No legacy `.json`, camelCase, `success/result`, or `legacy_json_path` requirements remain. |
 | Scope: no MCP | `docs/ezbookkeeping/parity-map.md`; no Rails MCP controllers/routes | Covered | Machine access goes through Rails-native API and `jotctl`. |
 | Scope: exclude old app cloud-sync settings | `docs/ezbookkeeping/parity-map.md`, `docs/ezbookkeeping/data-migration-map.md` | Covered | Source `UserApplicationCloudSetting` is explicitly excluded. |
@@ -70,7 +72,7 @@ Concrete success criteria:
 | Transaction templates and schedules | `TransactionTemplate`, `ScheduledTransactionCreator`, `ScheduledTransactionCreationJob`, UI/API/job/service tests | Covered | Uses template kind and schedule fields instead of source routes. |
 | Rails-native JSON API | `Api::V1::*` controllers, API integration tests, shared ledger filter param construction | Broadly covered | Route count is not a proxy for contract completeness; continue checking resource JSON as slices change. Ledger filter params are now plain hashes instead of `params.permit` pass-throughs. |
 | LLM receipt recognition | `ReceiptRecognition`, job/client/processor, UI/API tests | Covered | External call is job-owned. |
-| `.claude/rules` architecture | Thin controllers, Pundit policies, service layer, jobs, ENV config patterns across inspected files | Broadly covered | Continue slice-by-slice enforcement; audit did not prove every file exhaustively. |
+| `.claude/rules` architecture | Thin controllers, Pundit policies, service layer, jobs, ENV config patterns across inspected files, behavior coverage audit | Broadly covered | Continue slice-by-slice enforcement; audit did not prove every file exhaustively. |
 | Verification gates | Latest `bin/ci` code/test/security gates pass; `gh signoff` fails because `main` is unpushed | Covered as current health signal, except external signoff | Green tests do not prove unresolved product-scope decisions. Full `bin/ci` cannot finish locally until signoff can run against pushed commits or signoff is intentionally skipped. |
 
 ## Current Completion Decision
@@ -80,11 +82,9 @@ Do not mark the rewrite complete yet.
 Missing or weakly verified items:
 
 1. Full `bin/ci` still cannot finish the final `gh signoff` step while local `main` is ahead of `origin/main`; all code, test, style, and security gates passed before that external signoff step.
-2. The audit still relies on artifact existence for some broad areas; any final completion pass must inspect representative behavior for each user-facing workflow, not only file names or route names.
 
 ## Recommended Next Action
 
 Continue with user-facing verification before declaring cutover readiness:
 
-1. For any workflow still judged only by artifact existence, inspect the actual controller/view/API behavior and add the smallest missing regression test.
-2. Resolve the external `gh signoff` blocker only when commits are ready to push or signoff is intentionally handled outside local CI.
+1. Resolve the external `gh signoff` blocker only when commits are ready to push or signoff is intentionally handled outside local CI.
