@@ -6,8 +6,8 @@ class LedgerQuery
     filters = filters.to_h.deep_symbolize_keys
     scope = user.transactions.kept.includes(:account, :destination_account, :transaction_category, :transaction_tags)
     scope = scope.where(transaction_kind: filters[:transaction_kind]) if filters[:transaction_kind].present?
-    scope = scope.where(account_id: decoded_id(Account, filters[:account_id])) if filters[:account_id].present?
-    scope = scope.where(transaction_category_id: decoded_id(TransactionCategory, filters[:transaction_category_id])) if filters[:transaction_category_id].present?
+    scope = apply_id_filter(scope, column: :account_id, model: Account, single: filters[:account_id], multiple: filters[:account_ids])
+    scope = apply_id_filter(scope, column: :transaction_category_id, model: TransactionCategory, single: filters[:transaction_category_id], multiple: filters[:transaction_category_ids])
     scope = apply_tag_filters(scope, user: user, tag_id: filters[:tag_id], tag_filter: filters[:tag_filter])
     scope = apply_keyword_filter(scope, filters[:keyword])
     scope = apply_amount_filters(scope, minimum: filters[:minimum_amount_cents], maximum: filters[:maximum_amount_cents])
@@ -16,6 +16,17 @@ class LedgerQuery
   end
 
   private
+
+  def apply_id_filter(scope, column:, model:, single:, multiple:)
+    ids = decoded_ids(model, [ single, multiple ])
+    return scope if ids.empty?
+
+    scope.where(column => ids)
+  end
+
+  def decoded_ids(model, values)
+    Array(values).flatten.reject(&:blank?).map { |value| decoded_id(model, value) }.uniq
+  end
 
   def apply_tag_filters(scope, user:, tag_id:, tag_filter:)
     scope = include_any_tags(scope, [ decoded_id(TransactionTag, tag_id) ]) if tag_id.present?

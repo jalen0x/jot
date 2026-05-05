@@ -39,6 +39,23 @@ class LedgerQueryTest < ActiveSupport::TestCase
     assert_equal [ matching ], transactions.to_a
   end
 
+  test "filters by multiple prefixed account ids" do
+    user = create(:user)
+    checking = create_account(user: user, name: "Checking")
+    savings = create_account(user: user, name: "Savings")
+    cash = create_account(user: user, name: "Cash")
+    savings_transaction = create_transaction(user: user, comment: "Savings", account: savings, transacted_at: Time.zone.parse("2026-05-03 11:00:00"))
+    checking_transaction = create_transaction(user: user, comment: "Checking", account: checking, transacted_at: Time.zone.parse("2026-05-03 10:00:00"))
+    create_transaction(user: user, comment: "Cash", account: cash, transacted_at: Time.zone.parse("2026-05-03 09:00:00"))
+
+    transactions = LedgerQuery.new.list_transactions(
+      user: user,
+      filters: { account_ids: [ checking.to_param, savings.to_param ] }
+    )
+
+    assert_equal [ savings_transaction, checking_transaction ], transactions.to_a
+  end
+
   test "filters by prefixed transaction category id" do
     user = create(:user)
     matching_category = create_category(user: user, name: "Groceries")
@@ -49,6 +66,24 @@ class LedgerQueryTest < ActiveSupport::TestCase
     transactions = LedgerQuery.new.list_transactions(user: user, filters: { transaction_category_id: matching_category.to_param })
 
     assert_equal [ matching ], transactions.to_a
+  end
+
+  test "filters by multiple prefixed transaction category ids" do
+    user = create(:user)
+    account = create_account(user: user)
+    groceries = create_category(user: user, name: "Groceries")
+    travel = create_category(user: user, name: "Travel")
+    utilities = create_category(user: user, name: "Utilities")
+    travel_transaction = create_transaction(user: user, comment: "Flight", account: account, category: travel, transacted_at: Time.zone.parse("2026-05-03 11:00:00"))
+    groceries_transaction = create_transaction(user: user, comment: "Lunch", account: account, category: groceries, transacted_at: Time.zone.parse("2026-05-03 10:00:00"))
+    create_transaction(user: user, comment: "Power", account: account, category: utilities, transacted_at: Time.zone.parse("2026-05-03 09:00:00"))
+
+    transactions = LedgerQuery.new.list_transactions(
+      user: user,
+      filters: { transaction_category_ids: [ groceries.to_param, travel.to_param ] }
+    )
+
+    assert_equal [ travel_transaction, groceries_transaction ], transactions.to_a
   end
 
   test "filters by prefixed tag id" do
