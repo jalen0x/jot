@@ -1,6 +1,3 @@
-require "csv"
-require "json"
-
 class TransactionImporter
   class ImportError < StandardError; end
 
@@ -8,68 +5,22 @@ class TransactionImporter
     imported_count = 0
 
     ActiveRecord::Base.transaction do
-      rows_for(import_batch).each do |row|
+      import_batch.parsed_rows.each do |row|
         record_row(import_batch.user, row)
         imported_count += 1
       end
 
       import_batch.update!(status: :imported, imported_count: imported_count, error_message: "")
     end
-  rescue CSV::MalformedCSVError, JSON::ParserError => error
-    raise ImportError, error.message
   end
 
   private
 
-  def rows_for(import_batch)
-    return json_rows(import_batch) if json_file?(import_batch)
-
-    CSV.parse(import_batch.raw_csv, headers: true, col_sep: column_separator(import_batch))
-  end
-
-  def column_separator(import_batch)
-    import_batch.source_filename.to_s.downcase.end_with?(".tsv") ? "\t" : ","
-  end
-
-  def json_file?(import_batch)
-    import_batch.source_filename.to_s.downcase.end_with?(".json")
-  end
-
-  def json_rows(import_batch)
-    payload = JSON.parse(import_batch.raw_csv)
-    transactions = payload["transactions"] if payload.is_a?(Hash)
-    raise ImportError, "JSON import must include a transactions array" unless transactions.is_a?(Array)
-
-    transactions.map do |row|
-      {
-        "Transacted At" => json_field(row, "transacted_at"),
-        "Timezone UTC Offset Minutes" => row["timezone_utc_offset_minutes"] || "0",
-        "Type" => json_field(row, "transaction_kind"),
-        "Account" => json_field(row, "account_name"),
-        "Destination Account" => row["destination_account_name"],
-        "Category" => row["transaction_category_name"],
-        "Source Amount Cents" => json_field(row, "source_amount_cents"),
-        "Destination Amount Cents" => row["destination_amount_cents"] || "0",
-        "Tags" => Array(row["transaction_tag_names"]).join("; "),
-        "Hide Amount" => row["hide_amount"] || "0",
-        "Comment" => row["comment"],
-        "Latitude" => row["geo_latitude"],
-        "Longitude" => row["geo_longitude"]
-      }
-    end
-  end
-
-  def json_field(row, key)
-    row.fetch(key)
-  rescue KeyError
-    raise ImportError, "JSON transaction is missing #{key}"
-  end
-
   def record_row(user, row)
-    transaction_kind = row.fetch("Type")
-    account = find_account(user, row.fetch("Account"))
+    transaction_kind = row_field(row, "Type")
+    account = find_account(user, row_field(row, "Account"))
     destination_account = row["Destination Account"].present? ? find_account(user, row["Destination Account"]) : nil
-    category = transaction_kind == "balance_adjustment" ? nil : find_category(user, row.fetch("Category"))
+    category = transaction_kind == "balance_adjustment" ? nil : find_category(user, row_field(row, "Category"))
     tag_ids = tag_ids(user, row["Tags"])
 
     result = TransactionRecorder.new.record_transaction(
@@ -79,10 +30,10 @@ class TransactionImporter
         account_id: account.id.to_s,
         destination_account_id: destination_account&.id.to_s,
         transaction_category_id: category&.id&.to_s,
-        transacted_at: row.fetch("Transacted At"),
+        transacted_at: row_field(row, "Transacted At"),
         timezone_utc_offset_minutes: row["Timezone UTC Offset Minutes"] || "0",
-        source_amount_cents: row.fetch("Source Amount Cents"),
-        destination_amount_cents: row.fetch("Destination Amount Cents"),
+        source_amount_cents: row_field(row, "Source Amount Cents"),
+        destination_amount_cents: row_field(row, "Destination Amount Cents"),
         hide_amount: row["Hide Amount"] || "0",
         comment: row["Comment"],
         geo_latitude: row["Latitude"],
@@ -92,6 +43,14 @@ class TransactionImporter
     )
 
     raise ImportError, result.transaction.errors.full_messages.to_sentence unless result.recorded?
+  end
+
+  def row_field(row, key)
+    raise ImportError, "Import row must be an object" unless row.respond_to?(:fetch)
+
+    row.fetch(key)
+  rescue KeyError
+    raise ImportError, "Import row is missing #{key}"
   end
 
   def find_account(user, name)

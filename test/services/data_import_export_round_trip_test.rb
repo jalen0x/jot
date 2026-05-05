@@ -14,6 +14,7 @@ class DataImportExportRoundTripTest < ActiveSupport::TestCase
     exported_json = DataExport.new.transactions_json(user: source_user)
     batch = ImportBatch.create!(user: target_user, source_filename: "transactions.json", raw_csv: exported_json)
 
+    ImportFileParser.new.parse_import_batch(import_batch: batch)
     TransactionImporter.new.import_transactions(import_batch: batch)
 
     assert_predicate batch.reload, :imported?

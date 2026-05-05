@@ -1,12 +1,12 @@
 require "test_helper"
 
 class TransactionImporterTest < ActiveSupport::TestCase
-  test "imports exported transaction rows through TransactionRecorder" do
+  test "imports parsed transaction rows through TransactionRecorder" do
     user = create(:user)
     account = create_account(user: user, name: "Cash", balance_cents: 5_000)
     create_category(user: user, name: "Food", category_type: :expense)
     create_tag(user: user, name: "Business")
-    batch = ImportBatch.create!(user: user, source_filename: "transactions.csv", raw_csv: csv_for(comment: "Client lunch"))
+    batch = parsed_batch(user: user, rows: [ row_for(comment: "Client lunch") ])
 
     TransactionImporter.new.import_transactions(import_batch: batch)
 
@@ -25,7 +25,7 @@ class TransactionImporterTest < ActiveSupport::TestCase
   test "raises import error when account is missing" do
     user = create(:user)
     create_category(user: user, name: "Food", category_type: :expense)
-    batch = ImportBatch.create!(user: user, source_filename: "transactions.csv", raw_csv: csv_for(comment: "Client lunch"))
+    batch = parsed_batch(user: user, rows: [ row_for(comment: "Client lunch") ])
 
     error = assert_raises(TransactionImporter::ImportError) do
       TransactionImporter.new.import_transactions(import_batch: batch)
@@ -41,7 +41,7 @@ class TransactionImporterTest < ActiveSupport::TestCase
     account = create_account(user: user, name: "Cash", balance_cents: 5_000)
     create_category(user: user, name: "Food", category_type: :expense)
     create_tag(user: user, name: "Business")
-    batch = ImportBatch.create!(user: user, source_filename: "transactions.csv", raw_csv: csv_for(comment: "Client lunch"))
+    batch = parsed_batch(user: user, rows: [ row_for(comment: "Client lunch") ])
 
     travel_to Time.zone.parse("2026-05-04 12:00:00") do
       error = assert_raises(TransactionImporter::ImportError) do
@@ -58,7 +58,10 @@ class TransactionImporterTest < ActiveSupport::TestCase
   test "imports balance adjustment rows without categories" do
     user = create(:user)
     account = create_account(user: user, name: "Cash", balance_cents: 0)
-    batch = ImportBatch.create!(user: user, source_filename: "transactions.csv", raw_csv: balance_adjustment_csv)
+    batch = parsed_batch(
+      user: user,
+      rows: [ row_for(transaction_kind: "balance_adjustment", category: nil, source_amount_cents: "5000", comment: "Opening balance", hide_amount: "false", tags: "") ]
+    )
 
     TransactionImporter.new.import_transactions(import_batch: batch)
 
@@ -69,26 +72,15 @@ class TransactionImporterTest < ActiveSupport::TestCase
     assert_equal 5_000, account.reload.balance_cents
   end
 
-  test "imports tab-separated transaction rows from tsv files" do
-    user = create(:user)
-    account = create_account(user: user, name: "Cash", balance_cents: 5_000)
-    create_category(user: user, name: "Food", category_type: :expense)
-    batch = ImportBatch.create!(user: user, source_filename: "transactions.tsv", raw_csv: tsv_for(comment: "Client lunch"))
-
-    TransactionImporter.new.import_transactions(import_batch: batch)
-
-    assert_predicate batch.reload, :imported?
-    transaction = user.transactions.sole
-    assert_equal "Client lunch", transaction.comment
-    assert_equal 3_800, account.reload.balance_cents
-  end
-
-  test "imports json transaction rows from json files" do
+  test "imports parsed json row values" do
     user = create(:user)
     account = create_account(user: user, name: "Cash", balance_cents: 5_000)
     create_category(user: user, name: "Food", category_type: :expense)
     create_tag(user: user, name: "Business")
-    batch = ImportBatch.create!(user: user, source_filename: "transactions.json", raw_csv: json_for(comment: "Client lunch"))
+    batch = parsed_batch(
+      user: user,
+      rows: [ row_for(comment: "Client lunch", timezone_utc_offset_minutes: 0, source_amount_cents: 1200, hide_amount: true) ]
+    )
 
     TransactionImporter.new.import_transactions(import_batch: batch)
 
@@ -106,7 +98,10 @@ class TransactionImporterTest < ActiveSupport::TestCase
     user = create(:user)
     account = create_account(user: user, name: "Cash", balance_cents: 5_000)
     create_category(user: user, name: "Food", category_type: :expense)
-    batch = ImportBatch.create!(user: user, source_filename: "transactions.csv", raw_csv: partial_failure_csv)
+    batch = parsed_batch(
+      user: user,
+      rows: [ row_for(comment: "Lunch", tags: ""), row_for(category: "Missing", comment: "Coffee", tags: "") ]
+    )
 
     error = assert_raises(TransactionImporter::ImportError) do
       TransactionImporter.new.import_transactions(import_batch: batch)
@@ -118,57 +113,49 @@ class TransactionImporterTest < ActiveSupport::TestCase
     assert_equal 5_000, account.reload.balance_cents
   end
 
+  test "raises import error when parsed rows are missing required fields" do
+    user = create(:user)
+    batch = parsed_batch(user: user, rows: [ row_for.except("Account") ])
+
+    error = assert_raises(TransactionImporter::ImportError) do
+      TransactionImporter.new.import_transactions(import_batch: batch)
+    end
+
+    assert_equal "Import row is missing Account", error.message
+    assert_predicate batch.reload, :pending?
+  end
+
   private
 
-  def csv_for(comment:)
-    <<~CSV
-      Transacted At,Timezone UTC Offset Minutes,Type,Account,Destination Account,Category,Source Amount Cents,Destination Amount Cents,Tags,Hide Amount,Comment,Latitude,Longitude
-      2026-05-03T10:00:00Z,480,expense,Cash,,Food,1200,0,Business,true,#{comment},37.7749,-122.4194
-    CSV
+  def parsed_batch(user:, rows:)
+    ImportBatch.create!(user: user, source_filename: "transactions.csv", raw_csv: "raw import payload", parsed_rows: rows)
   end
 
-  def balance_adjustment_csv
-    <<~CSV
-      Transacted At,Timezone UTC Offset Minutes,Type,Account,Destination Account,Category,Source Amount Cents,Destination Amount Cents,Tags,Hide Amount,Comment,Latitude,Longitude
-      2026-05-03T10:00:00Z,0,balance_adjustment,Cash,,,5000,0,,false,Opening balance,,
-    CSV
-  end
-
-  def tsv_for(comment:)
-    [
-      [ "Transacted At", "Timezone UTC Offset Minutes", "Type", "Account", "Destination Account", "Category", "Source Amount Cents", "Destination Amount Cents", "Tags", "Hide Amount", "Comment", "Latitude", "Longitude" ].join("\t"),
-      [ "2026-05-03T10:00:00Z", "0", "expense", "Cash", "", "Food", "1200", "0", "", "false", comment, "", "" ].join("\t")
-    ].join("\n")
-  end
-
-  def json_for(comment:)
-    JSON.generate(
-      transactions: [
-        {
-          transacted_at: "2026-05-03T10:00:00Z",
-          timezone_utc_offset_minutes: 0,
-          transaction_kind: "expense",
-          account_name: "Cash",
-          destination_account_name: nil,
-          transaction_category_name: "Food",
-          source_amount_cents: 1200,
-          destination_amount_cents: 0,
-          transaction_tag_names: [ "Business" ],
-          hide_amount: true,
-          comment: comment,
-          geo_latitude: "37.7749",
-          geo_longitude: "-122.4194"
-        }
-      ]
-    )
-  end
-
-  def partial_failure_csv
-    <<~CSV
-      Transacted At,Timezone UTC Offset Minutes,Type,Account,Destination Account,Category,Source Amount Cents,Destination Amount Cents,Tags,Hide Amount,Comment,Latitude,Longitude
-      2026-05-03T10:00:00Z,0,expense,Cash,,Food,1200,0,,false,Lunch,,
-      2026-05-04T10:00:00Z,0,expense,Cash,,Missing,400,0,,false,Coffee,,
-    CSV
+  def row_for(
+    transaction_kind: "expense",
+    account: "Cash",
+    category: "Food",
+    source_amount_cents: "1200",
+    tags: "Business",
+    hide_amount: "true",
+    comment: "Lunch",
+    timezone_utc_offset_minutes: "480"
+  )
+    {
+      "Transacted At" => "2026-05-03T10:00:00Z",
+      "Timezone UTC Offset Minutes" => timezone_utc_offset_minutes,
+      "Type" => transaction_kind,
+      "Account" => account,
+      "Destination Account" => nil,
+      "Category" => category,
+      "Source Amount Cents" => source_amount_cents,
+      "Destination Amount Cents" => "0",
+      "Tags" => tags,
+      "Hide Amount" => hide_amount,
+      "Comment" => comment,
+      "Latitude" => "37.7749",
+      "Longitude" => "-122.4194"
+    }
   end
 
   def create_account(user:, name:, balance_cents:)
