@@ -12,6 +12,7 @@
 - Rails is a complete rewrite, not a compatibility adapter for the Go/Vue app.
 - Do not preserve legacy `.json` URLs, camelCase params, `success/result` envelopes, or old frontend contracts.
 - Do not implement MCP. Machine access is through the Rails-native API and the separate `jotctl` CLI.
+- Do not migrate old frontend application cloud-sync settings. Durable Rails settings live in `UserPreference` or explicit Rails resources.
 
 ## Rails Phases
 
@@ -46,4 +47,5 @@
 | Transaction templates and schedules | Phase 7 | `TransactionTemplate`, recurring job |
 | Rails-native JSON API | Phase 8 | `Api::V1` resource controllers with top-level JSON keys |
 | LLM receipt recognition | Phase 8 | `ReceiptRecognition`, `ReceiptRecognitionJob`, `ReceiptRecognitionClient` |
+| Application cloud-sync settings | Excluded | Old frontend local UI setting sync is not part of the Rails-native rewrite |
 | MCP support | Excluded | Not part of the Rails rewrite scope |

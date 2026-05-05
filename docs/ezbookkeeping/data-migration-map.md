@@ -25,6 +25,6 @@
 | TransactionTemplate | transaction_templates | 7 | Split normal templates and scheduled rules into explicit columns. |
 | TransactionPictureInfo | Active Storage attachments | 6 | Migrate blobs only after storage backend is configured. |
 | UserCustomExchangeRate | user_custom_exchange_rates | 4 | Preserve user override rates with documented base-rate conversion. |
-| UserApplicationCloudSetting | application cloud settings | 4 | Implement only if the Rails product keeps this feature. |
+| UserApplicationCloudSetting | Excluded | Excluded | Old frontend local UI setting sync is not migrated. Durable Rails preferences live in `UserPreference` or explicit Rails resources. |
 | UserExternalAuth | external_authentications | 5 | Map provider and external identity into Rails auth model. |
 | InsightsExplorer | insight_explorers | 2 | Store bounded chart/filter config JSONB, never executable code. |

@@ -152,14 +152,13 @@ Verification:
 
 ### Phase 4: User Settings, Localization, Currency, And Exchange Rates
 
-目标是覆盖语言、日期/数字/货币显示、默认账户/币种、应用云设置和汇率。
+目标是覆盖语言、日期/数字/货币显示、默认账户/币种和汇率。旧前端 application cloud-sync settings 不迁移；持久化 Rails 设置归入 `UserPreference` 或明确的 Rails resource。
 
 Entities:
 
 - `UserPreference` or columns on `User`, chosen once as the source of truth for profile/display settings.
 - `UserCustomExchangeRate` for per-user overrides.
 - `ExchangeRateSnapshot` for provider data if automatic rates are enabled.
-- `ApplicationCloudSetting` only if the Rails app keeps an equivalent of source “application cloud settings”。
 
 Architecture:
 
