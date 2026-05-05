@@ -49,7 +49,7 @@ class TransactionTagGroupsController < ApplicationController
   def destroy
     tag_group = scoped_tag_group
     authorize tag_group
-    tag_group.discard!
+    TransactionTagGroupDiscarder.new.discard_tag_group(tag_group: tag_group)
 
     redirect_to transaction_tag_groups_path, notice: "Tag group deleted.", status: :see_other
   end

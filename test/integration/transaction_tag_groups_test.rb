@@ -87,6 +87,24 @@ class TransactionTagGroupsTest < ActionDispatch::IntegrationTest
     assert_predicate group.reload, :discarded?
   end
 
+  test "deletes tags with their tag group" do
+    user = create(:user)
+    other_user = create(:user)
+    group = TransactionTagGroup.create!(user: user, name: "Context", display_order: 1)
+    tag = TransactionTag.create!(user: user, transaction_tag_group: group, name: "Business", display_order: 1)
+    other_group = TransactionTagGroup.create!(user: other_user, name: "Other Context", display_order: 1)
+    other_tag = TransactionTag.create!(user: other_user, transaction_tag_group: other_group, name: "Other Business", display_order: 1)
+    sign_in user
+
+    delete transaction_tag_group_path(group)
+
+    assert_response :see_other
+    assert_predicate group.reload, :discarded?
+    assert_predicate tag.reload, :discarded?
+    assert_predicate other_group.reload, :kept?
+    assert_predicate other_tag.reload, :kept?
+  end
+
   test "does not delete another user's tag group" do
     user = create(:user)
     other_user = create(:user)

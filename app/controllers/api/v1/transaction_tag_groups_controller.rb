@@ -43,7 +43,7 @@ class Api::V1::TransactionTagGroupsController < ApiController
   def destroy
     tag_group = scoped_tag_group
     authorize tag_group
-    tag_group.discard!
+    TransactionTagGroupDiscarder.new.discard_tag_group(tag_group: tag_group)
 
     head :no_content
   end
