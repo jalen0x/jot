@@ -19,26 +19,7 @@ class Api::V1::TransactionTrendsController < ApiController
   private
 
   def filter_params
-    params.permit(
-      :transaction_kind,
-      :account_id,
-      :transaction_category_id,
-      :tag_id,
-      :keyword,
-      :minimum_amount_cents,
-      :maximum_amount_cents,
-      account_ids: [],
-      transaction_category_ids: [],
-      tag_filter: [
-        :without_tags,
-        {
-          include_any_ids: [],
-          include_all_ids: [],
-          exclude_any_ids: [],
-          exclude_all_ids: []
-        }
-      ]
-    )
+    ledger_filter_params(include_amounts: true)
   end
 
   def trends_range
