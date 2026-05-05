@@ -1728,6 +1728,7 @@ CREATE TABLE public.user_preferences (
     fiscal_year_start_day integer DEFAULT 1 NOT NULL,
     fiscal_year_format text DEFAULT 'start_year_end_year'::text NOT NULL,
     currency_display_format text DEFAULT 'code_after_amount'::text NOT NULL,
+    time_format text DEFAULT 'twenty_four_hour'::text NOT NULL,
     CONSTRAINT user_preferences_currency_display_format_supported CHECK ((currency_display_format = ANY (ARRAY['code_after_amount'::text, 'code_before_amount'::text, 'none'::text]))),
     CONSTRAINT user_preferences_date_format_supported CHECK ((date_format = ANY (ARRAY['year_month_day'::text, 'month_day_year'::text, 'day_month_year'::text]))),
     CONSTRAINT user_preferences_default_currency_code_length CHECK ((char_length(default_currency_code) = 3)),
@@ -1735,7 +1736,8 @@ CREATE TABLE public.user_preferences (
     CONSTRAINT user_preferences_fiscal_year_format_supported CHECK ((fiscal_year_format = ANY (ARRAY['start_year_end_year'::text, 'start_year_end_short_year'::text, 'start_short_year_end_short_year'::text, 'end_year'::text, 'end_short_year'::text]))),
     CONSTRAINT user_preferences_fiscal_year_start_valid CHECK ((((fiscal_year_start_month = ANY (ARRAY[1, 3, 5, 7, 8, 10, 12])) AND ((fiscal_year_start_day >= 1) AND (fiscal_year_start_day <= 31))) OR ((fiscal_year_start_month = ANY (ARRAY[4, 6, 9, 11])) AND ((fiscal_year_start_day >= 1) AND (fiscal_year_start_day <= 30))) OR ((fiscal_year_start_month = 2) AND ((fiscal_year_start_day >= 1) AND (fiscal_year_start_day <= 28))))),
     CONSTRAINT user_preferences_locale_supported CHECK ((locale = ANY (ARRAY['en'::text, 'zh-CN'::text]))),
-    CONSTRAINT user_preferences_number_format_supported CHECK ((number_format = ANY (ARRAY['western'::text, 'decimal_comma'::text])))
+    CONSTRAINT user_preferences_number_format_supported CHECK ((number_format = ANY (ARRAY['western'::text, 'decimal_comma'::text]))),
+    CONSTRAINT user_preferences_time_format_supported CHECK ((time_format = ANY (ARRAY['twenty_four_hour'::text, 'twelve_hour'::text])))
 );
 
 
@@ -1821,6 +1823,13 @@ COMMENT ON COLUMN public.user_preferences.fiscal_year_format IS 'Preferred fisca
 --
 
 COMMENT ON COLUMN public.user_preferences.currency_display_format IS 'Preferred currency code placement for displayed amounts';
+
+
+--
+-- Name: COLUMN user_preferences.time_format; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_preferences.time_format IS 'Preferred display format for signed-in time text';
 
 
 --
@@ -2961,6 +2970,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260505120000'),
 ('20260505110000'),
 ('20260505100000'),
 ('20260505090000'),

@@ -45,6 +45,12 @@
     </div>
 
     <div>
+      <%= form.label :time_format, t(".time_format"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.select :time_format, UserPreference::SUPPORTED_TIME_FORMATS.map { |time_format| [ t(".time_formats.#{time_format}"), time_format ] }, {}, class: field_classes %>
+      <p class="mt-2 text-sm text-body-subtle"><%= t(".time_format_help") %></p>
+    </div>
+
+    <div>
       <%= form.label :first_day_of_week, t(".first_day_of_week"), class: "mb-2 block text-sm font-medium text-heading" %>
       <%= form.select :first_day_of_week, UserPreference::SUPPORTED_FIRST_DAYS_OF_WEEK.map { |day| [ t(".weekdays.#{day}"), day ] }, {}, class: field_classes %>
       <p class="mt-2 text-sm text-body-subtle"><%= t(".first_day_of_week_help") %></p>

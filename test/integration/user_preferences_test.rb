@@ -102,6 +102,21 @@ class UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal "code_before_amount", user.reload.user_preference.currency_display_format
   end
 
+  test "updates the signed-in user's time format" do
+    user = create(:user)
+    sign_in user
+
+    patch user_preference_path, params: {
+      user_preference: {
+        default_currency_code: "usd",
+        time_format: "twelve_hour"
+      }
+    }
+
+    assert_redirected_to user_preference_path
+    assert_equal "twelve_hour", user.reload.user_preference.time_format
+  end
+
   test "renders validation errors for an invalid currency" do
     user = create(:user)
     sign_in user

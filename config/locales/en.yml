@@ -125,6 +125,8 @@ en:
       default_account_none: "No default account"
       date_format: "Date format"
       date_format_help: "Used when displaying transaction dates."
+      time_format: "Time format"
+      time_format_help: "Used when displaying transaction times."
       first_day_of_week: "First day of week"
       first_day_of_week_help: "Used when grouping ledger activity by week."
       fiscal_year_start: "Fiscal year start"
@@ -147,6 +149,9 @@ en:
         year_month_day: "YYYY-MM-DD"
         month_day_year: "MM/DD/YYYY"
         day_month_year: "DD/MM/YYYY"
+      time_formats:
+        twenty_four_hour: "13:05"
+        twelve_hour: "01:05 PM"
       fiscal_year_formats:
         start_year_end_year: "2026-2027"
         start_year_end_short_year: "2026-27"

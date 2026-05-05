@@ -16,6 +16,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal "EUR", user_preference_json.fetch("default_currency_code")
     assert_equal "en", user_preference_json["locale"]
     assert_equal "year_month_day", user_preference_json["date_format"]
+    assert_equal "twenty_four_hour", user_preference_json["time_format"]
     assert_equal "western", user_preference_json["number_format"]
     assert_equal 0, user_preference_json["first_day_of_week"]
     assert_equal 1, user_preference_json["fiscal_year_start_month"]
@@ -31,12 +32,13 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     raw_token = issue_token(user)
 
     patch api_v1_user_preference_path,
-      params: { user_preference: { default_currency_code: "cad", locale: "zh-CN", date_format: "day_month_year", number_format: "decimal_comma", first_day_of_week: 1, fiscal_year_start_month: 4, fiscal_year_start_day: 1, fiscal_year_format: "end_short_year", currency_display_format: "code_before_amount", default_account_id: account.to_param } },
+      params: { user_preference: { default_currency_code: "cad", locale: "zh-CN", date_format: "day_month_year", time_format: "twelve_hour", number_format: "decimal_comma", first_day_of_week: 1, fiscal_year_start_month: 4, fiscal_year_start_day: 1, fiscal_year_format: "end_short_year", currency_display_format: "code_before_amount", default_account_id: account.to_param } },
       headers: json_headers(raw_token),
       as: :json
 
     assert_response :success
     assert_equal "CAD", user.reload.user_preference.default_currency_code
+    assert_equal "twelve_hour", user.reload.user_preference.time_format
     assert_equal 1, user.reload.user_preference.first_day_of_week
     assert_equal 4, user.reload.user_preference.fiscal_year_start_month
     assert_equal 1, user.reload.user_preference.fiscal_year_start_day
@@ -47,6 +49,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal "CAD", user_preference_json.fetch("default_currency_code")
     assert_equal "zh-CN", user_preference_json["locale"]
     assert_equal "day_month_year", user_preference_json["date_format"]
+    assert_equal "twelve_hour", user_preference_json["time_format"]
     assert_equal "decimal_comma", user_preference_json["number_format"]
     assert_equal 1, user_preference_json["first_day_of_week"]
     assert_equal 4, user_preference_json["fiscal_year_start_month"]
@@ -167,6 +170,20 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_content
     assert_match(/Currency display format/i, response.body)
+  end
+
+  test "rejects unsupported time format updates" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD")
+    raw_token = issue_token(user)
+
+    patch api_v1_user_preference_path,
+      params: { user_preference: { default_currency_code: "usd", time_format: "with_seconds" } },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_match(/Time format/i, response.body)
   end
 
   test "rejects another user's default account" do
