@@ -1,0 +1,37 @@
+<% content_for :title, t(".title") %>
+
+<section class="space-y-8">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="max-w-3xl space-y-3">
+      <p class="text-sm font-medium uppercase tracking-wide text-fg-brand"><%= t(".eyebrow") %></p>
+      <h1 class="text-3xl font-semibold tracking-tight text-heading"><%= t(".heading") %></h1>
+      <p class="text-body"><%= t(".description") %></p>
+    </div>
+
+    <%= render(ButtonComponent.new(variant: :secondary, href: user_custom_exchange_rates_path)) { t(".manage_custom_rates") } %>
+  </div>
+
+  <div class="rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs">
+    <p class="text-sm font-medium text-body-subtle"><%= t(".base_currency") %></p>
+    <p class="mt-2 text-3xl font-semibold text-heading"><%= @catalog.base_currency_code %></p>
+  </div>
+
+  <div class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+    <table class="w-full text-left text-sm text-body">
+      <thead class="border-b border-default bg-neutral-secondary-medium text-xs uppercase text-body-subtle">
+        <tr>
+          <th scope="col" class="px-5 py-3"><%= t(".currency") %></th>
+          <th scope="col" class="px-5 py-3 text-right"><%= t(".rate") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @catalog.exchange_rates.each do |exchange_rate| %>
+          <tr class="border-b border-default last:border-0">
+            <td class="px-5 py-4 font-medium text-heading"><%= exchange_rate.currency_code %></td>
+            <td class="px-5 py-4 text-right font-semibold text-heading"><%= exchange_rate.rate %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

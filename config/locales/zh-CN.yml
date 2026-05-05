@@ -25,6 +25,16 @@ zh-CN:
   accounts:
     index:
       reconcile: "对账"
+  exchange_rate_catalogs:
+    show:
+      title: "汇率目录"
+      eyebrow: "汇率"
+      heading: "汇率目录"
+      description: "查看相对于基础货币的供应商汇率和你的自定义覆盖。"
+      manage_custom_rates: "管理自定义汇率"
+      base_currency: "基础货币"
+      currency: "货币"
+      rate: "汇率"
   layouts:
     application:
       insights: "洞察"
