@@ -181,6 +181,7 @@ Rails choices:
 
 - Keep Devise as primary authentication.
 - Use existing GitHub OmniAuth only until additional OIDC providers are explicitly required.
+- `ExternalAuthentication` is a Rails-native management resource over Devise `users.provider` / `users.uid`; it is not a source-compatible `UserExternalAuth` table.
 - Add 2FA via a Rails-native implementation when phase starts; do not preserve Go token internals.
 - Session/token management uses Rails/Devise concepts first. API tokens become explicit `ApiToken` records when machine access is required.
 - Application lock is a separate current-user security resource, not a second login system hidden in controllers.

@@ -13,6 +13,7 @@
 - Do not preserve legacy `.json` URLs, camelCase params, `success/result` envelopes, or old frontend contracts.
 - Do not implement MCP. Machine access is through the Rails-native API and the separate `jotctl` CLI.
 - Do not migrate old frontend application cloud-sync settings. Durable Rails settings live in `UserPreference` or explicit Rails resources.
+- Do not add source-style multi-provider OIDC compatibility by default. Rails keeps GitHub OmniAuth as the only external sign-in provider until another provider is explicitly required.
 
 ## Rails Phases
 
@@ -39,7 +40,8 @@
 | Sessions and API tokens | Phase 5 | Rails session/token resources |
 | Login rate limiting | Phase 5 | `LoginAttemptLimiter` |
 | Two-factor authentication | Phase 5 | `TwoFactorAuthentication` resources |
-| OIDC/external auth | Phase 5 | `ExternalAuthentication` resources |
+| GitHub external auth | Phase 5 | Devise GitHub OmniAuth plus `ExternalAuthentication` wrapper |
+| OIDC/Gitea/Nextcloud external auth | Deferred | Add only when a concrete provider requirement exists |
 | Application lock | Phase 5 | `ApplicationLock` resources |
 | Transaction pictures | Phase 6 | Active Storage attachments |
 | Geo locations and maps | Phase 6 | transaction location columns and map adapters |
