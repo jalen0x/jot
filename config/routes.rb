@@ -17,6 +17,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :accounts, only: [ :index, :show, :create, :update, :destroy ] do
         resource :reconciliation_statement, only: :show, controller: "account_reconciliation_statements"
+        resource :transaction_clearance, only: :create, controller: "account_transaction_clearances"
       end
       resources :account_balance_trends, only: :index
       resource :user_preference, only: [ :show, :update ]
