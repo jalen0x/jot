@@ -64,4 +64,37 @@ class UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match(/value="CNY"/, response.body)
   end
+
+  test "rejects another user's default account" do
+    user = create(:user)
+    other_account = create_account(user: create(:user), name: "Other Savings")
+    sign_in user
+
+    patch user_preference_path, params: {
+      user_preference: {
+        default_currency_code: "usd",
+        default_account_id: other_account.to_param
+      }
+    }
+
+    assert_response :unprocessable_content
+    assert_nil user.reload.user_preference&.default_account
+    assert_match(/Default account/i, response.body)
+  end
+
+  private
+
+  def create_account(user:, name:)
+    Account.create!(
+      user: user,
+      name: name,
+      account_category: :cash,
+      account_structure: :single_account,
+      icon_key: 1,
+      color_hex: "22C55E",
+      currency_code: "USD",
+      balance_cents: 0,
+      display_order: 1
+    )
+  end
 end

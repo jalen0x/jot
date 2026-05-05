@@ -44,7 +44,8 @@ class UserPreferencesController < ApplicationController
     @user_preference.default_account = nil
     return if default_account_id.blank?
 
-    @user_preference.default_account = Account.find(Account.decode_prefix_id(default_account_id.to_s) || default_account_id)
+    account_id = Account.decode_prefix_id(default_account_id.to_s) || default_account_id
+    @user_preference.default_account = current_user.accounts.kept.find(account_id)
   rescue ActiveRecord::RecordNotFound
     @user_preference.errors.add(:default_account, "is unavailable")
   end
