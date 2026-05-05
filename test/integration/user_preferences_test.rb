@@ -149,6 +149,21 @@ class UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal "neutral", user.reload.user_preference.income_amount_color
   end
 
+  test "updates the signed-in user's transaction edit scope" do
+    user = create(:user)
+    sign_in user
+
+    patch user_preference_path, params: {
+      user_preference: {
+        default_currency_code: "usd",
+        transaction_edit_scope: "today_or_later"
+      }
+    }
+
+    assert_redirected_to user_preference_path
+    assert_equal "today_or_later", user.reload.user_preference.transaction_edit_scope
+  end
+
   test "renders validation errors for an invalid currency" do
     user = create(:user)
     sign_in user

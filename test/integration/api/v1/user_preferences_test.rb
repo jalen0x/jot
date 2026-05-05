@@ -26,6 +26,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal "latitude_longitude_decimal_degrees", user_preference_json["coordinate_display_format"]
     assert_equal "danger", user_preference_json["expense_amount_color"]
     assert_equal "success", user_preference_json["income_amount_color"]
+    assert_equal "all", user_preference_json["transaction_edit_scope"]
     refute_includes user_preference_json.keys, "user_id"
   end
 
@@ -35,7 +36,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     raw_token = issue_token(user)
 
     patch api_v1_user_preference_path,
-      params: { user_preference: { default_currency_code: "cad", locale: "zh-CN", date_format: "day_month_year", time_format: "twelve_hour", number_format: "decimal_comma", first_day_of_week: 1, fiscal_year_start_month: 4, fiscal_year_start_day: 1, fiscal_year_format: "end_short_year", currency_display_format: "code_before_amount", coordinate_display_format: "longitude_latitude_decimal_degrees", expense_amount_color: "warning", income_amount_color: "neutral", default_account_id: account.to_param } },
+      params: { user_preference: { default_currency_code: "cad", locale: "zh-CN", date_format: "day_month_year", time_format: "twelve_hour", number_format: "decimal_comma", first_day_of_week: 1, fiscal_year_start_month: 4, fiscal_year_start_day: 1, fiscal_year_format: "end_short_year", currency_display_format: "code_before_amount", coordinate_display_format: "longitude_latitude_decimal_degrees", expense_amount_color: "warning", income_amount_color: "neutral", transaction_edit_scope: "today_or_later", default_account_id: account.to_param } },
       headers: json_headers(raw_token),
       as: :json
 
@@ -50,6 +51,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal "longitude_latitude_decimal_degrees", user.reload.user_preference.coordinate_display_format
     assert_equal "warning", user.reload.user_preference.expense_amount_color
     assert_equal "neutral", user.reload.user_preference.income_amount_color
+    assert_equal "today_or_later", user.reload.user_preference.transaction_edit_scope
 
     user_preference_json = JSON.parse(response.body).fetch("user_preference")
     assert_equal "CAD", user_preference_json.fetch("default_currency_code")
@@ -65,6 +67,7 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_equal "longitude_latitude_decimal_degrees", user_preference_json["coordinate_display_format"]
     assert_equal "warning", user_preference_json["expense_amount_color"]
     assert_equal "neutral", user_preference_json["income_amount_color"]
+    assert_equal "today_or_later", user_preference_json["transaction_edit_scope"]
     assert_equal account.to_param, user_preference_json["default_account_id"]
   end
 
@@ -221,6 +224,20 @@ class ApiV1UserPreferencesTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_content
     assert_match(/Expense amount color/i, response.body)
+  end
+
+  test "rejects unsupported transaction edit scope updates" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD")
+    raw_token = issue_token(user)
+
+    patch api_v1_user_preference_path,
+      params: { user_preference: { default_currency_code: "usd", transaction_edit_scope: "last_7_days" } },
+      headers: json_headers(raw_token),
+      as: :json
+
+    assert_response :unprocessable_content
+    assert_match(/Transaction edit scope/i, response.body)
   end
 
   test "rejects another user's default account" do

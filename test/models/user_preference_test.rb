@@ -105,6 +105,15 @@ class UserPreferenceTest < ActiveSupport::TestCase
     assert_match(/user_preferences_income_amount_color_supported/i, ex.message)
   end
 
+  test "database rejects unsupported transaction edit scopes" do
+    preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
+
+    ex = assert_raises(ActiveRecord::StatementInvalid) do
+      preference.update_column(:transaction_edit_scope, "last_7_days")
+    end
+    assert_match(/user_preferences_transaction_edit_scope_supported/i, ex.message)
+  end
+
   test "database rejects unsupported coordinate display formats" do
     preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
 

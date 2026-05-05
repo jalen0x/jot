@@ -1,5 +1,10 @@
 class TransactionUpdater
   def update_transaction(transaction:, attributes:, tag_ids:)
+    unless TransactionEditScope.new.editable?(transaction: transaction)
+      transaction.errors.add(:base, "Transaction is outside the editable date range")
+      return Result.new(updated: false, transaction: transaction)
+    end
+
     original_balance = balance_snapshot(transaction)
     attributes = attributes.to_h.symbolize_keys
     transaction.assign_attributes(transaction_attributes(attributes))

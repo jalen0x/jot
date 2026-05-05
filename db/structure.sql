@@ -1732,6 +1732,7 @@ CREATE TABLE public.user_preferences (
     coordinate_display_format text DEFAULT 'latitude_longitude_decimal_degrees'::text NOT NULL,
     expense_amount_color text DEFAULT 'danger'::text NOT NULL,
     income_amount_color text DEFAULT 'success'::text NOT NULL,
+    transaction_edit_scope text DEFAULT 'all'::text NOT NULL,
     CONSTRAINT user_preferences_coordinate_display_format_supported CHECK ((coordinate_display_format = ANY (ARRAY['latitude_longitude_decimal_degrees'::text, 'longitude_latitude_decimal_degrees'::text, 'latitude_longitude_decimal_minutes'::text, 'longitude_latitude_decimal_minutes'::text, 'latitude_longitude_degrees_minutes_seconds'::text, 'longitude_latitude_degrees_minutes_seconds'::text]))),
     CONSTRAINT user_preferences_currency_display_format_supported CHECK ((currency_display_format = ANY (ARRAY['code_after_amount'::text, 'code_before_amount'::text, 'none'::text]))),
     CONSTRAINT user_preferences_date_format_supported CHECK ((date_format = ANY (ARRAY['year_month_day'::text, 'month_day_year'::text, 'day_month_year'::text]))),
@@ -1743,7 +1744,8 @@ CREATE TABLE public.user_preferences (
     CONSTRAINT user_preferences_income_amount_color_supported CHECK ((income_amount_color = ANY (ARRAY['success'::text, 'danger'::text, 'warning'::text, 'neutral'::text]))),
     CONSTRAINT user_preferences_locale_supported CHECK ((locale = ANY (ARRAY['en'::text, 'zh-CN'::text]))),
     CONSTRAINT user_preferences_number_format_supported CHECK ((number_format = ANY (ARRAY['western'::text, 'decimal_comma'::text]))),
-    CONSTRAINT user_preferences_time_format_supported CHECK ((time_format = ANY (ARRAY['twenty_four_hour'::text, 'twelve_hour'::text])))
+    CONSTRAINT user_preferences_time_format_supported CHECK ((time_format = ANY (ARRAY['twenty_four_hour'::text, 'twelve_hour'::text]))),
+    CONSTRAINT user_preferences_transaction_edit_scope_supported CHECK ((transaction_edit_scope = ANY (ARRAY['none'::text, 'all'::text, 'today_or_later'::text, 'last_24_hours_or_later'::text, 'this_week_or_later'::text, 'this_month_or_later'::text, 'this_year_or_later'::text])))
 );
 
 
@@ -1857,6 +1859,13 @@ COMMENT ON COLUMN public.user_preferences.expense_amount_color IS 'Preferred sem
 --
 
 COMMENT ON COLUMN public.user_preferences.income_amount_color IS 'Preferred semantic text color for income amounts';
+
+
+--
+-- Name: COLUMN user_preferences.transaction_edit_scope; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.user_preferences.transaction_edit_scope IS 'Preferred date window for editing and deleting transactions';
 
 
 --
@@ -2997,6 +3006,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260505150000'),
 ('20260505140000'),
 ('20260505130000'),
 ('20260505120000'),
