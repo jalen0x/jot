@@ -4,7 +4,7 @@ class Api::V1::TransactionAmountSummariesController < ApiController
     authorize :transaction_amount_summary
     summary = TransactionAmountSummary.new.summarize_transactions(user: current_user, range: summary_range, filters: filter_params)
 
-    render json: { transaction_amount_summary: summary_json(summary) }
+    render json: { transaction_amount_summary: summary }
   rescue Date::Error
     render json: { errors: [ "Start date and end date must be valid ISO 8601 dates" ] }, status: :unprocessable_content
   end
@@ -45,18 +45,5 @@ class Api::V1::TransactionAmountSummariesController < ApiController
     return if value.blank?
 
     Date.iso8601(value)
-  end
-
-  def summary_json(summary)
-    {
-      amounts: summary.amounts.map do |amount|
-        {
-          currency_code: amount.currency_code,
-          income_cents: amount.income_cents,
-          expense_cents: amount.expense_cents,
-          net_cents: amount.net_cents
-        }
-      end
-    }
   end
 end

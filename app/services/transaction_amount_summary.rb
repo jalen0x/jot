@@ -1,5 +1,14 @@
 class TransactionAmountSummary
-  Amount = Struct.new(:currency_code, :income_cents, :expense_cents, :net_cents, keyword_init: true)
+  Amount = Struct.new(:currency_code, :income_cents, :expense_cents, :net_cents, keyword_init: true) do
+    def as_json(_options = {})
+      {
+        currency_code: currency_code,
+        income_cents: income_cents,
+        expense_cents: expense_cents,
+        net_cents: net_cents
+      }
+    end
+  end
 
   def summarize_transactions(user:, range:, filters: {})
     totals = Hash.new { |hash, key| hash[key] = { income_cents: 0, expense_cents: 0 } }
@@ -40,6 +49,12 @@ class TransactionAmountSummary
     def initialize(range:, amounts:)
       @range = range
       @amounts = amounts
+    end
+
+    def as_json(_options = {})
+      {
+        amounts: amounts.map(&:as_json)
+      }
     end
   end
 end
