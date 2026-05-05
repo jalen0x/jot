@@ -75,6 +75,7 @@ class AccountsController < ApplicationController
       :color_hex,
       :currency_code,
       :opening_balance_cents,
+      :hidden,
       :comment
     ])
   end
@@ -87,6 +88,7 @@ class AccountsController < ApplicationController
       :icon_key,
       :color_hex,
       :currency_code,
+      :hidden,
       :comment
     ])
   end
@@ -111,6 +113,7 @@ class AccountsController < ApplicationController
       color_hex: "22C55E",
       currency_code: default_currency_code,
       balance_cents: 0,
+      hidden: false,
       display_order: next_display_order
     }
   end

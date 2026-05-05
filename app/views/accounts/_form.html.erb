@@ -45,6 +45,8 @@
 
   <%= render FormField::InputComponent.new(form: form, field: :comment, label: "Comment", type: :textarea) %>
 
+  <%= render FormField::CheckboxComponent.new(form: form, field: :hidden, label: "Hidden") %>
+
   <div class="flex items-center justify-end gap-3">
     <%= render(ButtonComponent.new(variant: :secondary, href: accounts_path)) { "Cancel" } %>
     <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: submitting_label })) { submit_label } %>
