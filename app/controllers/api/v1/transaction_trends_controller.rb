@@ -9,7 +9,7 @@ class Api::V1::TransactionTrendsController < ApiController
       filters: filter_params
     )
 
-    render json: { trends: trends_json(trends) }
+    render json: { trends: trends }
   rescue Date::Error
     render json: { errors: [ "Start date and end date must be valid ISO 8601 dates" ] }, status: :unprocessable_content
   rescue ArgumentError
@@ -56,19 +56,5 @@ class Api::V1::TransactionTrendsController < ApiController
 
   def trends_aggregation
     params[:aggregation].presence || "day"
-  end
-
-  def trends_json(trends)
-    {
-      aggregation: trends.aggregation,
-      buckets: trends.buckets.map do |bucket|
-        {
-          starts_on: bucket.starts_on.iso8601,
-          income_cents: bucket.income_cents,
-          expense_cents: bucket.expense_cents,
-          net_cents: bucket.net_cents
-        }
-      end
-    }
   end
 end

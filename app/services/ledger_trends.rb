@@ -1,5 +1,14 @@
 class LedgerTrends
-  Bucket = Struct.new(:starts_on, :income_cents, :expense_cents, :net_cents, keyword_init: true)
+  Bucket = Struct.new(:starts_on, :income_cents, :expense_cents, :net_cents, keyword_init: true) do
+    def as_json(_options = {})
+      {
+        starts_on: starts_on.iso8601,
+        income_cents: income_cents,
+        expense_cents: expense_cents,
+        net_cents: net_cents
+      }
+    end
+  end
 
   def build_transaction_trends(user:, range:, aggregation:, filters: {})
     transactions = LedgerQuery.new.list_transactions(user: user, filters: filters).where(transacted_at: range)
@@ -70,6 +79,13 @@ class LedgerTrends
       @range = range
       @aggregation = aggregation
       @buckets = buckets
+    end
+
+    def as_json(_options = {})
+      {
+        aggregation: aggregation,
+        buckets: buckets.map(&:as_json)
+      }
     end
   end
 end
