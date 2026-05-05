@@ -124,6 +124,24 @@ class ApiV1TransactionTagGroupsTest < ActionDispatch::IntegrationTest
     assert_predicate tag_group.reload, :discarded?
   end
 
+  test "deletes transaction tags with their tag group" do
+    user = create(:user)
+    other_user = create(:user)
+    tag_group = create_tag_group(user: user, name: "Bills", display_order: 1)
+    tag = TransactionTag.create!(user: user, transaction_tag_group: tag_group, name: "Rent", display_order: 1)
+    other_tag_group = create_tag_group(user: other_user, name: "Other Bills", display_order: 1)
+    other_tag = TransactionTag.create!(user: other_user, transaction_tag_group: other_tag_group, name: "Other Rent", display_order: 1)
+    raw_token = issue_token(user)
+
+    delete api_v1_transaction_tag_group_path(tag_group), headers: json_headers(raw_token)
+
+    assert_response :no_content
+    assert_predicate tag_group.reload, :discarded?
+    assert_predicate tag.reload, :discarded?
+    assert_predicate other_tag_group.reload, :kept?
+    assert_predicate other_tag.reload, :kept?
+  end
+
   test "does not delete another user's transaction tag group" do
     user = create(:user)
     other_user = create(:user)
