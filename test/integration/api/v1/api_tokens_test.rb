@@ -22,6 +22,9 @@ class ApiV1ApiTokensTest < ActionDispatch::IntegrationTest
     refute_includes names, "Expired"
     refute_includes names, "Revoked"
     refute_includes names, "Other"
+    api_tokens_by_name = api_tokens.index_by { |api_token| api_token.fetch("name") }
+    assert_equal true, api_tokens_by_name.fetch("Auth").fetch("current")
+    assert_equal false, api_tokens_by_name.fetch("Active").fetch("current")
     api_tokens.each do |api_token|
       assert api_token.fetch("id").start_with?("tok_")
       assert_equal true, api_token.fetch("active")
