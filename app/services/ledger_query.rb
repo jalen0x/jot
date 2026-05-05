@@ -1,4 +1,6 @@
 class LedgerQuery
+  class InvalidAmountFilter < StandardError; end
+
   def list_transactions(user:, filters: {})
     filters = filters.to_h.deep_symbolize_keys
     scope = user.transactions.kept.includes(:account, :destination_account, :transaction_category, :transaction_tags)
@@ -7,6 +9,7 @@ class LedgerQuery
     scope = scope.where(transaction_category_id: decoded_id(TransactionCategory, filters[:transaction_category_id])) if filters[:transaction_category_id].present?
     scope = apply_tag_filters(scope, user: user, tag_id: filters[:tag_id], tag_filter: filters[:tag_filter])
     scope = apply_keyword_filter(scope, filters[:keyword])
+    scope = apply_amount_filters(scope, minimum: filters[:minimum_amount_cents], maximum: filters[:maximum_amount_cents])
     scope.order(transacted_at: :desc, id: :desc).distinct
   end
 
@@ -68,6 +71,22 @@ class LedgerQuery
     return scope if keyword.blank?
 
     scope.where("transactions.comment ILIKE ?", "%#{Transaction.sanitize_sql_like(keyword)}%")
+  end
+
+  def apply_amount_filters(scope, minimum:, maximum:)
+    minimum = amount_cents(minimum)
+    maximum = amount_cents(maximum)
+    scope = scope.where("transactions.source_amount_cents >= ?", minimum) if minimum
+    scope = scope.where("transactions.source_amount_cents <= ?", maximum) if maximum
+    scope
+  end
+
+  def amount_cents(value)
+    return if value.blank?
+
+    Integer(value, 10)
+  rescue ArgumentError
+    raise InvalidAmountFilter, "Amount filters must be integer cents"
   end
 
   def decoded_id(model, value)

@@ -16,6 +16,8 @@ class Api::V1::TransactionCountsController < ApiController
       :transaction_category_id,
       :tag_id,
       :keyword,
+      :minimum_amount_cents,
+      :maximum_amount_cents,
       tag_filter: [
         :without_tags,
         {

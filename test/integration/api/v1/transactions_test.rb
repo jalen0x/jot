@@ -660,6 +660,114 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal 5_000, may_3.fetch("income_cents")
   end
 
+  test "filters transactions by amount range" do
+    user = create(:user)
+    other_user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 12:00:00"),
+      source_amount_cents: 500,
+      comment: "Coffee"
+    )
+    matching = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 11:00:00"),
+      source_amount_cents: 1_200,
+      comment: "Lunch"
+    )
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
+      source_amount_cents: 8_000,
+      comment: "Flight"
+    )
+    create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Food", category_type: :expense),
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 09:00:00"),
+      source_amount_cents: 1_200,
+      comment: "Other lunch"
+    )
+    raw_token = issue_token(user)
+
+    get api_v1_transactions_path,
+      params: { minimum_amount_cents: "1000", maximum_amount_cents: "2000" },
+      headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ matching.to_param ], body.fetch("transactions").map { |item| item.fetch("id") }
+  end
+
+  test "rejects invalid amount filters" do
+    user = create(:user)
+    raw_token = issue_token(user)
+
+    get api_v1_transactions_path,
+      params: { minimum_amount_cents: "many" },
+      headers: json_headers(raw_token)
+
+    assert_response :unprocessable_content
+    assert_match(/integer cents/i, response.body)
+  end
+
+  test "applies amount range to transaction aggregate endpoints" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Salary", category_type: :income)
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :income,
+      transacted_at: Time.zone.parse("2026-05-03 11:00:00"),
+      source_amount_cents: 5_000,
+      comment: "Consulting"
+    )
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :income,
+      transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
+      source_amount_cents: 9_000,
+      comment: "Other consulting"
+    )
+    raw_token = issue_token(user)
+    filter_params = {
+      start_date: "2026-05-01",
+      end_date: "2026-05-31",
+      minimum_amount_cents: "4000",
+      maximum_amount_cents: "6000"
+    }
+
+    get api_v1_transaction_count_path, params: filter_params, headers: json_headers(raw_token)
+    assert_response :success
+    assert_equal({ "count" => 1 }, JSON.parse(response.body))
+
+    get api_v1_transaction_statistics_path, params: filter_params, headers: json_headers(raw_token)
+    assert_response :success
+    assert_equal 5_000, JSON.parse(response.body).fetch("statistics").fetch("income_cents")
+
+    get api_v1_transaction_trends_path, params: filter_params.merge(aggregation: "day"), headers: json_headers(raw_token)
+    assert_response :success
+    may_3 = JSON.parse(response.body).fetch("trends").fetch("buckets").find { |bucket| bucket.fetch("starts_on") == "2026-05-03" }
+    assert_equal 5_000, may_3.fetch("income_cents")
+  end
+
   test "creates an expense transaction for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 5_000)
