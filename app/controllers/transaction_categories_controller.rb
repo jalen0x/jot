@@ -67,7 +67,7 @@ class TransactionCategoriesController < ApplicationController
   private
 
   def category_params
-    @category_params ||= params.expect(transaction_category: [ :name, :category_type, :parent_category_id, :icon_key, :color_hex, :comment ])
+    @category_params ||= params.expect(transaction_category: [ :name, :category_type, :parent_category_id, :icon_key, :color_hex, :hidden, :comment ])
   end
 
   def category_update_params

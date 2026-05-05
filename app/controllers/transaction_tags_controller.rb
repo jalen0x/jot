@@ -61,7 +61,7 @@ class TransactionTagsController < ApplicationController
   end
 
   def tag_params
-    params.expect(transaction_tag: [ :name, :transaction_tag_group_id ])
+    params.expect(transaction_tag: [ :name, :transaction_tag_group_id, :hidden ])
   end
 
   def tag_update_params

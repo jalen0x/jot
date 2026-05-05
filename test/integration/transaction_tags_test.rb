@@ -6,17 +6,23 @@ class TransactionTagsTest < ActionDispatch::IntegrationTest
     group = TransactionTagGroup.create!(user: user, name: "Context", display_order: 1)
     sign_in user
 
+    get new_transaction_tag_path
+    assert_response :success
+    assert_select "input#transaction_tag_hidden"
+
     post transaction_tags_path, params: {
       transaction_tag: {
         name: "Business",
-        transaction_tag_group_id: group.id.to_s
+        transaction_tag_group_id: group.id.to_s,
+        hidden: "1"
       }
     }
 
-    tag = user.transaction_tags.sole
+    tag = user.transaction_tags.reload.sole
     assert_redirected_to transaction_tag_groups_path
     assert_equal "Business", tag.name
     assert_equal group, tag.transaction_tag_group
+    assert_predicate tag, :hidden?
   end
 
   test "rejects another user's tag group" do
