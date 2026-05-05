@@ -1,6 +1,22 @@
 class AccountBalanceTrends
-  AccountBalance = Struct.new(:account, :opening_balance_cents, :closing_balance_cents, keyword_init: true)
-  Bucket = Struct.new(:starts_on, :account_balances, keyword_init: true)
+  AccountBalance = Struct.new(:account, :opening_balance_cents, :closing_balance_cents, keyword_init: true) do
+    def as_json(_options = {})
+      {
+        account_id: account.to_param,
+        opening_balance_cents: opening_balance_cents,
+        closing_balance_cents: closing_balance_cents
+      }
+    end
+  end
+
+  Bucket = Struct.new(:starts_on, :account_balances, keyword_init: true) do
+    def as_json(_options = {})
+      {
+        starts_on: starts_on.iso8601,
+        account_balances: account_balances.map(&:as_json)
+      }
+    end
+  end
 
   def build_account_balance_trends(user:, range:)
     accounts = user.accounts.kept.order(:display_order, :name, :id).to_a
@@ -79,6 +95,12 @@ class AccountBalanceTrends
     def initialize(range:, buckets:)
       @range = range
       @buckets = buckets
+    end
+
+    def as_json(_options = {})
+      {
+        buckets: buckets.map(&:as_json)
+      }
     end
   end
 end

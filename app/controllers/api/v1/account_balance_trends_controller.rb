@@ -4,7 +4,7 @@ class Api::V1::AccountBalanceTrendsController < ApiController
     authorize :account_balance_trend
     trends = AccountBalanceTrends.new.build_account_balance_trends(user: current_user, range: trends_range)
 
-    render json: { account_balance_trends: trends_json(trends) }
+    render json: { account_balance_trends: trends }
   rescue Date::Error
     render json: { errors: [ "Start date and end date must be valid ISO 8601 dates" ] }, status: :unprocessable_content
   end
@@ -22,22 +22,5 @@ class Api::V1::AccountBalanceTrendsController < ApiController
     return if value.blank?
 
     Date.iso8601(value)
-  end
-
-  def trends_json(trends)
-    {
-      buckets: trends.buckets.map do |bucket|
-        {
-          starts_on: bucket.starts_on.iso8601,
-          account_balances: bucket.account_balances.map do |account_balance|
-            {
-              account_id: account_balance.account.to_param,
-              opening_balance_cents: account_balance.opening_balance_cents,
-              closing_balance_cents: account_balance.closing_balance_cents
-            }
-          end
-        }
-      end
-    }
   end
 end
