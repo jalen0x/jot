@@ -10,8 +10,14 @@ class UserPreference < ApplicationRecord
     "western" => { separator: ".", delimiter: "," },
     "decimal_comma" => { separator: ",", delimiter: "." }
   }.freeze
+  FISCAL_YEAR_START_DAYS_BY_MONTH = {
+    1 => 31, 2 => 28, 3 => 31, 4 => 30, 5 => 31, 6 => 30,
+    7 => 31, 8 => 31, 9 => 30, 10 => 31, 11 => 30, 12 => 31
+  }.freeze
   SUPPORTED_DATE_FORMATS = DATE_FORMATS.keys.freeze
   SUPPORTED_FIRST_DAYS_OF_WEEK = (0..6).freeze
+  SUPPORTED_FISCAL_YEAR_START_DAYS = (1..31).freeze
+  SUPPORTED_FISCAL_YEAR_START_MONTHS = FISCAL_YEAR_START_DAYS_BY_MONTH.keys.freeze
   SUPPORTED_LOCALES = %w[en zh-CN].freeze
   SUPPORTED_NUMBER_FORMATS = NUMBER_FORMATS.keys.freeze
 
@@ -26,10 +32,13 @@ class UserPreference < ApplicationRecord
   validates :default_currency_code, format: { with: /\A[A-Z]{3}\z/ }
   validates :date_format, inclusion: { in: SUPPORTED_DATE_FORMATS }
   validates :first_day_of_week, inclusion: { in: SUPPORTED_FIRST_DAYS_OF_WEEK }
+  validates :fiscal_year_start_day, inclusion: { in: SUPPORTED_FISCAL_YEAR_START_DAYS }
+  validates :fiscal_year_start_month, inclusion: { in: SUPPORTED_FISCAL_YEAR_START_MONTHS }
   validates :locale, inclusion: { in: SUPPORTED_LOCALES }
   validates :number_format, inclusion: { in: SUPPORTED_NUMBER_FORMATS }
   validates :user_id, uniqueness: true
   validate :default_account_must_be_available
+  validate :fiscal_year_start_must_be_valid
 
   def self.datetime_format_for(date_format)
     "#{DATE_FORMATS.fetch(date_format)} %H:%M"
@@ -45,6 +54,8 @@ class UserPreference < ApplicationRecord
       default_account_id: default_account&.to_param,
       date_format: date_format,
       first_day_of_week: first_day_of_week,
+      fiscal_year_start_month: fiscal_year_start_month,
+      fiscal_year_start_day: fiscal_year_start_day,
       locale: locale,
       number_format: number_format
     }
@@ -65,5 +76,12 @@ class UserPreference < ApplicationRecord
     return if default_account.user_id == user_id && default_account.kept?
 
     errors.add(:default_account, "is unavailable")
+  end
+
+  def fiscal_year_start_must_be_valid
+    max_day = FISCAL_YEAR_START_DAYS_BY_MONTH[fiscal_year_start_month]
+    return if max_day.present? && fiscal_year_start_day.to_i.between?(1, max_day)
+
+    errors.add(:fiscal_year_start_day, "is invalid for fiscal year start")
   end
 end
