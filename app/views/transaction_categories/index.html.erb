@@ -29,6 +29,34 @@
             <p class="mt-4 text-sm text-body"><%= category.comment %></p>
           <% end %>
 
+          <% sub_categories = @sub_categories_by_parent_id.fetch(category.id, []) %>
+          <% if sub_categories.any? %>
+            <ul class="mt-4 space-y-3 border-t border-default pt-4">
+              <% sub_categories.each do |sub_category| %>
+                <li id="<%= dom_id(sub_category) %>" class="rounded-base bg-neutral-primary p-4">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 class="text-base font-semibold text-heading"><%= sub_category.name %></h3>
+                      <p class="mt-1 text-sm text-body-subtle"><%= sub_category.category_type.humanize %></p>
+                    </div>
+                    <% if sub_category.hidden? %>
+                      <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">Hidden</span>
+                    <% end %>
+                  </div>
+
+                  <% if sub_category.comment.present? %>
+                    <p class="mt-3 text-sm text-body"><%= sub_category.comment %></p>
+                  <% end %>
+
+                  <div class="mt-3 flex justify-end gap-2">
+                    <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_category_path(sub_category))) { "Edit" } %>
+                    <%= button_to "Delete", transaction_category_path(sub_category), method: :delete, form: { data: destructive_confirm_data("Delete this category?") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+                  </div>
+                </li>
+              <% end %>
+            </ul>
+          <% end %>
+
           <div class="mt-4 flex justify-end gap-2">
             <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_category_path(category))) { "Edit" } %>
             <%= button_to "Delete", transaction_category_path(category), method: :delete, form: { data: destructive_confirm_data("Delete this category?") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
