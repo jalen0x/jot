@@ -46,7 +46,7 @@ class Api::V1::TransactionCategoriesController < ApiController
   def destroy
     category = scoped_category
     authorize category
-    category.discard!
+    TransactionCategoryDiscarder.new.discard_category(category: category)
 
     head :no_content
   end

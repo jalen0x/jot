@@ -254,6 +254,24 @@ class ApiV1TransactionCategoriesTest < ActionDispatch::IntegrationTest
     assert_predicate category.reload, :discarded?
   end
 
+  test "deletes child transaction categories with their parent category" do
+    user = create(:user)
+    other_user = create(:user)
+    parent = create_category(user: user, name: "Food", category_type: :expense, display_order: 1)
+    child = create_category(user: user, name: "Produce", category_type: :expense, parent_category: parent, display_order: 2)
+    other_parent = create_category(user: other_user, name: "Other Food", category_type: :expense, display_order: 1)
+    other_child = create_category(user: other_user, name: "Other Produce", category_type: :expense, parent_category: other_parent, display_order: 2)
+    raw_token = issue_token(user)
+
+    delete api_v1_transaction_category_path(parent), headers: json_headers(raw_token)
+
+    assert_response :no_content
+    assert_predicate parent.reload, :discarded?
+    assert_predicate child.reload, :discarded?
+    assert_predicate other_parent.reload, :kept?
+    assert_predicate other_child.reload, :kept?
+  end
+
   test "does not delete another user's transaction category" do
     user = create(:user)
     other_user = create(:user)

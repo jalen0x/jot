@@ -52,7 +52,7 @@ class Api::V1::AccountsController < ApiController
   def destroy
     account = scoped_account
     authorize account
-    account.discard!
+    AccountDiscarder.new.discard_account(account: account)
 
     head :no_content
   end
