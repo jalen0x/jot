@@ -4,7 +4,7 @@ class Api::V1::AccountReconciliationStatementsController < ApiController
     authorize :account_reconciliation_statement
     statement = AccountReconciliation.new.build_statement(account: account, range: statement_range)
 
-    render json: { reconciliation_statement: statement_json(statement) }
+    render json: { reconciliation_statement: statement }
   rescue Date::Error
     render json: { errors: [ "Start date and end date must be valid ISO 8601 dates" ] }, status: :unprocessable_content
   end
@@ -30,18 +30,5 @@ class Api::V1::AccountReconciliationStatementsController < ApiController
     return if value.blank?
 
     Date.iso8601(value)
-  end
-
-  def statement_json(statement)
-    {
-      account_id: statement.account.to_param,
-      start_date: statement.range.begin.to_date.iso8601,
-      end_date: statement.range.end.to_date.iso8601,
-      opening_balance_cents: statement.opening_balance_cents,
-      inflow_cents: statement.inflow_cents,
-      outflow_cents: statement.outflow_cents,
-      closing_balance_cents: statement.closing_balance_cents,
-      transaction_ids: statement.transactions.map(&:to_param)
-    }
   end
 end
