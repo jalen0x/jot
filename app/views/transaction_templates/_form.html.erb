@@ -56,9 +56,7 @@
     <%= form.label :hide_amount, "Hide amount", class: "select-none ms-2 text-sm font-medium text-heading" %>
   </div>
 
-  <% if transaction_template.persisted? %>
-    <%= render FormField::CheckboxComponent.new(form: form, field: :hidden, label: "Hidden") %>
-  <% end %>
+  <%= render FormField::CheckboxComponent.new(form: form, field: :hidden, label: "Hidden") %>
 
   <div class="mb-4 grid gap-4 sm:grid-cols-3">
     <div>

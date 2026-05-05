@@ -20,9 +20,7 @@
     <%= form.collection_select :transaction_tag_group_id, transaction_tag_groups, :id, :name, { include_blank: "Ungrouped" }, class: field_classes %>
   </div>
 
-  <% if transaction_tag.persisted? %>
-    <%= render FormField::CheckboxComponent.new(form: form, field: :hidden, label: "Hidden") %>
-  <% end %>
+  <%= render FormField::CheckboxComponent.new(form: form, field: :hidden, label: "Hidden") %>
 
   <div class="flex items-center justify-end gap-3">
     <%= render(ButtonComponent.new(variant: :secondary, href: transaction_tag_groups_path)) { "Cancel" } %>

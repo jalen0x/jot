@@ -43,6 +43,10 @@ class TransactionTemplatesTest < ActionDispatch::IntegrationTest
     tag = create_tag(user: user, name: "Rent")
     sign_in user
 
+    get new_transaction_template_path
+    assert_response :success
+    assert_select "input#transaction_template_hidden"
+
     post transaction_templates_path, params: {
       transaction_template: {
         template_kind: "scheduled",
@@ -54,6 +58,7 @@ class TransactionTemplatesTest < ActionDispatch::IntegrationTest
         source_amount_cents: "120000",
         destination_amount_cents: "0",
         hide_amount: "0",
+        hidden: "1",
         comment: "Monthly rent",
         schedule_frequency: "monthly",
         schedule_rule: "-1",
@@ -71,6 +76,7 @@ class TransactionTemplatesTest < ActionDispatch::IntegrationTest
     assert_equal category, template.transaction_category
     assert_equal [ tag ], template.transaction_tags.to_a
     assert_equal 120_000, template.source_amount_cents
+    assert_predicate template, :hidden?
     assert_equal "Monthly rent", template.comment
     assert_predicate template, :scheduled?
     assert_predicate template, :monthly?

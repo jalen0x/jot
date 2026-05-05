@@ -31,20 +31,26 @@ class TransactionCategoriesTest < ActionDispatch::IntegrationTest
     user = create(:user)
     sign_in user
 
+    get new_transaction_category_path
+    assert_response :success
+    assert_select "input#transaction_category_hidden"
+
     post transaction_categories_path, params: {
       transaction_category: {
         name: "Salary",
         category_type: "income",
         icon_key: "1",
         color_hex: "22C55E",
+        hidden: "1",
         comment: "Monthly pay"
       }
     }
 
-    category = user.transaction_categories.sole
+    category = user.transaction_categories.reload.sole
     assert_redirected_to transaction_categories_path
     assert_equal "Salary", category.name
     assert_predicate category, :income?
+    assert_predicate category, :hidden?
   end
 
   test "creates a child category for current user's parent category" do
