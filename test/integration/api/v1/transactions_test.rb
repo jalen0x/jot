@@ -768,6 +768,102 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal 5_000, may_3.fetch("income_cents")
   end
 
+  test "filters transactions by date range" do
+    user = create(:user)
+    other_user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-04-30 23:59:59"),
+      source_amount_cents: 500,
+      comment: "April coffee"
+    )
+    matching = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-15 12:00:00"),
+      source_amount_cents: 1_200,
+      comment: "May lunch"
+    )
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-06-01 00:00:00"),
+      source_amount_cents: 8_000,
+      comment: "June flight"
+    )
+    create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Food", category_type: :expense),
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-15 12:00:00"),
+      source_amount_cents: 1_200,
+      comment: "Other May lunch"
+    )
+    raw_token = issue_token(user)
+
+    get api_v1_transactions_path,
+      params: { start_date: "2026-05-01", end_date: "2026-05-31" },
+      headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ matching.to_param ], body.fetch("transactions").map { |item| item.fetch("id") }
+  end
+
+  test "counts transactions by date range" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-04-30 23:59:59"),
+      source_amount_cents: 500,
+      comment: "April coffee"
+    )
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-15 12:00:00"),
+      source_amount_cents: 1_200,
+      comment: "May lunch"
+    )
+    raw_token = issue_token(user)
+
+    get api_v1_transaction_count_path,
+      params: { start_date: "2026-05-01", end_date: "2026-05-31" },
+      headers: json_headers(raw_token)
+
+    assert_response :success
+    assert_equal({ "count" => 1 }, JSON.parse(response.body))
+  end
+
+  test "rejects invalid transaction filter dates" do
+    user = create(:user)
+    raw_token = issue_token(user)
+
+    get api_v1_transactions_path,
+      params: { start_date: "not-a-date", end_date: "2026-05-31" },
+      headers: json_headers(raw_token)
+
+    assert_response :unprocessable_content
+    assert_match(/valid ISO 8601 dates/i, response.body)
+  end
+
   test "creates an expense transaction for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 5_000)
