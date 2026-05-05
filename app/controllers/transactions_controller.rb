@@ -69,22 +69,7 @@ class TransactionsController < ApplicationController
   private
 
   def filter_params
-    params.permit(
-      :transaction_kind,
-      :account_id,
-      :transaction_category_id,
-      :tag_id,
-      :keyword,
-      tag_filter: [
-        :without_tags,
-        {
-          include_any_ids: [],
-          include_all_ids: [],
-          exclude_any_ids: [],
-          exclude_all_ids: []
-        }
-      ]
-    )
+    ledger_filter_params
   end
 
   def transaction_params

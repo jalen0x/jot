@@ -36,4 +36,44 @@ class ApplicationController < ActionController::Base
   def clear_application_unlock
     session.delete(:application_lock_unlocked_user_id)
   end
+
+  def ledger_filter_params(include_amounts: false, include_dates: false)
+    filters = {
+      transaction_kind: params[:transaction_kind],
+      account_id: params[:account_id],
+      transaction_category_id: params[:transaction_category_id],
+      tag_id: params[:tag_id],
+      keyword: params[:keyword]
+    }.compact
+
+    filters[:account_ids] = array_param(:account_ids) if param_key?(params, :account_ids)
+    filters[:transaction_category_ids] = array_param(:transaction_category_ids) if param_key?(params, :transaction_category_ids)
+    tag_filters = tag_filter_params
+    filters[:tag_filter] = tag_filters if tag_filters
+    filters[:minimum_amount_cents] = params[:minimum_amount_cents] if include_amounts
+    filters[:maximum_amount_cents] = params[:maximum_amount_cents] if include_amounts
+    filters[:start_date] = params[:start_date] if include_dates
+    filters[:end_date] = params[:end_date] if include_dates
+    filters
+  end
+
+  def tag_filter_params
+    tag_filter = params[:tag_filter]
+    return unless tag_filter.is_a?(ActionController::Parameters) || tag_filter.is_a?(Hash)
+
+    filters = { without_tags: tag_filter[:without_tags] }.compact
+    filters[:include_any_ids] = array_param(:include_any_ids, source: tag_filter) if param_key?(tag_filter, :include_any_ids)
+    filters[:include_all_ids] = array_param(:include_all_ids, source: tag_filter) if param_key?(tag_filter, :include_all_ids)
+    filters[:exclude_any_ids] = array_param(:exclude_any_ids, source: tag_filter) if param_key?(tag_filter, :exclude_any_ids)
+    filters[:exclude_all_ids] = array_param(:exclude_all_ids, source: tag_filter) if param_key?(tag_filter, :exclude_all_ids)
+    filters
+  end
+
+  def array_param(key, source: params)
+    Array(source[key]).reject(&:blank?)
+  end
+
+  def param_key?(source, key)
+    source.key?(key) || source.key?(key.to_s)
+  end
 end
