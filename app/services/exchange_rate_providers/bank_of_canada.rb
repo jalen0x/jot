@@ -7,6 +7,7 @@ class ExchangeRateProviders::BankOfCanada
   REFERENCE_URL = "https://www.bankofcanada.ca/rates/exchange/daily-exchange-rates/"
   BASE_CURRENCY_CODE = "CAD"
   OBSERVED_AT_ZONE = "America/Toronto"
+  NETWORK_ERRORS = [ Timeout::Error, SocketError, EOFError, SystemCallError ].freeze
 
   def fetch_latest
     response = Net::HTTP.get_response(URI(URL))
@@ -15,6 +16,8 @@ class ExchangeRateProviders::BankOfCanada
     parse(JSON.parse(response.body))
   rescue JSON::ParserError => error
     raise ExchangeRateProviders::FetchError, error.message
+  rescue *NETWORK_ERRORS => error
+    raise ExchangeRateProviders::FetchError, "Bank of Canada request failed: #{error.class}"
   end
 
   private
