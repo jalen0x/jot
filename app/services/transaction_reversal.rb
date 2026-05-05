@@ -6,7 +6,7 @@ class TransactionReversal
     end
 
     unless TransactionEditScope.new.editable?(transaction: transaction)
-      transaction.errors.add(:base, "Transaction is outside the editable date range")
+      transaction.errors.add(:base, TransactionEditScope::NOT_EDITABLE_MESSAGE)
       return Result.new(deleted: false, transaction: transaction)
     end
 

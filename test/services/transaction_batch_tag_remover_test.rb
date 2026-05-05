@@ -20,6 +20,23 @@ class TransactionBatchTagRemoverTest < ActiveSupport::TestCase
     assert_equal [ meals_tag ], decoy.reload.transaction_tags.order(:id).to_a
   end
 
+  test "rejects removals outside the user's transaction edit scope" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD", transaction_edit_scope: "today_or_later")
+    account = create_account(user: user)
+    category = create_category(user: user)
+    tag = create_tag(user: user, name: "Meals")
+    transaction = create_transaction(user: user, account: account, category: category, comment: "Lunch", tags: [ tag ])
+
+    travel_to Time.zone.parse("2026-05-04 12:00:00") do
+      result = TransactionBatchTagRemover.new.remove_tags(transactions: [ transaction ], tags: [ tag ])
+
+      refute_predicate result, :removed?
+      assert_includes result.transaction.errors[:base], "Transaction is outside the editable date range"
+    end
+    assert_equal [ tag ], transaction.reload.transaction_tags.order(:id).to_a
+  end
+
   private
 
   def create_account(user:)

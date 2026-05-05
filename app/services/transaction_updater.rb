@@ -1,7 +1,7 @@
 class TransactionUpdater
   def update_transaction(transaction:, attributes:, tag_ids:)
     unless TransactionEditScope.new.editable?(transaction: transaction)
-      transaction.errors.add(:base, "Transaction is outside the editable date range")
+      transaction.errors.add(:base, TransactionEditScope::NOT_EDITABLE_MESSAGE)
       return Result.new(updated: false, transaction: transaction)
     end
 

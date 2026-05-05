@@ -32,6 +32,23 @@ class TransactionBatchCategoryUpdaterTest < ActiveSupport::TestCase
     assert_equal old_category, coffee.reload.transaction_category
   end
 
+  test "rejects updates outside the user's transaction edit scope" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD", transaction_edit_scope: "today_or_later")
+    account = create_account(user: user)
+    old_category = create_category(user: user, name: "Food", category_type: :expense)
+    new_category = create_category(user: user, name: "Travel", category_type: :expense)
+    transaction = create_transaction(user: user, account: account, category: old_category, comment: "Lunch")
+
+    travel_to Time.zone.parse("2026-05-04 12:00:00") do
+      result = TransactionBatchCategoryUpdater.new.update_category(transactions: [ transaction ], category: new_category)
+
+      refute_predicate result, :updated?
+      assert_includes result.transaction.errors[:base], "Transaction is outside the editable date range"
+    end
+    assert_equal old_category, transaction.reload.transaction_category
+  end
+
   private
 
   def create_account(user:)

@@ -18,6 +18,23 @@ class TransactionBatchTagAdderTest < ActiveSupport::TestCase
     assert_equal 4, TransactionTagging.where(transaction_tag: [ existing_tag, new_tag ]).count
   end
 
+  test "rejects additions outside the user's transaction edit scope" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD", transaction_edit_scope: "today_or_later")
+    account = create_account(user: user)
+    category = create_category(user: user)
+    tag = create_tag(user: user, name: "Meals")
+    transaction = create_transaction(user: user, account: account, category: category, comment: "Lunch")
+
+    travel_to Time.zone.parse("2026-05-04 12:00:00") do
+      result = TransactionBatchTagAdder.new.add_tags(transactions: [ transaction ], tags: [ tag ])
+
+      refute_predicate result, :added?
+      assert_includes result.transaction.errors[:base], "Transaction is outside the editable date range"
+    end
+    assert_empty transaction.reload.transaction_tags
+  end
+
   private
 
   def create_account(user:)

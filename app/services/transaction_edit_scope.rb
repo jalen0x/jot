@@ -1,4 +1,6 @@
 class TransactionEditScope
+  NOT_EDITABLE_MESSAGE = "Transaction is outside the editable date range"
+
   def editable?(transaction:, current_time: Time.current)
     case edit_scope(transaction)
     when "all"
@@ -18,6 +20,10 @@ class TransactionEditScope
     else
       false
     end
+  end
+
+  def first_uneditable_transaction(transactions:, current_time: Time.current)
+    transactions.find { |transaction| !editable?(transaction: transaction, current_time: current_time) }
   end
 
   private

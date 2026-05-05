@@ -1,5 +1,8 @@
 class TransactionBatchAccountUpdater
   def update_account(transactions:, account:, destination_account: false)
+    failed_transaction = uneditable_transaction(transactions)
+    return Result.new(updated: false, transaction: failed_transaction) if failed_transaction.present?
+
     failed_transaction = transactions.find { |transaction| invalid_transaction?(transaction, account, destination_account) }
     return Result.new(updated: false, transaction: failed_transaction) if failed_transaction.present?
 
@@ -13,6 +16,14 @@ class TransactionBatchAccountUpdater
   end
 
   private
+
+  def uneditable_transaction(transactions)
+    transaction = TransactionEditScope.new.first_uneditable_transaction(transactions: transactions)
+    return if transaction.blank?
+
+    transaction.errors.add(:base, TransactionEditScope::NOT_EDITABLE_MESSAGE)
+    transaction
+  end
 
   def invalid_transaction?(transaction, account, destination_account)
     if destination_account
