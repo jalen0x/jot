@@ -75,6 +75,20 @@ class LedgerClearanceTest < ActiveSupport::TestCase
     assert_equal 4_500, checking_account.reload.balance_cents
   end
 
+  test "clears account transactions regardless of transaction edit scope" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD", transaction_edit_scope: "none")
+    account = create_account(user: user, name: "Cash", balance_cents: -1_200)
+    category = create_category(user: user, category_type: :expense)
+    transaction = create_transaction(user: user, account: account, category: category, amount_cents: 1_200)
+
+    result = LedgerClearance.new.clear_account_transactions(user: user, account: account)
+
+    assert_predicate result, :cleared?
+    assert_predicate transaction.reload, :discarded?
+    assert_equal 0, account.reload.balance_cents
+  end
+
   test "rejects hidden and parent accounts for account transaction clearance" do
     user = create(:user)
     hidden_account = create_account(user: user, name: "Hidden Cash", balance_cents: 800, hidden: true)

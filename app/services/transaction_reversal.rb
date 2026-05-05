@@ -1,11 +1,11 @@
 class TransactionReversal
-  def delete_transaction(transaction:)
+  def delete_transaction(transaction:, enforce_transaction_edit_scope: true)
     if transaction.discarded?
       transaction.errors.add(:base, "Transaction is already deleted")
       return Result.new(deleted: false, transaction: transaction)
     end
 
-    unless TransactionEditScope.new.editable?(transaction: transaction)
+    if enforce_transaction_edit_scope && !TransactionEditScope.new.editable?(transaction: transaction)
       transaction.errors.add(:base, TransactionEditScope::NOT_EDITABLE_MESSAGE)
       return Result.new(deleted: false, transaction: transaction)
     end
