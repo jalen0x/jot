@@ -155,6 +155,17 @@ class LedgerQueryTest < ActiveSupport::TestCase
     assert_equal [ untagged ], transactions.to_a
   end
 
+  test "filters by keyword in transaction comments" do
+    user = create(:user)
+    matching = create_transaction(user: user, comment: "Client lunch")
+    create_transaction(user: user, comment: "Family lunch")
+    create_transaction(user: create(:user), comment: "Client lunch")
+
+    transactions = LedgerQuery.new.list_transactions(user: user, filters: { keyword: "client" })
+
+    assert_equal [ matching ], transactions.to_a
+  end
+
   private
 
   def create_transaction(user:, comment:, transacted_at: Time.zone.parse("2026-05-03 10:00:00"), account: nil, category: nil)
