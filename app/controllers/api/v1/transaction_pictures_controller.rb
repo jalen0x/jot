@@ -5,7 +5,7 @@ class Api::V1::TransactionPicturesController < ApiController
   def index
     authorize @transaction, :show?
 
-    render json: { pictures: @transaction.pictures.attachments.map { |attachment| picture_json(attachment) } }
+    render json: { pictures: TransactionPicture.wrap(@transaction.pictures.attachments) }
   end
 
   # POST /api/v1/transactions/:transaction_id/pictures
@@ -13,7 +13,7 @@ class Api::V1::TransactionPicturesController < ApiController
     authorize @transaction, :update?
     @transaction.pictures.attach(picture_attachable)
 
-    render json: { picture: picture_json(@transaction.pictures.attachments.last) }, status: :created
+    render json: { picture: TransactionPicture.new(attachment: @transaction.pictures.attachments.last) }, status: :created
   end
 
   # DELETE /api/v1/transactions/:transaction_id/pictures/:id
@@ -40,16 +40,6 @@ class Api::V1::TransactionPicturesController < ApiController
       filename: file.original_filename,
       content_type: file.content_type,
       identify: false
-    }
-  end
-
-  def picture_json(attachment)
-    {
-      id: attachment.id,
-      filename: attachment.filename.to_s,
-      content_type: attachment.content_type,
-      byte_size: attachment.byte_size,
-      url: rails_blob_path(attachment, only_path: true)
     }
   end
 end
