@@ -127,6 +127,9 @@ en:
       default_account_none: "No default account"
       date_format: "Date format"
       date_format_help: "Used when displaying transaction dates."
+      expense_amount_color: "Expense amount color"
+      income_amount_color: "Income amount color"
+      amount_color_help: "Uses semantic colors for income and expense amounts in transaction lists."
       time_format: "Time format"
       time_format_help: "Used when displaying transaction times."
       first_day_of_week: "First day of week"
@@ -167,6 +170,11 @@ en:
         code_after_amount: "1,234.56 USD"
         code_before_amount: "USD 1,234.56"
         none: "1,234.56"
+      amount_colors:
+        success: "Success"
+        danger: "Danger"
+        warning: "Warning"
+        neutral: "Neutral"
       coordinate_display_formats:
         latitude_longitude_decimal_degrees: "Latitude, longitude decimal degrees"
         longitude_latitude_decimal_degrees: "Longitude, latitude decimal degrees"

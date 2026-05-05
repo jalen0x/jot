@@ -76,7 +76,7 @@
             </div>
 
             <div class="text-right">
-              <p class="text-base font-semibold text-heading">
+              <p class="text-base font-semibold <%= amount_color_class(transaction.transaction_kind) %>">
                 <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, amount_options: @amount_format_options) %>
               </p>
               <p class="mt-1 text-sm text-body-subtle"><%= transaction.transaction_kind.humanize %></p>

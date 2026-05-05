@@ -29,7 +29,7 @@ class UserPreferencesController < ApplicationController
   end
 
   def user_preference_params
-    params.expect(user_preference: [ :coordinate_display_format, :default_currency_code, :currency_display_format, :date_format, :default_account_id, :first_day_of_week, :fiscal_year_start_month, :fiscal_year_start_day, :fiscal_year_format, :locale, :number_format, :time_format ])
+    params.expect(user_preference: [ :coordinate_display_format, :default_currency_code, :currency_display_format, :date_format, :default_account_id, :expense_amount_color, :first_day_of_week, :fiscal_year_start_month, :fiscal_year_start_day, :fiscal_year_format, :income_amount_color, :locale, :number_format, :time_format ])
   end
 
   def assign_user_preference_attributes

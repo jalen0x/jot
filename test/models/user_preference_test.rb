@@ -87,6 +87,24 @@ class UserPreferenceTest < ActiveSupport::TestCase
     assert_match(/user_preferences_currency_display_format_supported/i, ex.message)
   end
 
+  test "database rejects unsupported expense amount colors" do
+    preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
+
+    ex = assert_raises(ActiveRecord::StatementInvalid) do
+      preference.update_column(:expense_amount_color, "blue")
+    end
+    assert_match(/user_preferences_expense_amount_color_supported/i, ex.message)
+  end
+
+  test "database rejects unsupported income amount colors" do
+    preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
+
+    ex = assert_raises(ActiveRecord::StatementInvalid) do
+      preference.update_column(:income_amount_color, "blue")
+    end
+    assert_match(/user_preferences_income_amount_color_supported/i, ex.message)
+  end
+
   test "database rejects unsupported coordinate display formats" do
     preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
 
