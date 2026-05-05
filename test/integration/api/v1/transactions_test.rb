@@ -533,6 +533,38 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     refute_includes transaction_json.keys, "user_id"
   end
 
+  test "does not create a transaction outside the user's transaction edit scope" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD", transaction_edit_scope: "today_or_later")
+    account = create_account(user: user, name: "Checking", balance_cents: 5_000)
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    raw_token = issue_token(user)
+
+    travel_to Time.zone.parse("2026-05-04 12:00:00") do
+      post api_v1_transactions_path,
+        params: {
+          transaction: {
+            transaction_kind: "expense",
+            account_id: account.to_param,
+            transaction_category_id: category.to_param,
+            transacted_at: "2026-05-03 12:00:00",
+            timezone_utc_offset_minutes: "0",
+            source_amount_cents: "1250",
+            destination_amount_cents: "0",
+            hide_amount: "false",
+            comment: "Lunch"
+          }
+        },
+        headers: json_headers(raw_token),
+        as: :json
+    end
+
+    assert_response :unprocessable_content
+    assert_empty user.transactions.where(comment: "Lunch")
+    assert_equal 5_000, account.reload.balance_cents
+    assert_match(/Transaction is outside the editable date range/i, response.body)
+  end
+
   test "rejects another user's account and transaction category" do
     user = create(:user)
     other_user = create(:user)

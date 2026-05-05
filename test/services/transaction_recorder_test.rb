@@ -48,6 +48,31 @@ class TransactionRecorderTest < ActiveSupport::TestCase
     assert_equal 3_800, account.reload.balance_cents
   end
 
+  test "rejects records outside the user's transaction edit scope" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD", transaction_edit_scope: "today_or_later")
+    account = create_account(user: user, balance_cents: 5_000)
+    category = create_category(user: user, category_type: :expense)
+
+    travel_to Time.zone.parse("2026-05-04 12:00:00") do
+      result = TransactionRecorder.new.record_transaction(
+        user: user,
+        attributes: transaction_attributes(
+          transaction_kind: "expense",
+          account_id: account.id.to_s,
+          transaction_category_id: category.id.to_s,
+          source_amount_cents: "1200"
+        ),
+        tag_ids: []
+      )
+
+      refute_predicate result, :recorded?
+      assert_includes result.transaction.errors[:base], "Transaction is outside the editable date range"
+    end
+    assert_equal 0, user.transactions.reload.count
+    assert_equal 5_000, account.reload.balance_cents
+  end
+
   test "records a transaction with prefixed tag ids" do
     user = create(:user)
     account = create_account(user: user, balance_cents: 5_000)

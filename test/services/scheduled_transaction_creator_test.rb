@@ -35,6 +35,28 @@ class ScheduledTransactionCreatorTest < ActiveSupport::TestCase
     assert_equal Date.new(2026, 5, 3), template.reload.last_generated_on
   end
 
+  test "scheduled creation bypasses the user's transaction edit scope" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD", transaction_edit_scope: "none")
+    account = create_account(user: user, balance_cents: 5_000)
+    category = create_category(user: user, category_type: :expense)
+    template = create_template(
+      user: user,
+      account: account,
+      transaction_category: category,
+      schedule_frequency: :daily,
+      schedule_rule: "0",
+      scheduled_at_minutes: 60,
+      timezone_utc_offset_minutes: 0
+    )
+
+    result = ScheduledTransactionCreator.new.create_due_transactions(current_time: Time.utc(2026, 5, 3, 2, 0))
+
+    assert_equal 1, result.created_count
+    assert_equal 4_000, account.reload.balance_cents
+    assert_equal Date.new(2026, 5, 3), template.reload.last_generated_on
+  end
+
   test "creates weekly schedules only on selected weekdays" do
     user = create(:user)
     account = create_account(user: user, balance_cents: 5_000)
