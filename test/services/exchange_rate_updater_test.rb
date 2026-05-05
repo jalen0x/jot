@@ -45,6 +45,17 @@ class ExchangeRateUpdaterTest < ActiveSupport::TestCase
     assert_equal 0, ExchangeRateSnapshot.count
   end
 
+  test "provider network failures raise fetch error without writing snapshots" do
+    stub_request(:get, BANK_OF_CANADA_URL).to_timeout
+
+    error = assert_raises(ExchangeRateProviders::FetchError) do
+      ExchangeRateUpdater.new.refresh_rates(provider_key: "bank_of_canada")
+    end
+
+    assert_match(/request failed/i, error.message)
+    assert_equal 0, ExchangeRateSnapshot.count
+  end
+
   private
 
   def stub_bank_of_canada_response
