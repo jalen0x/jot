@@ -40,6 +40,21 @@ class UserPreferencesTest < ActionDispatch::IntegrationTest
     assert_match(/偏好设置/, response.body)
   end
 
+  test "updates the signed-in user's first day of week" do
+    user = create(:user)
+    sign_in user
+
+    patch user_preference_path, params: {
+      user_preference: {
+        default_currency_code: "usd",
+        first_day_of_week: "1"
+      }
+    }
+
+    assert_redirected_to user_preference_path
+    assert_equal 1, user.reload.user_preference.first_day_of_week
+  end
+
   test "renders validation errors for an invalid currency" do
     user = create(:user)
     sign_in user
