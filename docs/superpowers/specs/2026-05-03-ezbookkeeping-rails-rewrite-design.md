@@ -128,6 +128,8 @@ Import sources from source project:
 - OFX/QFX, QIF, IIF, CAMT.052/053, MT940
 - GnuCash, Firefly III, Beancount
 
+First Rails cutover supports ezBookkeeping CSV/TSV/JSON. Other source import converters are deferred until a real production file or fixture is required.
+
 Architecture:
 
 - `DataExport` creates CSV/TSV exports from Rails ledger data.
@@ -159,6 +161,8 @@ Entities:
 - `UserPreference` or columns on `User`, chosen once as the source of truth for profile/display settings.
 - `UserCustomExchangeRate` for per-user overrides.
 - `ExchangeRateSnapshot` for provider data if automatic rates are enabled.
+
+First Rails cutover supports user custom exchange rates plus the Bank of Canada automatic provider. Additional source providers are deferred until deployment requirements identify them.
 
 Architecture:
 
@@ -311,16 +315,16 @@ Minimum gates by change type:
 5. Cut over only when Rails covers the user-visible workflows in the chosen release scope and migration validation passes.
 6. Delete obsolete adapters and source-only scaffolding when Rails owns the selected production workflow.
 
-## Open Decisions
+## Implementation Decisions
 
-These need explicit decisions before their implementation phases, but they do not block Phase 0 or Phase 1 planning:
+These decisions constrain the Rails rewrite scope:
 
 - Rails exposes prefixed Rails IDs in public JSON. Legacy numeric IDs are migration-only inputs.
-- Which import formats are required for first production cutover.
-- Which exchange-rate providers matter for this deployment.
-- Whether OIDC beyond GitHub is required, and which providers must be supported.
+- First production import cutover uses ezBookkeeping CSV/TSV/JSON; additional converters wait for concrete files/fixtures.
+- First exchange-rate deployment uses Bank of Canada plus user custom rates; additional providers wait for concrete deployment requirements.
+- OIDC beyond GitHub is deferred until concrete provider requirements identify which providers must be supported.
 - MCP is not a Rails rewrite requirement.
-- Whether the first Rails UI must match source desktop/mobile layouts exactly or can be Rails-native responsive UI with equivalent functionality.
+- The first Rails UI is a Rails-native responsive UI with equivalent selected functionality, not a source desktop/mobile layout clone.
 
 ## First Implementation Plan To Write After This Design
 

@@ -31,12 +31,12 @@
 | Account reconciliation statement | Phase 2 | `AccountReconciliation` |
 | Insights explorers | Phase 2 | `InsightExplorer` |
 | Data export | Phase 3 | `DataExport` |
-| Data import | Phase 3 | `ImportBatch`, parser jobs, `TransactionImporter` |
+| Data import | Phase 3 | `ImportBatch`, `ImportFileParser`, parser jobs, `TransactionImporter`; first cutover supports CSV/TSV/JSON |
 | Data management statistics | Phase 3 | `DataStatistics` |
 | Data clearing | Phase 3 | `LedgerClearance` |
 | User display settings | Phase 4 | `UserPreference` or selected `User` columns |
 | Custom exchange rates | Phase 4 | `UserCustomExchangeRate` |
-| Automatic exchange rates | Phase 4 | `ExchangeRateSnapshot`, provider jobs |
+| Automatic exchange rates | Phase 4 | `ExchangeRateSnapshot`, provider jobs; first cutover uses Bank of Canada |
 | Sessions and API tokens | Phase 5 | Rails session/token resources |
 | Login rate limiting | Phase 5 | `LoginAttemptLimiter` |
 | Two-factor authentication | Phase 5 | `TwoFactorAuthentication` resources |
