@@ -28,8 +28,8 @@ class ApiToken < ApplicationRecord
     false
   end
 
-  def as_json(_options = {})
-    {
+  def as_json(options = {})
+    token_json = {
       id: to_param,
       name: name,
       active: active?,
@@ -37,5 +37,7 @@ class ApiToken < ApplicationRecord
       last_used_at: last_used_at&.iso8601(3),
       created_at: created_at.iso8601(3)
     }
+    token_json[:current] = self == options[:current_api_token] if options.key?(:current_api_token)
+    token_json
   end
 end
