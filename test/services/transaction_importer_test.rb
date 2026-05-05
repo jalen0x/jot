@@ -35,6 +35,26 @@ class TransactionImporterTest < ActiveSupport::TestCase
     assert_empty user.transactions
   end
 
+  test "rejects imported rows outside the user's transaction edit scope" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD", transaction_edit_scope: "today_or_later")
+    account = create_account(user: user, name: "Cash", balance_cents: 5_000)
+    create_category(user: user, name: "Food", category_type: :expense)
+    create_tag(user: user, name: "Business")
+    batch = ImportBatch.create!(user: user, source_filename: "transactions.csv", raw_csv: csv_for(comment: "Client lunch"))
+
+    travel_to Time.zone.parse("2026-05-04 12:00:00") do
+      error = assert_raises(TransactionImporter::ImportError) do
+        TransactionImporter.new.import_transactions(import_batch: batch)
+      end
+
+      assert_match(/Transaction is outside the editable date range/i, error.message)
+    end
+    assert_predicate batch.reload, :pending?
+    assert_equal 0, user.transactions.reload.count
+    assert_equal 5_000, account.reload.balance_cents
+  end
+
   test "imports balance adjustment rows without categories" do
     user = create(:user)
     account = create_account(user: user, name: "Cash", balance_cents: 0)

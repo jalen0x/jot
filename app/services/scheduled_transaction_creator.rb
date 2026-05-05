@@ -64,7 +64,8 @@ class ScheduledTransactionCreator
     result = transaction_recorder.record_transaction(
       user: template.user,
       attributes: transaction_attributes(template, current_time),
-      tag_ids: template.transaction_tags.ids
+      tag_ids: template.transaction_tags.ids,
+      enforce_transaction_edit_scope: false
     )
 
     raise ActiveRecord::RecordInvalid.new(result.transaction) unless result.recorded?

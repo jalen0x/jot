@@ -1,8 +1,9 @@
 class TransactionRecorder
-  def record_transaction(user:, attributes:, tag_ids:, picture_files: [])
+  def record_transaction(user:, attributes:, tag_ids:, picture_files: [], enforce_transaction_edit_scope: true)
     transaction = user.transactions.build(transaction_attributes(attributes))
     tags = assign_owned_records(user, transaction, attributes, tag_ids)
     validate_business_rules(transaction)
+    validate_transaction_edit_scope(transaction) if enforce_transaction_edit_scope
 
     return Result.new(recorded: false, transaction: transaction) if transaction.errors.any? || !transaction.valid?
 
@@ -83,6 +84,13 @@ class TransactionRecorder
   def validate_business_rules(transaction)
     validate_category_type(transaction)
     validate_transfer(transaction) if transaction.transfer?
+  end
+
+  def validate_transaction_edit_scope(transaction)
+    return if transaction.transacted_at.blank?
+    return if TransactionEditScope.new.editable?(transaction: transaction)
+
+    transaction.errors.add(:base, TransactionEditScope::NOT_EDITABLE_MESSAGE)
   end
 
   def picture_attachables(picture_files)
