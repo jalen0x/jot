@@ -6,6 +6,7 @@ class LedgerQuery
     scope = scope.where(account_id: decoded_id(Account, filters[:account_id])) if filters[:account_id].present?
     scope = scope.where(transaction_category_id: decoded_id(TransactionCategory, filters[:transaction_category_id])) if filters[:transaction_category_id].present?
     scope = apply_tag_filters(scope, user: user, tag_id: filters[:tag_id], tag_filter: filters[:tag_filter])
+    scope = apply_keyword_filter(scope, filters[:keyword])
     scope.order(transacted_at: :desc, id: :desc).distinct
   end
 
@@ -60,6 +61,13 @@ class LedgerQuery
 
   def true?(value)
     ActiveModel::Type::Boolean.new.cast(value)
+  end
+
+  def apply_keyword_filter(scope, keyword)
+    keyword = keyword.to_s.strip
+    return scope if keyword.blank?
+
+    scope.where("transactions.comment ILIKE ?", "%#{Transaction.sanitize_sql_like(keyword)}%")
   end
 
   def decoded_id(model, value)

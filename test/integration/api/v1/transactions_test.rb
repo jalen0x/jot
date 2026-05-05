@@ -576,6 +576,90 @@ class ApiV1TransactionsTest < ActionDispatch::IntegrationTest
     assert_equal 5_000, may_3.fetch("income_cents")
   end
 
+  test "filters transactions by keyword" do
+    user = create(:user)
+    other_user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Food", category_type: :expense)
+    matching = create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 11:00:00"),
+      source_amount_cents: 1_200,
+      comment: "Client lunch"
+    )
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
+      source_amount_cents: 900,
+      comment: "Family lunch"
+    )
+    create_transaction(
+      user: other_user,
+      account: create_account(user: other_user, name: "Other Checking"),
+      category: create_category(user: other_user, name: "Other Food", category_type: :expense),
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-03 09:00:00"),
+      source_amount_cents: 2_000,
+      comment: "Client lunch"
+    )
+    raw_token = issue_token(user)
+
+    get api_v1_transactions_path, params: { keyword: "client" }, headers: json_headers(raw_token)
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal [ matching.to_param ], body.fetch("transactions").map { |item| item.fetch("id") }
+  end
+
+  test "applies keyword filter to transaction aggregate endpoints" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, name: "Salary", category_type: :income)
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :income,
+      transacted_at: Time.zone.parse("2026-05-03 11:00:00"),
+      source_amount_cents: 5_000,
+      comment: "Client invoice"
+    )
+    create_transaction(
+      user: user,
+      account: account,
+      category: category,
+      transaction_kind: :income,
+      transacted_at: Time.zone.parse("2026-05-03 10:00:00"),
+      source_amount_cents: 9_000,
+      comment: "Other invoice"
+    )
+    raw_token = issue_token(user)
+    filter_params = {
+      start_date: "2026-05-01",
+      end_date: "2026-05-31",
+      keyword: "client"
+    }
+
+    get api_v1_transaction_count_path, params: filter_params, headers: json_headers(raw_token)
+    assert_response :success
+    assert_equal({ "count" => 1 }, JSON.parse(response.body))
+
+    get api_v1_transaction_statistics_path, params: filter_params, headers: json_headers(raw_token)
+    assert_response :success
+    assert_equal 5_000, JSON.parse(response.body).fetch("statistics").fetch("income_cents")
+
+    get api_v1_transaction_trends_path, params: filter_params.merge(aggregation: "day"), headers: json_headers(raw_token)
+    assert_response :success
+    may_3 = JSON.parse(response.body).fetch("trends").fetch("buckets").find { |bucket| bucket.fetch("starts_on") == "2026-05-03" }
+    assert_equal 5_000, may_3.fetch("income_cents")
+  end
+
   test "creates an expense transaction for the token owner" do
     user = create(:user)
     account = create_account(user: user, name: "Checking", balance_cents: 5_000)

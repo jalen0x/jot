@@ -15,6 +15,7 @@ class Api::V1::TransactionCountsController < ApiController
       :account_id,
       :transaction_category_id,
       :tag_id,
+      :keyword,
       tag_filter: [
         :without_tags,
         {
