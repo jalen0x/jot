@@ -26,5 +26,5 @@
 | TransactionPictureInfo | Active Storage attachments | 6 | Migrate blobs only after storage backend is configured. |
 | UserCustomExchangeRate | user_custom_exchange_rates | 4 | Preserve user override rates with documented base-rate conversion. |
 | UserApplicationCloudSetting | Excluded | Excluded | Old frontend local UI setting sync is not migrated. Durable Rails preferences live in `UserPreference` or explicit Rails resources. |
-| UserExternalAuth | external_authentications | 5 | Map provider and external identity into Rails auth model. |
+| UserExternalAuth | `users.provider` / `users.uid` exposed through `ExternalAuthentication` | 5 | Preserve only GitHub links that can be safely represented by Devise OmniAuth. Non-GitHub OIDC/Gitea/Nextcloud links are deferred and require re-linking if those providers become product requirements. |
 | InsightsExplorer | insight_explorers | 2 | Store bounded chart/filter config JSONB, never executable code. |
