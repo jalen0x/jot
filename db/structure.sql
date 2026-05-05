@@ -512,6 +512,7 @@ CREATE TABLE public.import_batches (
     error_message text DEFAULT ''::text NOT NULL,
     created_at timestamp(6) with time zone NOT NULL,
     updated_at timestamp(6) with time zone NOT NULL,
+    parsed_rows jsonb,
     CONSTRAINT import_batches_status_valid CHECK ((status = ANY (ARRAY[0, 1, 2, 3])))
 );
 
@@ -548,7 +549,7 @@ COMMENT ON COLUMN public.import_batches.source_filename IS 'Original uploaded fi
 -- Name: COLUMN import_batches.raw_csv; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.import_batches.raw_csv IS 'Raw CSV snapshot to import';
+COMMENT ON COLUMN public.import_batches.raw_csv IS 'Raw uploaded CSV, TSV, or JSON payload';
 
 
 --
@@ -563,6 +564,13 @@ COMMENT ON COLUMN public.import_batches.imported_count IS 'Number of imported tr
 --
 
 COMMENT ON COLUMN public.import_batches.error_message IS 'User-facing import error message';
+
+
+--
+-- Name: COLUMN import_batches.parsed_rows; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.import_batches.parsed_rows IS 'Parsed import row snapshots prepared for transaction import';
 
 
 --
@@ -3006,6 +3014,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260505160000'),
 ('20260505150000'),
 ('20260505140000'),
 ('20260505130000'),

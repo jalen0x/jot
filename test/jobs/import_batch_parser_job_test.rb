@@ -11,6 +11,7 @@ class ImportBatchParserJobTest < ActiveJob::TestCase
 
     assert_predicate batch.reload, :imported?
     assert_equal 1, batch.imported_count
+    assert_equal "Cash", batch.parsed_rows.sole["Account"]
   end
 
   test "marks user input errors as failed" do
@@ -31,7 +32,7 @@ class ImportBatchParserJobTest < ActiveJob::TestCase
     user = create(:user)
     batch = ImportBatch.create!(user: user, source_filename: "transactions.json", raw_csv: "{}")
 
-    error = assert_raises(TransactionImporter::ImportError) do
+    error = assert_raises(ImportFileParser::ParseError) do
       ImportBatchParserJob.perform_now(batch.id)
     end
 
@@ -54,13 +55,25 @@ class ImportBatchParserJobTest < ActiveJob::TestCase
     }.to_json
     batch = ImportBatch.create!(user: user, source_filename: "transactions.json", raw_csv: raw_json)
 
-    error = assert_raises(TransactionImporter::ImportError) do
+    error = assert_raises(ImportFileParser::ParseError) do
       ImportBatchParserJob.perform_now(batch.id)
     end
 
     assert_predicate batch.reload, :failed?
     assert_equal "JSON transaction is missing account_name", error.message
     assert_equal "JSON transaction is missing account_name", batch.error_message
+  end
+
+  test "skips already imported batches" do
+    user = create(:user)
+    batch = ImportBatch.create!(user: user, source_filename: "transactions.json", raw_csv: "{}", status: :imported, imported_count: 1)
+
+    assert_no_changes -> { user.transactions.count } do
+      ImportBatchParserJob.perform_now(batch.id)
+    end
+
+    assert_predicate batch.reload, :imported?
+    assert_equal 1, batch.imported_count
   end
 
   private
