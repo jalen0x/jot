@@ -18,6 +18,8 @@ class Api::V1::TransactionCountsController < ApiController
       :keyword,
       :minimum_amount_cents,
       :maximum_amount_cents,
+      :start_date,
+      :end_date,
       tag_filter: [
         :without_tags,
         {

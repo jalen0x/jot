@@ -1,5 +1,5 @@
 class ApiController < ApplicationController
-  rescue_from LedgerQuery::InvalidAmountFilter, with: :render_unprocessable_error
+  rescue_from LedgerQuery::InvalidAmountFilter, LedgerQuery::InvalidDateFilter, with: :render_unprocessable_error
 
   before_action :require_json
   before_action :authenticate_api_token

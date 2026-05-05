@@ -180,6 +180,20 @@ class LedgerQueryTest < ActiveSupport::TestCase
     assert_equal [ matching ], transactions.to_a
   end
 
+  test "filters by transacted date range" do
+    user = create(:user)
+    create_transaction(user: user, comment: "April", transacted_at: Time.zone.parse("2026-04-30 23:59:59"))
+    matching = create_transaction(user: user, comment: "May", transacted_at: Time.zone.parse("2026-05-15 12:00:00"))
+    create_transaction(user: user, comment: "June", transacted_at: Time.zone.parse("2026-06-01 00:00:00"))
+
+    transactions = LedgerQuery.new.list_transactions(
+      user: user,
+      filters: { start_date: "2026-05-01", end_date: "2026-05-31" }
+    )
+
+    assert_equal [ matching ], transactions.to_a
+  end
+
   private
 
   def create_transaction(user:, comment:, transacted_at: Time.zone.parse("2026-05-03 10:00:00"), source_amount_cents: 1000, account: nil, category: nil)

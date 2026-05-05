@@ -1,5 +1,6 @@
 class LedgerQuery
   class InvalidAmountFilter < StandardError; end
+  class InvalidDateFilter < StandardError; end
 
   def list_transactions(user:, filters: {})
     filters = filters.to_h.deep_symbolize_keys
@@ -10,6 +11,7 @@ class LedgerQuery
     scope = apply_tag_filters(scope, user: user, tag_id: filters[:tag_id], tag_filter: filters[:tag_filter])
     scope = apply_keyword_filter(scope, filters[:keyword])
     scope = apply_amount_filters(scope, minimum: filters[:minimum_amount_cents], maximum: filters[:maximum_amount_cents])
+    scope = apply_date_filters(scope, start_date: filters[:start_date], end_date: filters[:end_date])
     scope.order(transacted_at: :desc, id: :desc).distinct
   end
 
@@ -87,6 +89,22 @@ class LedgerQuery
     Integer(value, 10)
   rescue ArgumentError
     raise InvalidAmountFilter, "Amount filters must be integer cents"
+  end
+
+  def apply_date_filters(scope, start_date:, end_date:)
+    start_date = date_filter(start_date)
+    end_date = date_filter(end_date)
+    scope = scope.where("transactions.transacted_at >= ?", start_date.beginning_of_day) if start_date
+    scope = scope.where("transactions.transacted_at <= ?", end_date.end_of_day) if end_date
+    scope
+  end
+
+  def date_filter(value)
+    return if value.blank?
+
+    Date.iso8601(value)
+  rescue Date::Error
+    raise InvalidDateFilter, "Start date and end date must be valid ISO 8601 dates"
   end
 
   def decoded_id(model, value)
