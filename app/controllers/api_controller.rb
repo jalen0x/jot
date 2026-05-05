@@ -1,4 +1,6 @@
 class ApiController < ApplicationController
+  rescue_from LedgerQuery::InvalidAmountFilter, with: :render_unprocessable_error
+
   before_action :require_json
   before_action :authenticate_api_token
 
@@ -25,5 +27,9 @@ class ApiController < ApplicationController
       current_api_token.update!(last_used_at: Time.current)
       true
     end
+  end
+
+  def render_unprocessable_error(error)
+    render json: { errors: [ error.message ] }, status: :unprocessable_content
   end
 end

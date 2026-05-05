@@ -166,9 +166,23 @@ class LedgerQueryTest < ActiveSupport::TestCase
     assert_equal [ matching ], transactions.to_a
   end
 
+  test "filters by source amount range" do
+    user = create(:user)
+    create_transaction(user: user, comment: "Coffee", source_amount_cents: 500)
+    matching = create_transaction(user: user, comment: "Lunch", source_amount_cents: 1_200)
+    create_transaction(user: user, comment: "Flight", source_amount_cents: 8_000)
+
+    transactions = LedgerQuery.new.list_transactions(
+      user: user,
+      filters: { minimum_amount_cents: "1000", maximum_amount_cents: "2000" }
+    )
+
+    assert_equal [ matching ], transactions.to_a
+  end
+
   private
 
-  def create_transaction(user:, comment:, transacted_at: Time.zone.parse("2026-05-03 10:00:00"), account: nil, category: nil)
+  def create_transaction(user:, comment:, transacted_at: Time.zone.parse("2026-05-03 10:00:00"), source_amount_cents: 1000, account: nil, category: nil)
     account ||= create_account(user: user)
     category ||= create_category(user: user)
 
@@ -179,7 +193,7 @@ class LedgerQueryTest < ActiveSupport::TestCase
       transaction_kind: :expense,
       transacted_at: transacted_at,
       timezone_utc_offset_minutes: 0,
-      source_amount_cents: 1000,
+      source_amount_cents: source_amount_cents,
       destination_amount_cents: 0,
       comment: comment
     )
