@@ -51,6 +51,15 @@ class UserPreferenceTest < ActiveSupport::TestCase
     assert_match(/user_preferences_first_day_of_week_supported/i, ex.message)
   end
 
+  test "database rejects unsupported fiscal year start dates" do
+    preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
+
+    ex = assert_raises(ActiveRecord::StatementInvalid) do
+      preference.update_columns(fiscal_year_start_month: 4, fiscal_year_start_day: 31)
+    end
+    assert_match(/user_preferences_fiscal_year_start_valid/i, ex.message)
+  end
+
   test "database rejects missing default account references" do
     preference = UserPreference.create!(user: create(:user), default_currency_code: "USD")
 
