@@ -18,8 +18,8 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="min-h-screen bg-neutral-primary-soft text-body antialiased">
-    <% if user_signed_in? %>
+  <body class="min-h-screen bg-neutral-primary-soft text-body antialiased" data-controller="<%= "profile-lock" if user_signed_in? && !profile_locked? %>">
+    <% if user_signed_in? && !profile_locked? %>
       <header class="border-b border-default bg-neutral-primary/90 backdrop-blur-sm">
         <div class="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 sm:px-8">
           <div>
@@ -41,10 +41,16 @@
     )) %>
 
     <% full_bleed_auth_page = devise_controller? && !user_signed_in? %>
-    <main class="<%= full_bleed_auth_page ? "min-h-screen" : "mx-auto flex w-full max-w-7xl flex-col px-6 pb-16 pt-10 sm:px-8" %>">
+    <% full_bleed_profile_lock_page = controller_path == "users/profile_locks" %>
+    <main class="<%= full_bleed_auth_page || full_bleed_profile_lock_page ? "min-h-screen" : "mx-auto flex w-full max-w-7xl flex-col px-6 pb-16 pt-10 sm:px-8" %>">
       <%= yield %>
     </main>
 
     <%= turbo_frame_tag "modal_content" %>
+
+    <% if user_signed_in? && !profile_locked? %>
+      <%= form_with url: user_profile_lock_path, html: { class: "hidden" }, data: { profile_lock_target: "form" } do %>
+      <% end %>
+    <% end %>
   </body>
 </html>

@@ -15,6 +15,11 @@ Rails.application.routes.draw do
              path: "users/two_factor",
              controller: "users/two_factor",
              only: [ :new, :create, :destroy ]
+
+    resource :user_profile_lock,
+             path: "users/profile_lock",
+             controller: "users/profile_locks",
+             only: [ :show, :create, :destroy ]
   end
 
   if Rails.env.development?

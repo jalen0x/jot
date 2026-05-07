@@ -1,0 +1,59 @@
+<% content_for(:title) { t(".title") } %>
+<% @hide_flash_alert = true %>
+
+<section class="bg-neutral-primary-soft">
+  <div class="mx-auto grid min-h-screen max-w-screen-xl place-self-center px-4 py-8 lg:grid-cols-12 lg:gap-24 lg:py-16">
+    <div class="w-full place-self-center lg:col-span-5">
+      <%= link_to root_path, class: "mb-4 flex items-center text-2xl font-semibold text-heading md:mb-8" do %>
+        <span class="me-2 flex h-9 w-9 items-center justify-center rounded-base bg-brand text-sm font-bold text-white">
+          <%= TemplateBase.config.application_name.first %>
+        </span>
+        <%= TemplateBase.config.application_name %>
+      <% end %>
+
+      <div class="mb-4 w-full rounded-base border border-default bg-neutral-primary p-4 shadow-xs md:mb-8 md:p-6">
+        <div class="flex gap-4">
+          <%= image_tag "users/bonnie-green.png", class: "h-8 w-8 rounded-full", alt: "" %>
+          <h2 class="mb-3 text-2xl font-bold text-heading"><%= current_user.name.presence || current_user.email %></h2>
+        </div>
+
+        <p class="mb-4 text-base font-normal text-body-subtle"><%= t(".description") %></p>
+
+        <%= form_with url: user_profile_lock_path, method: :delete, html: { class: "space-y-4" } do %>
+          <div>
+            <%= label_tag :password, t(".password"), class: "mb-2 block text-sm font-medium text-heading" %>
+            <%= password_field_tag :password,
+                  nil,
+                  autocomplete: "current-password",
+                  required: true,
+                  class: "block w-full rounded-base border border-default-medium bg-neutral-secondary-medium p-2.5 text-heading shadow-xs focus:border-brand focus:ring-brand sm:text-sm",
+                  placeholder: "••••••••" %>
+            <% if flash[:alert].present? %>
+              <p class="mt-2 text-sm text-fg-danger"><%= flash[:alert] %></p>
+            <% end %>
+          </div>
+
+          <%= button_tag type: :submit, class: "me-2 inline-flex w-full items-center justify-center rounded-base bg-brand px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-brand-strong focus:outline-none focus:ring-4 focus:ring-brand-medium" do %>
+            <svg class="-ms-0.5 me-1.5 h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" d="M15 7a2 2 0 1 1 4 0v4a1 1 0 1 0 2 0V7a4 4 0 0 0-8 0v3H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2V7Zm-5 6a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1Z" clip-rule="evenodd" />
+            </svg>
+            <%= t(".unlock") %>
+          <% end %>
+        <% end %>
+      </div>
+
+      <nav>
+        <ul class="flex gap-4">
+          <li><%= link_to t(".about"), root_path, class: "text-sm text-body-subtle hover:text-heading hover:underline" %></li>
+          <li><%= link_to t(".terms"), root_path, class: "text-sm text-body-subtle hover:text-heading hover:underline" %></li>
+          <li><%= mail_to TemplateBase.config.support_email, t(".contact"), class: "text-sm text-body-subtle hover:text-heading hover:underline" %></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="mx-auto hidden place-self-center lg:col-span-7 lg:grid">
+      <%= image_tag "lock-password.svg", class: "mx-auto dark:hidden", alt: "" %>
+      <%= image_tag "lock-password-dark.svg", class: "mx-auto hidden dark:flex", alt: "" %>
+    </div>
+  </div>
+</section>

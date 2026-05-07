@@ -12,6 +12,17 @@ en:
         success: "Signed in with GitHub."
         missing_email: "GitHub did not provide a usable email address for this account."
         invalid_user: "We could not sign you in with GitHub. Please try again."
+    profile_locks:
+      destroy:
+        invalid_password: "Password is incorrect."
+      show:
+        about: "About"
+        contact: "Contact"
+        description: "Better to be safe than sorry."
+        password: "Your password"
+        terms: "Terms & Conditions"
+        title: "Profile locked"
+        unlock: "Unlock"
     sessions:
       create:
         invalid_second_factor_code: "Invalid authenticator code or backup code."

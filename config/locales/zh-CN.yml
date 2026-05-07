@@ -71,6 +71,17 @@ zh-CN:
     github: "GitHub"
     sign_in_with: "使用 %{provider} 登录"
   users:
+    profile_locks:
+      destroy:
+        invalid_password: "密码不正确。"
+      show:
+        about: "关于"
+        contact: "联系"
+        description: "谨慎一点，总比事后后悔好。"
+        password: "你的密码"
+        terms: "条款与条件"
+        title: "资料已锁定"
+        unlock: "解锁"
     sessions:
       create:
         invalid_second_factor_code: "认证器验证码或备份码无效。"
