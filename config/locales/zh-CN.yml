@@ -55,6 +55,8 @@ zh-CN:
         verifying: "验证中..."
     shared:
       or: "或"
+      second_factor_code:
+        digit_label: "验证码第 %{number} 位"
       links:
         forgot_your_password: "忘记密码？"
         redirecting: "跳转中..."

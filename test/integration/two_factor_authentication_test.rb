@@ -23,6 +23,9 @@ class TwoFactorAuthenticationTest < ActionDispatch::IntegrationTest
     assert_operator main_markup.index("girl-and-computer"), :<, main_markup.index("<h1")
     assert_select "h1", text: I18n.t("devise.sessions.two_factor.title")
     assert_select "form[action='#{user_session_path}']"
+    assert_select "input#code-1[type='text'][maxlength='1']"
+    assert_select "input#code-6[type='text'][maxlength='1']"
+    assert_select ".second-factor-code-input", count: 0
     assert_nil session["warden.user.user.key"]
   end
 

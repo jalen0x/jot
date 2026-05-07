@@ -58,29 +58,3 @@
     display: none;
   }
 }
-
-@layer components {
-  .second-factor-code-input {
-    position: absolute;
-    inset: 0;
-    height: 100%;
-    width: 100%;
-    cursor: text;
-    border: 0;
-    background: transparent;
-    color: transparent;
-    caret-color: transparent;
-    outline: 0;
-    box-shadow: none;
-  }
-
-  .second-factor-code-input:focus {
-    border: 0;
-    outline: 0;
-    box-shadow: none;
-  }
-
-  .second-factor-code-active {
-    box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-brand) 30%, transparent);
-  }
-}

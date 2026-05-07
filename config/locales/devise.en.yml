@@ -98,6 +98,8 @@ en:
       already_signed_out: "Signed out successfully."
     shared:
       or: "or"
+      second_factor_code:
+        digit_label: "Code digit %{number}"
       links:
         forgot_your_password: "Forgot your password?"
         redirecting: "Redirecting..."

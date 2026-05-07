@@ -1,52 +1,30 @@
 <% allow_backup_code = local_assigns.fetch(:allow_backup_code, false) %>
 <% auto_submit = local_assigns.fetch(:auto_submit, false) %>
+<% code_input_class = "block h-12 w-12 rounded-base border border-default-medium bg-neutral-primary py-3 text-center text-2xl font-extrabold text-heading shadow-xs focus:border-brand focus:ring-brand sm:h-16 sm:w-16 sm:py-4 sm:text-4xl" %>
 
 <div data-controller="second-factor-code"
      data-second-factor-code-allow-backup-code-value="<%= allow_backup_code %>"
      data-second-factor-code-auto-submit-value="<%= auto_submit %>"
      class="flex justify-center">
-  <div class="relative inline-flex items-center gap-2 sm:gap-3">
-    <div data-second-factor-code-target="digits" class="inline-flex items-center gap-2 sm:gap-3">
-      <% 6.times do %>
-        <div data-second-factor-code-target="digit"
-             class="flex h-12 w-10 items-center justify-center rounded-base border border-default-medium bg-neutral-secondary-medium text-center text-2xl font-extrabold text-heading shadow-xs transition-shadow duration-200 sm:h-16 sm:w-14 sm:text-4xl">
-        </div>
-      <% end %>
-    </div>
-
-    <% if allow_backup_code %>
-      <div data-second-factor-code-target="backup"
-           class="hidden h-12 min-w-72 items-center justify-center rounded-base border border-default-medium bg-neutral-secondary-medium px-4 font-mono text-sm font-semibold text-heading shadow-xs sm:h-16">
+  <div class="flex gap-2 sm:gap-4">
+    <% 6.times do |index| %>
+      <div>
+        <%= label_tag "code-#{index + 1}", t("devise.shared.second_factor_code.digit_label", number: index + 1), class: "sr-only" %>
+        <%= text_field_tag "code_#{index + 1}",
+              nil,
+              id: "code-#{index + 1}",
+              maxlength: 1,
+              required: !allow_backup_code,
+              autofocus: index.zero?,
+              autocomplete: index.zero? ? "one-time-code" : "off",
+              inputmode: "numeric",
+              class: code_input_class,
+              data: {
+                second_factor_code_target: "input",
+                action: "input->second-factor-code#handleInput keydown->second-factor-code#handleKeydown paste->second-factor-code#handlePaste"
+              } %>
       </div>
     <% end %>
-
-    <div class="absolute inset-0">
-      <% if allow_backup_code %>
-        <%= text_field_tag :second_factor_code_input,
-              nil,
-              autocomplete: "one-time-code",
-              inputmode: "text",
-              maxlength: 64,
-              autofocus: true,
-              class: "second-factor-code-input",
-              data: {
-                second_factor_code_target: "input",
-                action: "input->second-factor-code#handleInput paste->second-factor-code#handlePaste focus->second-factor-code#handleFocus blur->second-factor-code#handleBlur click->second-factor-code#focus"
-              } %>
-      <% else %>
-        <%= telephone_field_tag :second_factor_code_input,
-              nil,
-              autocomplete: "one-time-code",
-              inputmode: "numeric",
-              maxlength: 6,
-              autofocus: true,
-              class: "second-factor-code-input",
-              data: {
-                second_factor_code_target: "input",
-                action: "input->second-factor-code#handleInput paste->second-factor-code#handlePaste focus->second-factor-code#handleFocus blur->second-factor-code#handleBlur click->second-factor-code#focus"
-              } %>
-      <% end %>
-    </div>
   </div>
 
   <%= form.hidden_field field, data: { second_factor_code_target: "hidden" } %>
