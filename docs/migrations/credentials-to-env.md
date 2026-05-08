@@ -6,7 +6,7 @@ Use this guide when migrating an existing Rails app from `Rails.application.cred
 
 - App code reads secrets with `ENV.fetch("NAME")` or explicit `ENV[...]` comparisons.
 - Production secrets live in the deployment secret manager, usually 1Password via `.kamal/secrets`.
-- Local runtime secrets live in ignored dotenv files such as `.env.development.local` or `.env.test.local`. One-time migration exports live under `tmp/` and are not loaded automatically.
+- Local runtime secrets live in ignored dotenv files such as `.env.development` or `.env.test`. One-time migration exports live under `tmp/` and are not loaded automatically.
 - No app code reads `Rails.application.credentials`.
 - `config/credentials.yml.enc`, `config/credentials/*.yml.enc`, `config/master.key`, and `config/credentials/*.key` are not committed.
 
@@ -235,9 +235,8 @@ Update `.gitignore` so generated credentials artifacts do not come back:
 /config/*.key
 /config/credentials.yml.enc
 /config/credentials/*.yml.enc
-/.env
-/.env.local
-/.env.*.local
+/.env*
+!/.env.example
 ```
 
 ## 6. Verify

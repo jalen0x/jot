@@ -7,11 +7,9 @@
 # Ignore bundler config.
 /.bundle
 
-# Ignore local environment overrides. `.env.development` / `.env.test`
-# hold committed non-secret defaults.
-/.env
-/.env.local
-/.env.*.local
+# Ignore all local environment files. Commit examples only.
+/.env*
+!/.env.example
 
 # Ignore all logfiles and tempfiles.
 /log/*
