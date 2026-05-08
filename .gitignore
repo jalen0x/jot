@@ -7,9 +7,10 @@
 # Ignore bundler config.
 /.bundle
 
-# Ignore all local environment files. Commit examples only.
+# Ignore local environment files. Commit examples and shared test defaults only.
 /.env*
 !/.env.example
+!/.env.test
 
 # Ignore all logfiles and tempfiles.
 /log/*

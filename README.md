@@ -47,12 +47,13 @@ This will automatically configure:
   the app container through the `kamal` Docker network as `<prefix>-db`)
 - seed override files for the default layout and home page if they do not exist
 
-Copy the local env example before setup:
+Copy the local development env before setup:
 
 ```bash
 cp .env.example .env.development
-cp .env.example .env.test
 ```
+
+`.env.test` is committed with shared non-secret test defaults. Use `.env.test.local` for local test overrides.
 
 Then run `bin/setup` to install Ruby and JavaScript dependencies and setup your database:
 
