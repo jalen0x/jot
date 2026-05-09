@@ -49,18 +49,17 @@ class TwoFactorAuthenticationsController < ApplicationController
 
     authorize @two_factor_authentication
 
-    unless current_user.valid_password?(two_factor_authentication_params[:current_password])
-      @error_message = t(".invalid_password")
+    result = TwoFactorAuthenticationDisabler.new.disable(
+      user: current_user,
+      current_password: two_factor_authentication_params[:current_password]
+    )
+
+    if result.disabled?
+      redirect_to two_factor_authentication_path, notice: t(".disabled"), status: :see_other
+    else
+      @error_message = t(".#{result.error}")
       render :show, status: :unprocessable_content
-      return
     end
-
-    TwoFactorAuthentication.transaction do
-      current_user.two_factor_recovery_codes.destroy_all
-      @two_factor_authentication.destroy!
-    end
-
-    redirect_to two_factor_authentication_path, notice: t(".disabled"), status: :see_other
   end
 
   private
