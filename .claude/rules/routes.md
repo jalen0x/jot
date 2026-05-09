@@ -19,6 +19,7 @@ When adding a route, make decisions in this order:
 5. Add vanity/custom URLs only after the canonical route exists.
 
 If you cannot name the resource without a verb, pause before editing `config/routes.rb`.
+If the endpoint is a report, statistic, count, trend, export, import, search result, or batch workflow, name that thing as a resource instead of adding a custom action to an existing resource.
 
 ## Canonical Resource Routes
 
@@ -49,7 +50,7 @@ Do not route through the current user just to be explicit. Prefer `/profile` ove
 
 ## More Resources, Not Custom Actions
 
-If you want a custom action, first ask what resource it creates, updates, or deletes.
+If you want a custom action, first ask what resource it creates, reads, updates, or deletes.
 
 ```ruby
 # Bad: action-focused routes grow controllers sideways
@@ -61,15 +62,46 @@ end
 resources :widget_ratings, only: [:create]
 ```
 
-Custom member/collection actions are exceptions. Use them only when a real resource name would be dishonest or more confusing.
+Custom `member` / `collection` actions are exceptions, not a convenience. Use one only when a real resource name would be dishonest or more confusing, and add a short route comment explaining why the canonical resource shape does not fit.
 
-Common reframes:
+Do not add collection actions for derived read models:
+
+```ruby
+# Bad
+resources :transactions, only: [:index] do
+  get :trends, on: :collection
+end
+
+# Good
+resources :transaction_trends, only: [:index]
+```
+
+Use query params for the dimensions of the resource, not custom path segments:
+
+```ruby
+transaction_trends_path(start_date: "2026-05-01", end_date: "2026-05-31", aggregation: "day")
+```
+
+A resource does not need a database table. Reports, statistics, counts, searches, imports, exports, and batch operations are still resources when they give the route and controller a clear noun.
+
+If the endpoint returns derived/read-only data, prefer `index` or `show` on a named resource:
+
+- `transactions/trends` → `transaction_trends#index`
+- `transactions/statistics` → `transaction_statistics#show`
+- `transactions/count` → `transaction_count#show` or `transactions#index` metadata
+- `widgets/search` → `widgets#index` with query params or `widget_search_results#index`
+
+If the endpoint starts a workflow or mutates a relationship/event, prefer `create` / `destroy` on a named resource:
 
 - `approve_widget` → `widget_approvals#create`
 - `publish_post` → `post_publication#create`
 - `cancel_subscription` → `subscription_cancellation#create` or `subscription#destroy`
 - `resend_invite` → `invitation_deliveries#create`
 - `archive_project` → `project_archival#create`
+- `batch_delete_transactions` → `transaction_batch_deletions#create`
+- `batch_add_transaction_tags` → `transaction_tag_assignments#create`
+
+Before keeping a custom action, write down the resource alternative in the PR or design notes and why it is worse. "It was faster to add one action to the existing controller" is not a valid reason; that is how carrying cost accumulates.
 
 If the action changes normal attributes on the primary resource, use `update`. If it creates a domain event, relationship, request, or workflow, create a named resource.
 

@@ -7,11 +7,38 @@
     <% end %>
   <% end %>
 <% else %>
-  <div class="max-w-screen-xl px-4 mx-auto my-10">
-    <div class="mx-auto w-full bg-neutral-primary-soft rounded-base shadow md:mt-0 sm:max-w-lg xl:p-0">
-      <div class="p-6 space-y-4 sm:p-8">
-        <%= yield :form_block %>
-      </div>
+  <% auth_illustration = content_for(:auth_illustration).presence || "sign-in.svg" %>
+  <% auth_illustration_dark = auth_illustration.sub(/\.svg\z/, "-dark.svg") %>
+  <% auth_illustration_position = content_for(:auth_illustration_position).presence || "right" %>
+  <% auth_illustration_block = capture do %>
+    <div class="hidden place-self-center lg:col-span-6 lg:flex">
+      <%= image_tag auth_illustration,
+            class: "mx-auto max-h-[32rem] dark:hidden",
+            alt: "" %>
+      <%= image_tag auth_illustration_dark,
+            class: "mx-auto hidden max-h-[32rem] dark:flex",
+            alt: "" %>
     </div>
-  </div>
+  <% end %>
+
+  <section class="bg-neutral-primary-soft">
+    <div class="mx-auto grid min-h-screen max-w-screen-xl px-4 py-8 lg:grid-cols-12 lg:gap-20 lg:py-16">
+      <%= auth_illustration_block if auth_illustration_position == "left" %>
+
+      <div class="w-full place-self-center lg:col-span-6">
+        <div class="mx-auto max-w-lg rounded-base border border-default bg-neutral-primary p-4 shadow-xs sm:p-6">
+          <%= link_to root_path, class: "mb-4 inline-flex items-center text-xl font-semibold text-heading sm:mb-6" do %>
+            <span class="me-2 flex h-8 w-8 items-center justify-center rounded-base bg-brand text-sm font-bold text-white">
+              <%= TemplateBase.config.application_name.first %>
+            </span>
+            <%= TemplateBase.config.application_name %>
+          <% end %>
+
+          <%= yield :form_block %>
+        </div>
+      </div>
+
+      <%= auth_illustration_block unless auth_illustration_position == "left" %>
+    </div>
+  </section>
 <% end %>

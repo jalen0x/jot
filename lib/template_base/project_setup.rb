@@ -24,7 +24,6 @@ module TemplateBase
       rewrite_application_module
       rewrite_dockerfile_image
       seed_override("app/views/layouts/application.html.erb")
-      seed_override("app/views/home/show.html.erb")
     end
 
   private

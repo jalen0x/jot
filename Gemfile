@@ -48,6 +48,7 @@ gem "aws-sdk-s3", require: false
 
 # Authentication & authorization
 gem "devise", "~> 5.0.0.rc"
+gem "rotp", "~> 6.3"
 gem "pundit", "~> 2.1"
 
 # OAuth (GitHub only)
@@ -58,6 +59,7 @@ gem "omniauth-github"
 # Data layer
 gem "discard", "~> 1.4"
 gem "prefixed_ids", "~> 1.2"
+gem "rqrcode", "~> 3.0"
 
 # User experience
 gem "pagy", "~> 43.0"
@@ -70,6 +72,9 @@ gem "invisible_captcha", "~> 2.0"
 gem "view_component", "~> 4"
 
 group :development, :test do
+  # Load non-production runtime config from committed env files
+  gem "dotenv-rails"
+
   # Generate realistic test data without fixtures
   gem "factory_bot_rails"
 
@@ -112,5 +117,3 @@ end
 gem "jsbundling-rails", "~> 1.3"
 
 gem "csv", "~> 3.3"
-
-gem "rotp", "~> 6.3"

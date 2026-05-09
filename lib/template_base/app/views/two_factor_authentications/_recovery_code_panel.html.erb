@@ -1,0 +1,48 @@
+<% recovery_codes = local_assigns.fetch(:recovery_codes, []) %>
+
+<article class="rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs sm:p-8" data-controller="clipboard">
+  <header class="mb-5">
+    <h2 class="text-xl font-bold text-heading"><%= t("two_factor_authentications.recovery_code_panel.title") %></h2>
+    <p class="mt-1.5 text-sm text-body"><%= t("two_factor_authentications.recovery_code_panel.description") %></p>
+  </header>
+
+  <div class="mb-4 flex items-center gap-2 rounded-base border border-warning-subtle bg-warning-soft px-3 py-2 text-sm text-fg-warning" role="alert">
+    <svg class="h-4 w-4 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V8m0 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+    <span><%= t("two_factor_authentications.recovery_code_panel.warning") %></span>
+  </div>
+
+  <ul class="mb-5 divide-y divide-default rounded-base border border-default-medium bg-neutral-secondary-medium">
+    <% recovery_codes.each do |code| %>
+      <li>
+        <code class="block break-all px-4 py-2 font-mono text-sm text-heading"><%= code %></code>
+      </li>
+    <% end %>
+  </ul>
+
+  <%= hidden_field_tag :recovery_codes_source, recovery_codes.join("\n"), data: { clipboard_target: "source" } %>
+
+  <div class="flex flex-wrap items-center justify-end gap-3">
+    <%= link_to "data:text/plain;charset=utf-8,#{ERB::Util.url_encode(recovery_codes.join("\n"))}", download: "recovery-codes.txt", class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" do %>
+      <span class="flex items-center">
+        <svg class="w-4 h-4 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2m-8 1V4m0 12-4-4m4 4 4-4" /></svg>
+        <%= t("two_factor_authentications.recovery_code_panel.download") %>
+      </span>
+    <% end %>
+    <button type="button" data-action="clipboard#copy" class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">
+      <span data-clipboard-target="defaultState">
+        <span class="flex items-center">
+          <svg class="w-4 h-4 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3m0 3h6m-6 5h6m-6 4h6M10 3v4h4V3h-4Z" /></svg>
+          <%= t("two_factor_authentications.recovery_code_panel.copy_all") %>
+        </span>
+      </span>
+      <span data-clipboard-target="successState" class="hidden">
+        <span class="flex items-center text-fg-brand">
+          <svg class="w-4 h-4 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3m0 3h6m-6 7 2 2 4-4m-5-9v4h4V3h-4Z" /></svg>
+          <%= t("two_factor_authentications.recovery_code_panel.copied") %>
+        </span>
+      </span>
+    </button>
+  </div>
+</article>

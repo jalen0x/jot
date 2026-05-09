@@ -20,6 +20,7 @@ class User < ApplicationRecord
   has_one :application_lock, dependent: :destroy
 
   def two_factor_enabled? = two_factor_authentication.present?
+
   def application_lock_enabled?
     ApplicationLock.exists?(user_id: id)
   end

@@ -2,15 +2,7 @@ class LoginAttemptLimiter
   LIMIT = 5
   WINDOW = 1.minute
 
-  class << self
-    attr_writer :store
-
-    def store
-      @store || Rails.cache
-    end
-  end
-
-  def initialize(store: self.class.store)
+  def initialize(store: Rails.cache)
     @store = store
   end
 

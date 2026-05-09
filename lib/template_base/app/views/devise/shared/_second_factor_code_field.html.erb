@@ -1,0 +1,31 @@
+<% allow_backup_code = local_assigns.fetch(:allow_backup_code, false) %>
+<% auto_submit = local_assigns.fetch(:auto_submit, false) %>
+<% code_input_class = "block h-12 w-12 rounded-base border border-default-medium bg-neutral-primary py-3 text-center text-2xl font-extrabold text-heading shadow-xs focus:border-brand focus:ring-brand sm:h-16 sm:w-16 sm:py-4 sm:text-4xl" %>
+
+<div data-controller="second-factor-code"
+     data-second-factor-code-allow-backup-code-value="<%= allow_backup_code %>"
+     data-second-factor-code-auto-submit-value="<%= auto_submit %>"
+     class="flex justify-center">
+  <div class="flex gap-2 sm:gap-4">
+    <% 6.times do |index| %>
+      <div>
+        <%= label_tag "code-#{index + 1}", t("devise.shared.second_factor_code.digit_label", number: index + 1), class: "sr-only" %>
+        <%= text_field_tag "code_#{index + 1}",
+              nil,
+              id: "code-#{index + 1}",
+              maxlength: 1,
+              required: !allow_backup_code,
+              autofocus: index.zero?,
+              autocomplete: index.zero? ? "one-time-code" : "off",
+              inputmode: "numeric",
+              class: code_input_class,
+              data: {
+                second_factor_code_target: "input",
+                action: "input->second-factor-code#handleInput keydown->second-factor-code#handleKeydown paste->second-factor-code#handlePaste"
+              } %>
+      </div>
+    <% end %>
+  </div>
+
+  <%= form.hidden_field field, data: { second_factor_code_target: "hidden" } %>
+</div>

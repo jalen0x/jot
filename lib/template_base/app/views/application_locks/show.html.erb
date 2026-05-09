@@ -1,0 +1,67 @@
+<% content_for(:title) { t(".title") } %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+
+<section class="mx-auto w-full max-w-2xl space-y-6">
+  <header>
+    <h1 class="text-2xl font-bold text-heading"><%= t(".title") %></h1>
+    <p class="mt-1.5 text-sm text-body"><%= t(".description") %></p>
+  </header>
+
+  <% if @application_lock.errors.any? %>
+    <div class="rounded-base border border-danger bg-danger-soft px-4 py-3 text-sm text-fg-danger-strong">
+      <ul class="list-disc ps-5 space-y-1">
+        <% @application_lock.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <article class="rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs sm:p-8 space-y-5">
+    <% if current_user.application_lock_enabled? %>
+      <header class="space-y-1">
+        <p class="text-xs font-medium uppercase tracking-wide text-fg-brand"><%= t(".enabled_label") %></p>
+        <h2 class="text-xl font-semibold text-heading"><%= t(".enabled_heading") %></h2>
+        <p class="text-sm text-body"><%= t(".enabled_description") %></p>
+      </header>
+
+      <%= form_with url: application_lock_path, method: :delete, scope: :application_lock, class: "space-y-5" do |form| %>
+        <div>
+          <%= form.label :current_password, t(".current_password"), class: "block mb-2 text-sm font-medium text-heading" %>
+          <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: field_classes %>
+        </div>
+
+        <div class="flex items-center justify-end gap-3">
+          <%= form.submit t(".disable"), class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+        </div>
+      <% end %>
+    <% else %>
+      <header class="space-y-1">
+        <h2 class="text-xl font-semibold text-heading"><%= t(".setup_heading") %></h2>
+        <p class="text-sm text-body"><%= t(".setup_description") %></p>
+      </header>
+
+      <%= form_with url: application_lock_path, scope: :application_lock, class: "space-y-5" do |form| %>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <%= form.label :pin, t(".pin_code"), class: "block mb-2 text-sm font-medium text-heading" %>
+            <%= form.password_field :pin, required: true, inputmode: "numeric", pattern: "\\d{6}", maxlength: 6, autocomplete: "new-password", class: field_classes %>
+          </div>
+          <div>
+            <%= form.label :pin_confirmation, t(".pin_code_confirmation"), class: "block mb-2 text-sm font-medium text-heading" %>
+            <%= form.password_field :pin_confirmation, required: true, inputmode: "numeric", pattern: "\\d{6}", maxlength: 6, autocomplete: "new-password", class: field_classes %>
+          </div>
+        </div>
+
+        <div>
+          <%= form.label :current_password, t(".current_password"), class: "block mb-2 text-sm font-medium text-heading" %>
+          <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: field_classes %>
+        </div>
+
+        <div class="flex items-center justify-end gap-3">
+          <%= form.submit t(".enable"), class: "text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+        </div>
+      <% end %>
+    <% end %>
+  </article>
+</section>

@@ -1,23 +1,28 @@
-require "bcrypt"
-
 class ApplicationLock < ApplicationRecord
+  has_secure_password :pin, validations: false
+
   belongs_to :user
 
-  validates :pin_digest, presence: true
   validates :user_id, uniqueness: true
+  validates :pin_digest, presence: true
+  validates :pin, presence: true, on: :create
+  validates :pin, format: { with: /\A\d{6}\z/ }, allow_blank: true, on: :create
+  validate :pin_confirmation_matches, on: :create
 
-  def self.digest(pin)
-    BCrypt::Password.create(normalize_pin(pin), cost: bcrypt_cost)
+  attr_reader :pin_confirmation
+
+  def self.normalize_pin(pin) = pin.to_s.strip
+
+  def pin=(value)
+    super(self.class.normalize_pin(value))
   end
 
-  def self.normalize_pin(pin)
-    pin.to_s.strip
+  def pin_confirmation=(value)
+    @pin_confirmation = self.class.normalize_pin(value)
   end
 
-  def matches_pin?(pin)
-    BCrypt::Password.new(pin_digest).is_password?(self.class.normalize_pin(pin))
-  rescue BCrypt::Errors::InvalidHash
-    false
+  def authenticate_pin(value)
+    super(self.class.normalize_pin(value))
   end
 
   def as_json(_options = {})
@@ -27,8 +32,12 @@ class ApplicationLock < ApplicationRecord
     }
   end
 
-  def self.bcrypt_cost
-    Rails.env.test? ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
+  private
+
+  def pin_confirmation_matches
+    return if @pin_confirmation.blank?
+    return if pin == @pin_confirmation
+
+    errors.add(:pin_confirmation, :confirmation, attribute: ApplicationLock.human_attribute_name(:pin))
   end
-  private_class_method :bcrypt_cost
 end

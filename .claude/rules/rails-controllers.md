@@ -13,6 +13,7 @@ paths:
 - Use `status: :unprocessable_content` for failed creates/updates.
 - Use `respond_to` for format handling (HTML/JSON).
 - Namespace API controllers under `Api::V1`.
+- Keep controller action names canonical (`index`, `show`, `new`, `create`, `edit`, `update`, `destroy`). If you are about to add `trends`, `statistics`, `count`, `search`, `batch_*`, `approve`, `publish`, or another verb/narrow report action, create a named resource/controller instead unless `routes.md` documents a real exception.
 - Keep controllers thin — but don't extract services without real business logic. A wrapper that just delegates adds complexity, not clarity. When in doubt, inline is better than over-abstraction.
 - Use ActiveModel validations for param checking — don't write manual `if params[:x].blank?` guards.
 - Use Turbo / Hotwire for dynamic updates, not custom Ajax or `fetch`.
@@ -24,6 +25,8 @@ paths:
 ## Controllers Are Configuration, Not OOP
 
 Rails controllers are an internal DSL: action methods take no arguments, return values are ignored, `render` / `redirect_to` can only be called once, and you can't instantiate them yourself. Embrace this and the code stays minimal.
+
+The controller's resource should match the route's resource. `TransactionsController` manages transaction CRUD and listing; `TransactionTrendsController#index` manages transaction trend buckets. Do not grow a broad controller sideways with reports, counters, or batch workflows just because those features involve the same table.
 
 A controller's job is exactly four things:
 1. Receive the HTTP request

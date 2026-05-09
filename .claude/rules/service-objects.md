@@ -7,6 +7,25 @@ paths:
 
 Services are the business-logic seam between Rails boundary objects and the domain. First principle: a call site should reveal behavior and read like a business sentence, not a framework invocation.
 
+## Service Seam
+
+A seam is the callable interface between Rails-managed boundary code and app-specific business behavior. For a service, the seam is the class name, public method name, accepted inputs, return value, and documented error behavior.
+
+Example:
+
+```ruby
+summary = DashboardSummary.new.summarize(user: current_user)
+```
+
+The controller only needs to know `DashboardSummary#summarize(user:)` and the returned `Result` readers. It should not know the internal queries, transactions, callbacks, jobs, or private helper methods used to produce that result.
+
+Use this test when reviewing a service seam:
+
+- Can the call site be understood as a business sentence?
+- Does the public method accept business-shaped data, not raw `params` or request objects?
+- Does the return value expose only what callers need to decide what to render, redirect, enqueue, or report?
+- If the implementation changes behind the seam, can the controller/job/rake task stay mostly unchanged?
+
 ## When to Create a Service
 
 Create a service when the code is a named application use case that does more than Rails boundary plumbing or simple persistence.

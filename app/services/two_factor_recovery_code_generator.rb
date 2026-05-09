@@ -7,7 +7,7 @@ class TwoFactorRecoveryCodeGenerator
     TwoFactorRecoveryCode.transaction do
       user.two_factor_recovery_codes.destroy_all
       raw_codes.each do |raw_code|
-        user.two_factor_recovery_codes.create!(code_digest: TwoFactorRecoveryCode.digest(raw_code))
+        user.two_factor_recovery_codes.create!(code: raw_code)
       end
     end
 

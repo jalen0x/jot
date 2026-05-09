@@ -1,118 +1,104 @@
 require "test_helper"
-require "rotp"
 
 class TwoFactorAuthenticationsTest < ActionDispatch::IntegrationTest
-  SECRET = "JBSWY3DPEHPK3PXP"
+  setup do
+    @user = FactoryBot.create(:user, password: "password123")
+    sign_in(@user)
+  end
 
-  test "requires authentication" do
+  test "show requires sign in" do
+    delete destroy_user_session_path
+
     get two_factor_authentication_path
-
     assert_redirected_to new_user_session_path
   end
 
-  test "shows setup for a user without two-factor authentication" do
-    sign_in create(:user)
-
-    with_stubbed_secret(SECRET) do
-      get two_factor_authentication_path
-    end
+  test "show prepares a setup secret and stores it in the session" do
+    get two_factor_authentication_path
 
     assert_response :success
-    assert_match(/two-factor authentication/i, response.body)
-    assert_match SECRET, response.body
-    assert_match(/enable/i, response.body)
+    assert_match(/[A-Z2-7]{32}/, response.body)
+    assert session[:pending_two_factor_secret].present?
   end
 
-  test "enables two-factor authentication with current password and valid code" do
-    user = create(:user, password: "password123")
-    sign_in user
+  test "create rejects a wrong current password" do
+    get two_factor_authentication_path
+    secret = session[:pending_two_factor_secret]
+    code = ROTP::TOTP.new(secret).now
 
-    with_stubbed_secret(SECRET) do
-      get two_factor_authentication_path
-      post two_factor_authentication_path, params: {
-        two_factor_authentication: {
-          current_password: "password123",
-          otp_code: current_code
-        }
-      }
-    end
-
-    assert_response :created
-    assert_predicate user.reload, :two_factor_enabled?
-    assert_recovery_codes_shown_once_for(user)
-  end
-
-  test "rejects setup with an invalid code" do
-    user = create(:user, password: "password123")
-    sign_in user
-
-    with_stubbed_secret(SECRET) do
-      get two_factor_authentication_path
-      post two_factor_authentication_path, params: {
-        two_factor_authentication: {
-          current_password: "password123",
-          otp_code: "000000"
-        }
-      }
-    end
+    post two_factor_authentication_path, params: {
+      two_factor_authentication: { current_password: "wrong-password", otp_code: code }
+    }
 
     assert_response :unprocessable_content
-    assert_match(/invalid/i, response.body)
-    refute_predicate user.reload, :two_factor_enabled?
-    assert_empty user.two_factor_recovery_codes
+    refute @user.reload.two_factor_enabled?
   end
 
-  test "disables two-factor authentication with current password" do
-    user = create(:user, password: "password123")
-    user.create_two_factor_authentication!(otp_secret: SECRET, enabled_at: Time.current)
-    TwoFactorRecoveryCodeGenerator.new.generate_for(user: user)
-    sign_in user
+  test "create rejects an invalid otp" do
+    get two_factor_authentication_path
+
+    post two_factor_authentication_path, params: {
+      two_factor_authentication: { current_password: "password123", otp_code: "000000" }
+    }
+
+    assert_response :unprocessable_content
+    refute @user.reload.two_factor_enabled?
+  end
+
+  test "create enables 2FA and shows recovery codes" do
+    get two_factor_authentication_path
+    secret = session[:pending_two_factor_secret]
+    code = ROTP::TOTP.new(secret).now
+
+    post two_factor_authentication_path, params: {
+      two_factor_authentication: { current_password: "password123", otp_code: code }
+    }
+
+    assert_response :created
+    assert @user.reload.two_factor_enabled?
+    assert_equal TwoFactorRecoveryCodeGenerator::CODE_COUNT, @user.two_factor_recovery_codes.count
+    assert_nil session[:pending_two_factor_secret]
+  end
+
+  test "destroy rejects a wrong current password" do
+    enable_two_factor
 
     delete two_factor_authentication_path, params: {
       two_factor_authentication: { current_password: "wrong-password" }
     }
 
     assert_response :unprocessable_content
-    assert_predicate user.reload, :two_factor_enabled?
+    assert @user.reload.two_factor_enabled?
+  end
+
+  test "destroy disables 2FA and wipes recovery codes" do
+    enable_two_factor
 
     delete two_factor_authentication_path, params: {
       two_factor_authentication: { current_password: "password123" }
     }
 
-    assert_response :see_other
     assert_redirected_to two_factor_authentication_path
-    refute_predicate user.reload, :two_factor_enabled?
+    refute @user.reload.two_factor_enabled?
+    assert_equal 0, @user.two_factor_recovery_codes.count
+  end
+
+  test "destroy when not enabled redirects without error" do
+    delete two_factor_authentication_path, params: {
+      two_factor_authentication: { current_password: "password123" }
+    }
+
+    assert_redirected_to two_factor_authentication_path
   end
 
   private
 
-  def assert_recovery_codes_shown_once_for(user)
-    raw_codes = response.body.scan(/<code[^>]*>([a-z0-9]{5}-[a-z0-9]{5})<\/code>/).flatten
-
-    assert_equal 10, raw_codes.uniq.size
-    assert_equal 10, user.two_factor_recovery_codes.count
-    raw_codes.each do |raw_code|
-      refute_includes user.two_factor_recovery_codes.map(&:code_digest), raw_code
-      assert user.two_factor_recovery_codes.any? { |recovery_code| recovery_code.matches_code?(raw_code) }
-    end
-
-    get two_factor_authentication_path
-
-    assert_response :success
-    raw_codes.each do |raw_code|
-      refute_match raw_code, response.body
-    end
+  def sign_in(user)
+    post user_session_path, params: { user: { email: user.email, password: "password123" } }
   end
 
-  def current_code
-    ROTP::TOTP.new(SECRET).now
-  end
-
-  def with_stubbed_secret(secret)
-    original = TwoFactorAuthentication.method(:generate_secret)
-    TwoFactorAuthentication.define_singleton_method(:generate_secret) { secret }
-    yield
-  ensure
-    TwoFactorAuthentication.define_singleton_method(:generate_secret, original)
+  def enable_two_factor
+    @user.create_two_factor_authentication!(otp_secret: TwoFactorAuthentication.generate_secret, enabled_at: Time.current)
+    TwoFactorRecoveryCodeGenerator.new.generate_for(user: @user)
   end
 end

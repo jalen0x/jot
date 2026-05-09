@@ -1,18 +1,19 @@
 <% content_for(:title) { t(".title") } %>
+<% content_for(:auth_illustration) { "sign-in.svg" } %>
 <% @hide_flash_alert = true %>
 
 <% content_for :form_block do %>
-  <div class="mb-6 text-center">
-    <h2 class="mb-1 text-2xl font-bold leading-tight text-heading"><%= t(".sign_in") %></h2>
-    <p class="text-sm text-body-subtle">
+  <div class="mb-6">
+    <h1 class="mb-2 text-2xl font-extrabold leading-tight tracking-tight text-heading"><%= t(".sign_in") %></h1>
+    <p class="text-body-subtle">
       <%= t(".sign_up_html", link: link_to(t(".sign_up_link"), new_registration_path(resource_name), data: modal_turbo_frame_data, class: "font-medium text-fg-brand hover:underline")) %>
     </p>
   </div>
 
   <%= render "devise/shared/oauth_buttons" %>
 
-  <%= form_with(model: resource, as: resource_name, url: session_path(resource_name), data: modal_turbo_frame_data) do |f| %>
-    <div class="mb-6">
+  <%= form_with(model: resource, as: resource_name, url: session_path(resource_name), data: modal_turbo_frame_data, html: { class: "mt-4 space-y-4 sm:mt-6 sm:space-y-6" }) do |f| %>
+    <div>
       <%= f.label :email, class: "block mb-2 text-sm font-medium text-heading" %>
       <%= f.email_field :email,
             autofocus: true,
@@ -22,7 +23,7 @@
             class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
     </div>
 
-    <div class="mb-6">
+    <div>
       <%= f.label :password, class: "block mb-2 text-sm font-medium text-heading" %>
       <%= f.password_field :password,
             autocomplete: "current-password",

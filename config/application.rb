@@ -32,6 +32,10 @@ module Jot
     # ViewComponent previews (rendered via Lookbook at /lookbook in development)
     config.view_component.preview_paths = [ Rails.root.join("test/components/previews").to_s ]
 
+    config.active_record.encryption.primary_key = ENV.fetch("ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY")
+    config.active_record.encryption.deterministic_key = ENV.fetch("ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY")
+    config.active_record.encryption.key_derivation_salt = ENV.fetch("ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT")
+
     # Prefer app/ over the internal template base so downstream overrides win.
     config.railties_order = [ :main_app, TemplateBase::Engine, :all ]
   end

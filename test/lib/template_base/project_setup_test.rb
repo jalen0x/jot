@@ -26,7 +26,7 @@ class TemplateBase::ProjectSetupTest < ActiveSupport::TestCase
       assert_includes File.read(File.join(dir, "config", "application.rb")), "module StarterApp"
       assert_includes File.read(File.join(dir, "Dockerfile")), "docker build -t starter_app ."
       assert File.exist?(File.join(dir, "app", "views", "layouts", "application.html.erb"))
-      assert File.exist?(File.join(dir, "app", "views", "home", "show.html.erb"))
+      assert_not File.exist?(File.join(dir, "app", "views", "home", "show.html.erb"))
     end
   end
 end

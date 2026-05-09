@@ -1,0 +1,82 @@
+<% content_for(:title) { t(".title") } %>
+
+<div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
+  <section class="rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs sm:p-8">
+    <h1 class="mb-6 text-3xl font-bold text-heading"><%= t(".title") %></h1>
+
+    <%= form_with(model: resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "space-y-6" }) do |f| %>
+      <% if resource.errors.any? %>
+        <div class="rounded-base border border-danger-subtle bg-danger-soft px-4 py-3 text-sm text-fg-danger-strong">
+          <p class="font-medium"><%= t("errors.messages.not_saved", count: resource.errors.count, resource: resource.class.model_name.human.downcase) %></p>
+          <ul class="mt-2 list-disc space-y-1 ps-5">
+            <% resource.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <%= f.label :first_name, class: "block mb-2 text-sm font-medium text-heading" %>
+          <%= f.text_field :first_name, autocomplete: "given-name", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+        </div>
+
+        <div>
+          <%= f.label :last_name, class: "block mb-2 text-sm font-medium text-heading" %>
+          <%= f.text_field :last_name, autocomplete: "family-name", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+        </div>
+      </div>
+
+      <div>
+        <%= f.label :email, class: "block mb-2 text-sm font-medium text-heading" %>
+        <%= f.email_field :email, autocomplete: "email", required: true, class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <%= f.label :password, t(".new_password"), class: "block mb-2 text-sm font-medium text-heading" %>
+          <%= f.password_field :password, autocomplete: "new-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+          <p class="mt-2 text-sm text-body-subtle"><%= t(".password_hint") %></p>
+        </div>
+
+        <div>
+          <%= f.label :password_confirmation, t(".password_confirmation"), class: "block mb-2 text-sm font-medium text-heading" %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+        </div>
+      </div>
+
+      <div>
+        <%= f.label :current_password, class: "block mb-2 text-sm font-medium text-heading" %>
+        <%= f.password_field :current_password, autocomplete: "current-password", required: true, class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+        <p class="mt-2 text-sm text-body-subtle"><%= t(".current_password_hint") %></p>
+      </div>
+
+      <%= f.button button_text(t(".update"), disable_with: t(".updating")), class: "text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+    <% end %>
+  </section>
+
+  <aside class="space-y-6">
+    <section class="rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs">
+      <h2 class="text-xl font-bold text-heading"><%= t(".two_factor.title") %></h2>
+      <p class="mt-2 text-sm text-body-subtle"><%= t(".two_factor.description") %></p>
+
+      <div class="mt-5">
+        <%= link_to(current_user.two_factor_enabled? ? t(".two_factor.manage") : t(".two_factor.enable"),
+              two_factor_authentication_path,
+              class: "inline-flex text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none") %>
+      </div>
+    </section>
+
+    <section class="rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs">
+      <h2 class="text-xl font-bold text-heading"><%= t(".application_lock.title") %></h2>
+      <p class="mt-2 text-sm text-body-subtle"><%= t(".application_lock.description") %></p>
+
+      <div class="mt-5">
+        <%= link_to(current_user.application_lock_enabled? ? t(".application_lock.manage") : t(".application_lock.enable"),
+              application_lock_path,
+              class: "inline-flex text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none") %>
+      </div>
+    </section>
+  </aside>
+</div>

@@ -19,31 +19,30 @@
   </head>
 
   <body class="min-h-screen bg-neutral-primary-soft text-body antialiased">
-    <header class="border-b border-default bg-neutral-primary/90 backdrop-blur-sm">
-      <div class="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 sm:px-8">
-        <div>
-          <%= link_to TemplateBase.config.application_name, root_path, class: "text-lg font-semibold tracking-tight text-heading" %>
-          <p class="text-sm text-body-subtle"><%= TemplateBase.config.domain %></p>
-        </div>
+    <% if user_signed_in? && application_lock_unlocked_or_disabled? %>
+      <header class="border-b border-default bg-neutral-primary/90 backdrop-blur-sm">
+        <div class="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 sm:px-8">
+          <div>
+            <%= link_to TemplateBase.config.application_name, root_path, class: "text-lg font-semibold tracking-tight text-heading" %>
+            <p class="text-sm text-body-subtle"><%= TemplateBase.config.domain %></p>
+          </div>
 
-        <nav class="flex items-center gap-3 text-sm font-medium">
-          <% if user_signed_in? %>
+          <nav class="flex items-center gap-3 text-sm font-medium">
             <span class="hidden text-body-subtle sm:inline"><%= current_user.name.presence || current_user.email %></span>
             <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-          <% else %>
-            <%= link_to "Sign in", new_user_session_path, data: { turbo_frame: "modal_content" }, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-            <%= link_to "Create account", new_user_registration_path, data: { turbo_frame: "modal_content" }, class: "text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-          <% end %>
-        </nav>
-      </div>
-    </header>
+          </nav>
+        </div>
+      </header>
+    <% end %>
 
     <%= render(FlashComponent.new(
       flash: flash,
       hide_alert: instance_variable_defined?(:@hide_flash_alert) && @hide_flash_alert
     )) %>
 
-    <main class="mx-auto flex w-full max-w-7xl flex-col px-6 pb-16 pt-10 sm:px-8">
+    <% full_bleed_auth_page = devise_controller? && !user_signed_in? %>
+    <% full_bleed_unlock_page = controller_path == "application_lock_sessions" %>
+    <main class="<%= full_bleed_auth_page || full_bleed_unlock_page ? "min-h-screen" : "mx-auto flex w-full max-w-7xl flex-col px-6 pb-16 pt-10 sm:px-8" %>">
       <%= yield %>
     </main>
 

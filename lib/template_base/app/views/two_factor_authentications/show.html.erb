@@ -1,0 +1,100 @@
+<% content_for(:title) { t(".title") } %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+
+<section class="mx-auto w-full max-w-2xl space-y-6">
+  <header>
+    <h1 class="text-2xl font-bold text-heading"><%= t(".title") %></h1>
+    <p class="mt-1.5 text-sm text-body"><%= t(".description") %></p>
+  </header>
+
+  <% if @error_message.present? %>
+    <div class="rounded-base border border-danger bg-danger-soft px-4 py-3 text-sm text-fg-danger-strong">
+      <%= @error_message %>
+    </div>
+  <% end %>
+
+  <% if @recovery_codes.present? %>
+    <%= render "recovery_code_panel", recovery_codes: @recovery_codes %>
+  <% end %>
+
+  <% if @two_factor_authentication %>
+    <article class="rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs sm:p-8 space-y-6">
+      <header class="space-y-1">
+        <p class="text-xs font-medium uppercase tracking-wide text-fg-brand"><%= t(".enabled_label") %></p>
+        <h2 class="text-xl font-semibold text-heading"><%= t(".enabled_heading") %></h2>
+        <p class="text-sm text-body"><%= t(".enabled_at", time: l(@two_factor_authentication.enabled_at, format: :long)) %></p>
+      </header>
+
+      <div class="grid gap-6 lg:grid-cols-2">
+        <%= form_with url: two_factor_recovery_codes_path, scope: :two_factor_recovery_codes, class: "space-y-4" do |form| %>
+          <div>
+            <%= form.label :current_password, t(".current_password"), class: "block mb-2 text-sm font-medium text-heading" %>
+            <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: field_classes %>
+          </div>
+          <%= form.submit t(".regenerate"), class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+        <% end %>
+
+        <%= form_with url: two_factor_authentication_path, method: :delete, scope: :two_factor_authentication, class: "space-y-4" do |form| %>
+          <div>
+            <%= form.label :current_password, t(".current_password"), class: "block mb-2 text-sm font-medium text-heading" %>
+            <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: field_classes %>
+          </div>
+          <%= form.submit t(".disable"), class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+        <% end %>
+      </div>
+    </article>
+  <% else %>
+    <article class="rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs sm:p-8 space-y-6" data-controller="clipboard">
+      <header class="space-y-1">
+        <h2 class="text-xl font-semibold text-heading"><%= t(".setup_heading") %></h2>
+        <p class="text-sm text-body"><%= t(".setup_description") %></p>
+      </header>
+
+      <div class="grid gap-5 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-6">
+        <div class="size-44 shrink-0 mx-auto sm:mx-0 rounded-base bg-white p-2">
+          <%= @qr_code_svg.html_safe %>
+        </div>
+
+        <div>
+          <%= label_tag :totp_setup_secret, t(".manual_entry"), class: "block mb-2 text-sm font-medium text-heading" %>
+          <div class="relative">
+            <%= text_field_tag :totp_setup_secret, @setup_secret, readonly: true, disabled: true, autocomplete: "off", data: { clipboard_target: "source" }, class: "bg-neutral-secondary-medium border border-default-medium text-body text-sm font-mono rounded-base focus:ring-brand focus:border-brand block w-full ps-3 pe-20 py-2.5 shadow-xs placeholder:text-body" %>
+            <button type="button" data-action="clipboard#copy" class="absolute end-1.5 top-1/2 -translate-y-1/2 text-body bg-neutral-primary-strong border border-default-strong hover:bg-neutral-secondary-strong/70 hover:text-heading focus:ring-4 focus:ring-neutral-tertiary-soft font-medium leading-5 rounded text-xs px-3 py-1.5 focus:outline-none">
+              <span data-clipboard-target="defaultState">
+                <span class="flex items-center">
+                  <svg class="w-3.5 h-3.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3m0 3h6m-6 5h6m-6 4h6M10 3v4h4V3h-4Z" /></svg>
+                  <span class="font-semibold"><%= t(".copy") %></span>
+                </span>
+              </span>
+              <span data-clipboard-target="successState" class="hidden">
+                <span class="flex items-center text-fg-brand">
+                  <svg class="w-3.5 h-3.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3m0 3h6m-6 7 2 2 4-4m-5-9v4h4V3h-4Z" /></svg>
+                  <span class="font-semibold"><%= t(".copied") %></span>
+                </span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="border-default">
+
+      <%= form_with url: two_factor_authentication_path, scope: :two_factor_authentication, class: "space-y-5" do |form| %>
+        <div>
+          <%= form.label :otp_code, t(".verification_code"), class: "block mb-2 text-sm font-medium text-heading" %>
+          <%= render "devise/shared/second_factor_code_field", form: form, field: :otp_code, allow_backup_code: false, auto_submit: false %>
+        </div>
+
+        <div>
+          <%= form.label :current_password, t(".current_password"), class: "block mb-2 text-sm font-medium text-heading" %>
+          <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: field_classes %>
+        </div>
+
+        <div class="flex items-center justify-end gap-3">
+          <%= link_to t(".cancel"), edit_user_registration_path, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+          <%= form.submit t(".enable"), class: "text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+        </div>
+      <% end %>
+    </article>
+  <% end %>
+</section>

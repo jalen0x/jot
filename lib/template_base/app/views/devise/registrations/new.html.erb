@@ -1,17 +1,18 @@
 <% content_for(:title) { t(".title") } %>
+<% content_for(:auth_illustration) { "sign-in.svg" } %>
 <% @hide_flash_alert = true %>
 
 <% content_for :form_block do %>
-  <div class="mb-6 text-center">
-    <h2 class="mb-1 text-2xl font-bold leading-tight text-heading"><%= t(".sign_up") %></h2>
-    <p class="text-sm text-body-subtle">
+  <div class="mb-6">
+    <h1 class="mb-2 text-2xl font-extrabold leading-tight tracking-tight text-heading"><%= t(".sign_up") %></h1>
+    <p class="text-body-subtle">
       <%= t(".login_html", link: link_to(t(".login_link"), new_session_path(resource_name), data: modal_turbo_frame_data, class: "font-medium text-fg-brand hover:underline")) %>
     </p>
   </div>
 
   <%= render "devise/shared/oauth_buttons" %>
 
-  <%= form_with(model: resource, as: resource_name, url: registration_path(resource_name), data: modal_turbo_frame_data) do |f| %>
+  <%= form_with(model: resource, as: resource_name, url: registration_path(resource_name), data: modal_turbo_frame_data, html: { class: "mt-4 space-y-4 sm:mt-6 sm:space-y-6" }) do |f| %>
     <% if resource.errors.any? %>
       <div class="mb-6 rounded-base border border-danger-subtle bg-danger-soft px-4 py-3 text-sm text-fg-danger-strong">
         <p class="font-medium"><%= t("errors.messages.not_saved", count: resource.errors.count, resource: resource.class.model_name.human.downcase) %></p>

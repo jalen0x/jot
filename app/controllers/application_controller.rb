@@ -1,11 +1,13 @@
 class ApplicationController < ActionController::Base
   include Pundit::Authorization
 
+  before_action :require_application_unlock
+  helper_method :application_lock_unlocked?, :application_lock_unlocked_or_disabled?
+
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
 
   around_action :switch_locale
-  before_action :require_application_unlock
 
   private
 
@@ -22,11 +24,19 @@ class ApplicationController < ActionController::Base
     return if user.blank?
     return unless user.application_lock_enabled?
     return if application_lock_unlocked?
-    redirect_to new_application_lock_session_path, alert: "Unlock your application to continue."
+
+    redirect_to new_application_lock_session_path, alert: t("application_locks.locked_alert")
   end
 
   def application_lock_unlocked?
     session[:application_lock_unlocked_user_id] == warden.user(:user)&.id
+  end
+
+  def application_lock_unlocked_or_disabled?
+    return true unless user_signed_in?
+    return true unless current_user.application_lock_enabled?
+
+    application_lock_unlocked?
   end
 
   def mark_application_unlocked

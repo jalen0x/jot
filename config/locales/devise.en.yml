@@ -31,6 +31,14 @@ en:
       failure: "Could not authenticate you from %{kind} because \"%{reason}\"."
       success: "Successfully authenticated from %{kind} account."
     passwords:
+      edit:
+        change_my_password: "Change my password"
+        change_your_password: "Reset your password"
+        confirm_new_password: "Confirm new password"
+        description: "Choose a new password for your account."
+        new_password: "New password"
+        submitting: "Updating..."
+        title: "Reset your password"
       new:
         description: "Enter your email and we will send reset instructions."
         heading: "Forgot your password?"
@@ -50,6 +58,20 @@ en:
         sign_up: "Sign up"
         submitting: "Submitting..."
         title: "Sign up"
+      edit:
+        current_password_hint: "We need your current password to confirm account changes."
+        new_password: "New password"
+        password_confirmation: "Confirm new password"
+        password_hint: "Leave blank if you do not want to change it."
+        title: "Account settings"
+        update: "Update account"
+        updating: "Updating..."
+        two_factor:
+          description: "Require your password and a code from your authenticator app when signing in."
+          disable: "Disable two-factor authentication"
+          disable_confirm: "Disable two-factor authentication for your account?"
+          enable: "Enable two-factor authentication"
+          title: "Two-factor authentication"
       signed_up: "Welcome! You have signed up successfully."
       signed_up_but_inactive: "You have signed up successfully. However, we could not sign you in because your account is not yet activated."
       signed_up_but_locked: "You have signed up successfully. However, we could not sign you in because your account is locked."
@@ -64,11 +86,20 @@ en:
         sign_up_link: "sign up for an account"
         signing_in: "Logging in..."
         title: "Log in"
+      two_factor:
+        backup_code_hint: "Can’t access your authenticator app? Enter one of your saved backup codes."
+        description: "Open your authenticator app and enter the code to finish signing in."
+        title: "Two-factor authentication"
+        verification_code: "Authenticator code"
+        verify: "Verify"
+        verifying: "Verifying..."
       signed_in: "Signed in successfully."
       signed_out: "Signed out successfully."
       already_signed_out: "Signed out successfully."
     shared:
       or: "or"
+      second_factor_code:
+        digit_label: "Code digit %{number}"
       links:
         forgot_your_password: "Forgot your password?"
         redirecting: "Redirecting..."

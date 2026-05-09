@@ -10,6 +10,7 @@ Design docs are instructions future developers and agents will follow. Do not do
 ## Same Rules as Code
 
 - Runtime config in docs and examples is ENV-only. Do not mention Rails credentials as a runtime source or fallback; migration docs may mention them only as the thing being removed.
+- Route examples follow `routes.md`: name resources first, use canonical actions, and do not show `member` / `collection` custom actions unless the doc explicitly records why a named resource would be worse.
 - Service examples follow `service-objects.md`: business noun class, behavior-revealing verb method, no `Service` suffix, no generic `call`.
 - Controller flows follow `async-external-calls.md`: external APIs do not run inline from request paths by default.
 - Job examples follow `jobs.md`: known transient failures get explicit retry behavior; unknown failures surface.
@@ -56,7 +57,7 @@ eval(experiment.response_handler)
 Before implementing a non-trivial design doc, scan for these failure modes:
 
 - runtime config has exactly one ENV-based source and no credentials fallback;
-- routes are resources first, with custom actions justified as exceptions;
+- routes are named resources with canonical actions; reports, statistics, trends, counts, searches, and batch workflows are not hidden as custom actions on broad controllers;
 - controllers only translate HTTP and consume Result objects, not duplicate business decisions;
 - service names and methods reveal behavior, without `Service` suffix or generic `call`;
 - database design has one source of truth for workflow/capability state;

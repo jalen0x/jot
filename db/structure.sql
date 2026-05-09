@@ -1534,7 +1534,8 @@ CREATE TABLE public.two_factor_authentications (
     otp_secret text NOT NULL,
     enabled_at timestamp(6) with time zone NOT NULL,
     created_at timestamp(6) with time zone NOT NULL,
-    updated_at timestamp(6) with time zone NOT NULL
+    updated_at timestamp(6) with time zone NOT NULL,
+    last_otp_at timestamp(6) with time zone
 );
 
 
@@ -1564,6 +1565,13 @@ COMMENT ON COLUMN public.two_factor_authentications.otp_secret IS 'Base32 TOTP s
 --
 
 COMMENT ON COLUMN public.two_factor_authentications.enabled_at IS 'Time two-factor authentication was enabled';
+
+
+--
+-- Name: COLUMN two_factor_authentications.last_otp_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.two_factor_authentications.last_otp_at IS 'Most recent successful OTP timestep; used to prevent replay within the drift window';
 
 
 --
@@ -3014,6 +3022,7 @@ ALTER TABLE ONLY public.transaction_templates
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260509070004'),
 ('20260505160000'),
 ('20260505150000'),
 ('20260505140000'),

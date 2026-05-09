@@ -1,4 +1,8 @@
 zh-CN:
+  activemodel:
+    errors:
+      messages:
+        current_password_invalid: "当前密码不正确。"
   components:
     modal:
       close: "关闭弹窗"
@@ -41,6 +45,14 @@ zh-CN:
       profile: "个人资料"
   devise:
     passwords:
+      edit:
+        change_my_password: "修改密码"
+        change_your_password: "重置密码"
+        confirm_new_password: "确认新密码"
+        description: "为你的账号设置一个新密码。"
+        new_password: "新密码"
+        submitting: "更新中..."
+        title: "重置密码"
       new:
         description: "输入邮箱后，我们会发送重置密码说明。"
         heading: "忘记密码？"
@@ -54,6 +66,24 @@ zh-CN:
         sign_up: "注册"
         submitting: "提交中..."
         title: "注册"
+      edit:
+        current_password_hint: "需要输入当前密码来确认账号变更。"
+        new_password: "新密码"
+        password_confirmation: "确认新密码"
+        password_hint: "如果不想修改密码，请留空。"
+        title: "账号设置"
+        update: "更新账号"
+        updating: "更新中..."
+        two_factor:
+          description: "在密码之外，要求登录时再输入认证器 App 的 6 位验证码。"
+          enable: "启用"
+          manage: "管理"
+          title: "双因素认证"
+        application_lock:
+          description: "用 6 位 PIN 把当前浏览器会话挡在账号外。"
+          enable: "启用"
+          manage: "管理"
+          title: "应用锁"
     sessions:
       new:
         sign_in: "登录"
@@ -63,6 +93,8 @@ zh-CN:
         title: "登录"
     shared:
       or: "或"
+      second_factor_code:
+        digit_label: "验证码第 %{number} 位"
       links:
         forgot_your_password: "忘记密码？"
         redirecting: "跳转中..."
@@ -264,3 +296,96 @@ zh-CN:
       uploading: "上传中..."
     update:
       updated: "个人资料已更新。"
+  users:
+    sessions:
+      create:
+        invalid_credentials: "邮箱或密码不正确。"
+        too_many_attempts: "登录失败次数过多，请稍后再试。"
+  application_locks:
+    locked_alert: "请先解锁应用以继续。"
+    show:
+      title: "应用锁"
+      description: "用 6 位 PIN 把当前浏览器会话挡在账号外，登录后多一道本地验证。"
+      enabled_label: "已启用"
+      enabled_heading: "应用锁已启用。"
+      enabled_description: "每次登录后都会要求输入 PIN，直到你关闭这个锁。"
+      setup_heading: "设置 6 位 PIN 码"
+      setup_description: "选一个你能记住的 6 位数字 PIN。只存储 digest。"
+      pin_code: "PIN 码"
+      pin_code_confirmation: "确认 PIN 码"
+      current_password: "当前密码"
+      enable: "启用应用锁"
+      disable: "关闭应用锁"
+    create:
+      already_enabled: "应用锁已经启用。"
+      invalid_password: "当前密码不正确。"
+      pin_mismatch: "两次输入的 PIN 不一致。"
+      invalid_pin: "PIN 码必须是 6 位数字。"
+      enabled: "已启用应用锁。"
+    destroy:
+      not_enabled: "应用锁未启用。"
+      invalid_password: "当前密码不正确。"
+      disabled: "已关闭应用锁。"
+  application_lock_sessions:
+    new:
+      title: "解锁应用"
+      description: "输入 6 位 PIN 码以继续。"
+      pin_code: "PIN 码"
+      unlock: "解锁"
+      sign_out: "改为退出登录"
+    create:
+      not_enabled: "应用锁未启用。"
+      unlocked: "应用已解锁。"
+      invalid_pin: "PIN 码不正确。"
+    destroy:
+      not_enabled: "应用锁未启用。"
+      locked: "应用已锁定。"
+  two_factor_authentications:
+    recovery_code_panel:
+      title: "保存恢复码"
+      description: "请把这些恢复码保存在安全的位置。如果无法使用认证器 App，每个恢复码都可以使用一次。"
+      warning: "这些恢复码只会显示一次。"
+      copy_all: "全部复制"
+      copied: "已复制"
+      download: "下载"
+    show:
+      title: "双因素认证"
+      description: "在密码之外，要求登录时再输入认证器 App 的 6 位验证码。"
+      enabled_label: "已启用"
+      enabled_heading: "登录时需要认证器验证码。"
+      enabled_at: "%{time} 启用。"
+      current_password: "当前密码"
+      regenerate: "重新生成恢复码"
+      disable: "关闭双因素认证"
+      setup_heading: "设置你的认证器 App"
+      setup_description: "用认证器 App 扫描二维码，或手动输入设置密钥。"
+      manual_entry: "手动设置密钥"
+      copy: "复制"
+      copied: "已复制"
+      verification_code: "认证器验证码"
+      cancel: "取消"
+      enable: "启用双因素认证"
+    create:
+      already_enabled: "双因素认证已经启用。"
+      invalid_password: "当前密码不正确。"
+      invalid_otp: "验证码不正确。"
+      enabled: "已启用双因素认证。"
+    destroy:
+      not_enabled: "双因素认证未启用。"
+      invalid_password: "当前密码不正确。"
+      disabled: "已关闭双因素认证。"
+  two_factor_challenges:
+    new:
+      title: "双因素认证"
+      description: "输入认证器 App 的验证码，或粘贴一个恢复码。"
+      verification_code: "认证器验证码"
+      backup_code_hint: "如果无法使用认证器 App，可以粘贴一个恢复码。"
+      verify: "验证"
+    create:
+      success: "登录成功。"
+      invalid_otp: "验证码不正确。"
+      missing_challenge: "请先登录后再继续。"
+  two_factor_recovery_codes:
+    create:
+      not_enabled: "请先启用双因素认证。"
+      invalid_password: "当前密码不正确。"

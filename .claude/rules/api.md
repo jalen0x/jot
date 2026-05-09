@@ -23,6 +23,26 @@ namespace :api do
 end
 ```
 
+API endpoints follow the same resource rules as HTML endpoints. Do not add `member` / `collection` actions under an existing API resource just because the response is JSON.
+
+```ruby
+# Bad: action-focused API
+resources :transactions, only: [:index] do
+  get :trends, on: :collection
+end
+
+# Good: resource-focused API
+resources :transaction_trends, only: [:index]
+```
+
+For API reports and derived read models, name the response as a resource and use query params for filters, ranges, grouping, and pagination:
+
+- `GET /api/v1/transaction_trends?start_date=...&end_date=...&aggregation=day`
+- `GET /api/v1/transaction_statistics?start_date=...&end_date=...`
+- `GET /api/v1/widget_search_results?q=...`
+
+The controller may still type-coerce HTTP params and rescue boundary parsing errors. The route and controller name should express the resource being returned, not the calculation verb.
+
 ```ruby
 # app/controllers/api_controller.rb — base class for all API controllers
 class ApiController < ApplicationController
