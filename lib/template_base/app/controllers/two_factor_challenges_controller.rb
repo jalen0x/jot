@@ -1,5 +1,8 @@
 class TwoFactorChallengesController < ApplicationController
+  include Devise::Controllers::Rememberable
+
   before_action :load_pending_user
+  before_action :enforce_login_rate_limit, only: :create
 
   # GET /two_factor_challenge/new
   def new
@@ -8,10 +11,14 @@ class TwoFactorChallengesController < ApplicationController
   # POST /two_factor_challenge
   def create
     if valid_two_factor_code?(two_factor_challenge_params[:otp_code])
+      remember_me_enabled = session.delete(:pending_two_factor_remember_me)
       session.delete(:pending_two_factor_user_id)
+      remember_me(@pending_user) if remember_me_enabled
       sign_in(:user, @pending_user)
+      login_attempt_limiter.reset(email: @pending_user.email, ip: request.remote_ip)
       redirect_to after_sign_in_path_for(@pending_user), notice: t(".success")
     else
+      login_attempt_limiter.record_failure(email: @pending_user.email, ip: request.remote_ip)
       @error_message = t(".invalid_otp")
       render :new, status: :unprocessable_content
     end
@@ -24,7 +31,19 @@ class TwoFactorChallengesController < ApplicationController
     return if @pending_user&.two_factor_enabled?
 
     session.delete(:pending_two_factor_user_id)
+    session.delete(:pending_two_factor_remember_me)
     redirect_to new_user_session_path, alert: t(".missing_challenge")
+  end
+
+  def enforce_login_rate_limit
+    return unless login_attempt_limiter.blocked?(email: @pending_user.email, ip: request.remote_ip)
+
+    flash.now[:alert] = t("users.sessions.create.too_many_attempts")
+    render :new, status: :too_many_requests
+  end
+
+  def login_attempt_limiter
+    @login_attempt_limiter ||= LoginAttemptLimiter.new
   end
 
   def valid_two_factor_code?(code)

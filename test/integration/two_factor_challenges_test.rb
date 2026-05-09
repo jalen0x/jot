@@ -71,9 +71,62 @@ class TwoFactorChallengesTest < ActionDispatch::IntegrationTest
     assert_equal @user.id, session[:pending_two_factor_user_id]
   end
 
+  test "five failed challenges block subsequent attempts" do
+    inject_memory_cache do
+      start_pending_sign_in
+
+      5.times do
+        post two_factor_challenge_path, params: { two_factor_challenge: { otp_code: "000000" } }
+      end
+
+      post two_factor_challenge_path, params: {
+        two_factor_challenge: { otp_code: ROTP::TOTP.new(@secret).now }
+      }
+      assert_response :too_many_requests
+
+      # Fresh sign-in with the password should also be rate-limited because the
+      # limiter is keyed by email + IP.
+      post user_session_path, params: { user: { email: @user.email, password: "password123" } }
+      assert_response :too_many_requests
+    end
+  end
+
+  test "remember me checked at sign in is honoured after the challenge" do
+    post user_session_path, params: {
+      user: { email: @user.email, password: "password123", remember_me: "1" }
+    }
+    assert_equal true, session[:pending_two_factor_remember_me]
+
+    post two_factor_challenge_path, params: {
+      two_factor_challenge: { otp_code: ROTP::TOTP.new(@secret).now }
+    }
+
+    assert_redirected_to root_path
+    assert_nil session[:pending_two_factor_remember_me]
+    assert_not_nil @user.reload.remember_created_at
+  end
+
+  test "remember me unchecked at sign in stays unchecked" do
+    start_pending_sign_in
+
+    post two_factor_challenge_path, params: {
+      two_factor_challenge: { otp_code: ROTP::TOTP.new(@secret).now }
+    }
+
+    assert_nil @user.reload.remember_created_at
+  end
+
   private
 
   def start_pending_sign_in
     post user_session_path, params: { user: { email: @user.email, password: "password123" } }
+  end
+
+  def inject_memory_cache
+    previous = Rails.cache
+    Rails.cache = ActiveSupport::Cache::MemoryStore.new
+    yield
+  ensure
+    Rails.cache = previous
   end
 end
