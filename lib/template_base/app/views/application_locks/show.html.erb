@@ -44,12 +44,12 @@
       <%= form_with url: application_lock_path, scope: :application_lock, class: "space-y-5" do |form| %>
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
-            <%= form.label :pin_code, t(".pin_code"), class: "block mb-2 text-sm font-medium text-heading" %>
-            <%= form.password_field :pin_code, required: true, inputmode: "numeric", pattern: "\\d{6}", maxlength: 6, autocomplete: "new-password", class: field_classes %>
+            <%= form.label :pin, t(".pin_code"), class: "block mb-2 text-sm font-medium text-heading" %>
+            <%= form.password_field :pin, required: true, inputmode: "numeric", pattern: "\\d{6}", maxlength: 6, autocomplete: "new-password", class: field_classes %>
           </div>
           <div>
-            <%= form.label :pin_code_confirmation, t(".pin_code_confirmation"), class: "block mb-2 text-sm font-medium text-heading" %>
-            <%= form.password_field :pin_code_confirmation, required: true, inputmode: "numeric", pattern: "\\d{6}", maxlength: 6, autocomplete: "new-password", class: field_classes %>
+            <%= form.label :pin_confirmation, t(".pin_code_confirmation"), class: "block mb-2 text-sm font-medium text-heading" %>
+            <%= form.password_field :pin_confirmation, required: true, inputmode: "numeric", pattern: "\\d{6}", maxlength: 6, autocomplete: "new-password", class: field_classes %>
           </div>
         </div>
 

@@ -1,4 +1,8 @@
 en:
+  activemodel:
+    errors:
+      messages:
+        current_password_invalid: "Current password is incorrect."
   components:
     modal:
       close: "Close modal"

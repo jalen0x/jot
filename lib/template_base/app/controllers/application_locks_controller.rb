@@ -11,24 +11,26 @@ class ApplicationLocksController < ApplicationController
   # POST /application_lock
   def create
     authorize :application_lock
-    permitted = application_lock_params
 
     if current_user.application_lock_enabled?
-      @application_lock = current_user.application_lock
       redirect_to application_lock_path, alert: t(".already_enabled")
-    elsif !current_user.valid_password?(permitted[:current_password])
-      @application_lock = current_user.build_application_lock
-      render_show_error(t(".invalid_password"))
-    elsif permitted[:pin_code] != permitted[:pin_code_confirmation]
-      @application_lock = current_user.build_application_lock
-      render_show_error(t(".pin_mismatch"))
-    elsif !valid_pin?(permitted[:pin_code])
-      @application_lock = current_user.build_application_lock
-      render_show_error(t(".invalid_pin"))
-    else
-      current_user.create_application_lock!(pin: permitted[:pin_code])
+      return
+    end
+
+    permitted = application_lock_params
+    result = ApplicationLockEnabler.new.enable(
+      user: current_user,
+      current_password: permitted[:current_password],
+      pin: permitted[:pin],
+      pin_confirmation: permitted[:pin_confirmation]
+    )
+
+    if result.enabled?
       mark_application_unlocked
       redirect_to application_lock_path, notice: t(".enabled")
+    else
+      @application_lock = result.application_lock
+      render :show, status: :unprocessable_content
     end
   end
 
@@ -39,33 +41,27 @@ class ApplicationLocksController < ApplicationController
 
     if application_lock.blank?
       redirect_to application_lock_path, alert: t(".not_enabled"), status: :see_other
-    elsif !current_user.valid_password?(current_password_param)
-      @application_lock = application_lock
-      @application_lock.errors.add(:base, t(".invalid_password"))
-      render :show, status: :unprocessable_content
-    else
-      application_lock.destroy!
+      return
+    end
+
+    result = ApplicationLockDisabler.new.disable(user: current_user, current_password: current_password_param)
+
+    if result.disabled?
       clear_application_unlock
       redirect_to application_lock_path, notice: t(".disabled"), status: :see_other
+    else
+      @application_lock = result.application_lock
+      render :show, status: :unprocessable_content
     end
   end
 
   private
 
   def application_lock_params
-    params.expect(application_lock: [ :current_password, :pin_code, :pin_code_confirmation ])
+    params.expect(application_lock: [ :current_password, :pin, :pin_confirmation ])
   end
 
   def current_password_param
     params.expect(application_lock: [ :current_password ])[:current_password]
-  end
-
-  def render_show_error(message)
-    @application_lock.errors.add(:base, message)
-    render :show, status: :unprocessable_content
-  end
-
-  def valid_pin?(pin)
-    pin.to_s.match?(/\A\d{6}\z/)
   end
 end

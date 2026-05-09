@@ -14,21 +14,21 @@ class ApplicationLockSessionsTest < ActionDispatch::IntegrationTest
   end
 
   test "create with valid pin marks the session unlocked" do
-    post application_lock_session_path, params: { application_lock: { pin_code: "123456" } }
+    post application_lock_session_path, params: { application_lock: { pin: "123456" } }
 
     assert_redirected_to root_path
     assert_equal @user.id, session[:application_lock_unlocked_user_id]
   end
 
   test "create with wrong pin re-renders the unlock form" do
-    post application_lock_session_path, params: { application_lock: { pin_code: "000000" } }
+    post application_lock_session_path, params: { application_lock: { pin: "000000" } }
 
     assert_response :unprocessable_content
     assert_nil session[:application_lock_unlocked_user_id]
   end
 
   test "destroy clears the unlock and redirects back to the unlock screen" do
-    post application_lock_session_path, params: { application_lock: { pin_code: "123456" } }
+    post application_lock_session_path, params: { application_lock: { pin: "123456" } }
     assert_equal @user.id, session[:application_lock_unlocked_user_id]
 
     delete application_lock_session_path
@@ -41,7 +41,7 @@ class ApplicationLockSessionsTest < ActionDispatch::IntegrationTest
     get edit_user_registration_path
     assert_redirected_to new_application_lock_session_path
 
-    post application_lock_session_path, params: { application_lock: { pin_code: "123456" } }
+    post application_lock_session_path, params: { application_lock: { pin: "123456" } }
 
     get edit_user_registration_path
     assert_response :success

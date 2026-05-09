@@ -1,4 +1,8 @@
 zh-CN:
+  activemodel:
+    errors:
+      messages:
+        current_password_invalid: "当前密码不正确。"
   components:
     modal:
       close: "关闭弹窗"

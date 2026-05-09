@@ -15,7 +15,7 @@ class ApplicationLockSessionsController < ApplicationController
 
     if @application_lock.blank?
       redirect_to application_lock_path, alert: t(".not_enabled")
-    elsif @application_lock.authenticate_pin(unlock_params[:pin_code])
+    elsif @application_lock.authenticate_pin(unlock_params[:pin])
       mark_application_unlocked
       redirect_to root_path, notice: t(".unlocked")
     else
@@ -39,6 +39,6 @@ class ApplicationLockSessionsController < ApplicationController
   private
 
   def unlock_params
-    params.expect(application_lock: [ :pin_code ])
+    params.expect(application_lock: [ :pin ])
   end
 end
