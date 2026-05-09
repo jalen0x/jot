@@ -22,6 +22,14 @@ Rails.application.routes.draw do
              only: [ :show, :create, :destroy ]
   end
 
+  # New top-level resources for the 2FA + application lock refactor.
+  # Old resources above are removed in a follow-up commit once the cutover lands.
+  resource :two_factor_authentication, only: [ :show, :create, :destroy ]
+  resource :two_factor_challenge, only: [ :new, :create ]
+  resource :two_factor_recovery_codes, only: :create
+  resource :application_lock, only: [ :show, :create, :destroy ]
+  resource :application_lock_session, only: [ :new, :create, :destroy ]
+
   if Rails.env.development?
     mount Lookbook::Engine, at: "/lookbook"
   end

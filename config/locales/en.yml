@@ -51,3 +51,91 @@ en:
         manual_entry: "Manual setup key"
         title: "Set up two-factor authentication"
         verification_code: "Authenticator code"
+  application_locks:
+    locked_alert: "Unlock your application to continue."
+    show:
+      title: "Application lock"
+      description: "Add a six-digit PIN that gates this browser session before your account is reachable."
+      enabled_label: "Enabled"
+      enabled_heading: "Application lock is on."
+      enabled_description: "You will be asked for your PIN after each sign-in until you disable the lock."
+      setup_heading: "Set a six-digit PIN"
+      setup_description: "Choose a numeric PIN you'll remember. Only the digest is stored."
+      pin_code: "PIN code"
+      pin_code_confirmation: "Confirm PIN"
+      current_password: "Current password"
+      enable: "Enable application lock"
+      disable: "Disable application lock"
+    create:
+      already_enabled: "Application lock is already enabled."
+      invalid_password: "Current password is incorrect."
+      pin_mismatch: "PIN code confirmation does not match."
+      invalid_pin: "PIN code must be exactly six digits."
+      enabled: "Application lock enabled."
+    destroy:
+      not_enabled: "Application lock is not enabled."
+      invalid_password: "Current password is incorrect."
+      disabled: "Application lock disabled."
+  application_lock_sessions:
+    new:
+      title: "Unlock application"
+      description: "Enter your six-digit PIN to continue."
+      pin_code: "PIN code"
+      unlock: "Unlock"
+      sign_out: "Sign out instead"
+    create:
+      not_enabled: "Application lock is not enabled."
+      unlocked: "Application unlocked."
+      invalid_pin: "PIN code is invalid."
+    destroy:
+      not_enabled: "Application lock is not enabled."
+      locked: "Application locked."
+  two_factor_authentications:
+    recovery_code_panel:
+      title: "Save your recovery codes"
+      description: "Save these recovery codes somewhere safe. Each code can be used once if you lose access to your authenticator app."
+      warning: "These codes will only be shown once."
+      copy_all: "Copy all"
+      copied: "Copied"
+      download: "Download"
+    show:
+      title: "Two-factor authentication"
+      description: "Add a six-digit authenticator app code to your password sign-in."
+      enabled_label: "Enabled"
+      enabled_heading: "Authenticator codes are required at sign-in."
+      enabled_at: "Enabled %{time}."
+      current_password: "Current password"
+      regenerate: "Regenerate recovery codes"
+      disable: "Disable two-factor authentication"
+      setup_heading: "Set up your authenticator app"
+      setup_description: "Scan the QR code with your authenticator app, or enter the setup key manually."
+      manual_entry: "Manual setup key"
+      copy: "Copy"
+      copied: "Copied"
+      verification_code: "Authenticator code"
+      cancel: "Cancel"
+      enable: "Enable two-factor authentication"
+    create:
+      already_enabled: "Two-factor authentication is already enabled."
+      invalid_password: "Current password is incorrect."
+      invalid_otp: "Verification code is invalid."
+      enabled: "Two-factor authentication enabled."
+    destroy:
+      not_enabled: "Two-factor authentication is not enabled."
+      invalid_password: "Current password is incorrect."
+      disabled: "Two-factor authentication disabled."
+  two_factor_challenges:
+    new:
+      title: "Two-factor authentication"
+      description: "Enter the authenticator code from your app, or use a recovery code."
+      verification_code: "Authenticator code"
+      backup_code_hint: "If you cannot use your authenticator app, paste a recovery code instead."
+      verify: "Verify"
+    create:
+      success: "Signed in successfully."
+      invalid_otp: "Verification code is invalid."
+      missing_challenge: "Sign in to continue."
+  two_factor_recovery_codes:
+    create:
+      not_enabled: "Enable two-factor authentication first."
+      invalid_password: "Current password is incorrect."
