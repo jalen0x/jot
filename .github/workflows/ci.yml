@@ -86,11 +86,16 @@ jobs:
       - name: Build JavaScript assets
         run: bun run build
 
+      - name: Fetch target branch for migration guard
+        if: github.event_name == 'pull_request'
+        run: git fetch --no-tags --prune --depth=1 origin "${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
+
       - name: Run full verification suite
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           # REDIS_URL: redis://localhost:6379/0
+          MIGRATION_GUARD_BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
         run: bin/ci
 
       - name: Keep screenshots from failed system tests

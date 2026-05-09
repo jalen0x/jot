@@ -4,6 +4,9 @@ CI.run do
   step "Setup", "bin/setup --skip-server"
   step "Setup idempotency", "bin/setup --skip-server"
 
+  step "Migrations: Guard", "bin/check_migrations"
+  step "Migrations: Schema is current", "env RAILS_ENV=test bin/rails db:migrate && git diff --exit-code db/schema.rb"
+
   step "Style: Ruby", "bin/rubocop"
   step "Style: ERB", "bundle exec erb_lint --lint-all"
 

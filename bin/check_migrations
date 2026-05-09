@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../lib/migration_guard"
+
+errors = MigrationGuard.new.errors
+
+if errors.any?
+  warn "Migration guard failed:"
+  errors.each { |error| warn "- #{error}" }
+  exit 1
+end
+
+puts "Migration guard passed."

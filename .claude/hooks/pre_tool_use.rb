@@ -66,6 +66,20 @@ def template_base_project?
 end
 
 
+MIGRATION_PATH_PATTERN = %r{\Adb/migrate/(?:[^/]+/)?\d+_[^/]+\.rb\z}
+
+def manual_migration_creation_reason(path, creating)
+  return nil unless creating
+  return nil unless path.match?(MIGRATION_PATH_PATTERN)
+
+  "Do not create migration files manually. Run `bin/rails generate migration <Name>` " \
+    "(or `bin/rails g model <Name>`) so Rails assigns a correct UTC timestamp. " \
+    "Hand-picked timestamps can create out-of-order migrations: loading `db/schema.rb` " \
+    "marks migration files up to the schema version as migrated, and existing databases " \
+    "can drift from fresh databases that apply migrations in timestamp order."
+end
+
+
 def protected_edit_reason(path)
   case path
   when %r{\Alib/template_base/}
@@ -411,7 +425,8 @@ case tool_name
 when "Edit", "Write"
   path = relative_path(input["file_path"])
   exit 0 if path.nil?
-  reason = protected_edit_reason(path)
+  creating = tool_name == "Write" && !File.file?(File.expand_path(path, PROJECT_DIR))
+  reason = protected_edit_reason(path) || manual_migration_creation_reason(path, creating)
   block(reason) if reason
 
   unless reason || ignored_path?(path)
@@ -427,7 +442,7 @@ when "apply_patch"
       path = relative_path(raw_path)
       next if path.nil?
 
-      reason = protected_edit_reason(path)
+      reason = protected_edit_reason(path) || manual_migration_creation_reason(path, change[:type] == :add)
       if reason
         block(reason)
         exit 0
