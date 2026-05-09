@@ -1,61 +1,47 @@
 class Users::SessionsController < Devise::SessionsController
-  include Devise::Controllers::Rememberable
+  before_action :enforce_login_rate_limit, only: :create
+  skip_before_action :require_application_unlock, only: :destroy
 
-  prepend_before_action :authenticate_with_second_factor, only: :create
+  # POST /users/sign_in
+  def create
+    self.resource = warden.authenticate(auth_options.merge(store: false))
 
-  def new_second_factor
-    if session[:second_factor_user_id].present?
-      self.resource = resource_class.new
-      render "devise/sessions/two_factor"
+    unless resource
+      login_attempt_limiter.record_failure(email: login_email, ip: request.remote_ip)
+      self.resource = resource_class.new(email: login_email)
+      flash.now[:alert] = t(".invalid_credentials")
+      render :new, status: :unprocessable_content
+      return
+    end
+
+    login_attempt_limiter.reset(email: login_email, ip: request.remote_ip)
+
+    if resource.two_factor_enabled?
+      session[:pending_two_factor_user_id] = resource.id
+      redirect_to new_two_factor_challenge_path
     else
-      redirect_to new_user_session_path, alert: t("users.sessions.new_second_factor.missing_challenge")
+      set_flash_message!(:notice, :signed_in)
+      sign_in(resource_name, resource, force: true)
+      yield resource if block_given?
+      respond_with resource, location: after_sign_in_path_for(resource)
     end
   end
 
   private
 
-  def authenticate_with_second_factor
-    if params.key?(:second_factor_code)
-      authenticate_second_factor_attempt
-    elsif sign_in_params[:email].present?
-      self.resource = resource_class.find_for_database_authentication(email: sign_in_params[:email])
-      clear_second_factor_challenge
-      start_second_factor_challenge if resource&.otp_required_for_login?
-    end
+  def enforce_login_rate_limit
+    return unless login_attempt_limiter.blocked?(email: login_email, ip: request.remote_ip)
+
+    self.resource = resource_class.new(email: login_email)
+    flash.now[:alert] = t(".too_many_attempts")
+    render :new, status: :too_many_requests
   end
 
-  def start_second_factor_challenge
-    return unless resource.valid_password?(sign_in_params[:password])
-
-    session[:remember_me] = Devise::TRUE_VALUES.include?(sign_in_params[:remember_me])
-    session[:second_factor_user_id] = resource.id
-    render "devise/sessions/two_factor", status: :unprocessable_content
+  def login_attempt_limiter
+    @login_attempt_limiter ||= LoginAttemptLimiter.new
   end
 
-  def authenticate_second_factor_attempt
-    return redirect_to new_user_session_path, alert: t("users.sessions.new_second_factor.missing_challenge") if session[:second_factor_user_id].blank?
-
-    self.resource = resource_class.find(session[:second_factor_user_id])
-
-    if valid_second_factor_code?
-      remember_me_enabled = session.delete(:remember_me)
-      clear_second_factor_challenge
-      remember_me(resource) if remember_me_enabled
-      sign_in(resource, event: :authentication)
-      respond_with resource, location: after_sign_in_path_for(resource)
-    else
-      flash.now[:alert] = t(".invalid_second_factor_code")
-      render "devise/sessions/two_factor", status: :unprocessable_content
-    end
-  end
-
-  def valid_second_factor_code?
-    code = params[:second_factor_code].to_s.strip
-
-    resource.validate_and_consume_otp!(code) || resource.invalidate_otp_backup_code!(code)
-  end
-
-  def clear_second_factor_challenge
-    session.delete(:second_factor_user_id)
+  def login_email
+    params.dig(resource_name, :email)
   end
 end

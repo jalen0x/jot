@@ -25,7 +25,9 @@ en:
         unlock: "Unlock"
     sessions:
       create:
+        invalid_credentials: "Invalid email or password."
         invalid_second_factor_code: "Invalid authenticator code or backup code."
+        too_many_attempts: "Too many failed sign-in attempts. Try again in a minute."
       new_second_factor:
         missing_challenge: "Please sign in with your email and password first."
     two_factor:

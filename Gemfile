@@ -49,6 +49,7 @@ gem "aws-sdk-s3", require: false
 # Authentication & authorization
 gem "devise", "~> 5.0.0.rc"
 gem "devise-two-factor", "~> 6.4"
+gem "rotp", "~> 6.3"
 gem "pundit", "~> 2.1"
 
 # OAuth (GitHub only)

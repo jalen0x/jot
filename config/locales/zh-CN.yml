@@ -86,7 +86,9 @@ zh-CN:
         unlock: "解锁"
     sessions:
       create:
+        invalid_credentials: "邮箱或密码不正确。"
         invalid_second_factor_code: "认证器验证码或备份码无效。"
+        too_many_attempts: "登录失败次数过多，请稍后再试。"
       new_second_factor:
         missing_challenge: "请先使用邮箱和密码登录。"
     two_factor:
