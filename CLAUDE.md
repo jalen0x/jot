@@ -186,6 +186,20 @@ When compressing context, preserve in priority order:
 | Component change | Preview at `/lookbook` looks right + `bin/rails test` passes |
 | Full pre-commit sweep | `bin/ci` passes |
 
+## Agent skills
+
+### Issue tracker
+
+Issues and PRDs for this repo live in Linear and are managed with `linear-cli`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the default five-label triage vocabulary. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context repo: read root `CONTEXT.md` and root `docs/adr/` when present. See `docs/agents/domain.md`.
+
 ## Reference Documentation
 
 Detailed guides are in `.claude/rules/` (auto-loaded by file path glob):
