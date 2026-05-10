@@ -1,5 +1,11 @@
+# Override: lib/template_base/app/controllers/two_factor_challenges_controller.rb
+# Keeps the fork's plain-string flash copy. Adds rate limiting and remember-me
+# pass-through so a 2FA challenge cannot bypass the login attempt limiter.
 class TwoFactorChallengesController < ApplicationController
+  include Devise::Controllers::Rememberable
+
   before_action :load_pending_user
+  before_action :enforce_login_rate_limit, only: :create
 
   # GET /two_factor_challenge/new
   def new
@@ -8,10 +14,10 @@ class TwoFactorChallengesController < ApplicationController
   # POST /two_factor_challenge
   def create
     if valid_two_factor_code?(two_factor_challenge_params[:otp_code])
-      session.delete(:pending_two_factor_user_id)
-      sign_in(:user, @pending_user)
+      complete_pending_sign_in
       redirect_to after_sign_in_path_for(@pending_user), notice: "Signed in successfully."
     else
+      login_attempt_limiter.record_failure(email: @pending_user.email, ip: request.remote_ip)
       @error_message = "Verification code is invalid."
       render :new, status: :unprocessable_content
     end
@@ -24,7 +30,23 @@ class TwoFactorChallengesController < ApplicationController
     return if @pending_user&.two_factor_enabled?
 
     session.delete(:pending_two_factor_user_id)
+    session.delete(:pending_two_factor_remember_me)
     redirect_to new_user_session_path, alert: "Sign in to continue."
+  end
+
+  def enforce_login_rate_limit
+    return unless login_attempt_limiter.blocked?(email: @pending_user.email, ip: request.remote_ip)
+
+    flash.now[:alert] = "Too many failed sign-in attempts. Try again in a minute."
+    render :new, status: :too_many_requests
+  end
+
+  def complete_pending_sign_in
+    remember_me_enabled = session.delete(:pending_two_factor_remember_me)
+    session.delete(:pending_two_factor_user_id)
+    remember_me(@pending_user) if remember_me_enabled
+    sign_in(:user, @pending_user)
+    login_attempt_limiter.reset(email: @pending_user.email, ip: request.remote_ip)
   end
 
   def valid_two_factor_code?(code)
@@ -33,10 +55,14 @@ class TwoFactorChallengesController < ApplicationController
 
   def consume_recovery_code(code)
     recovery_code = @pending_user.two_factor_recovery_codes.unused.find do |candidate|
-      candidate.matches_code?(code)
+      candidate.authenticate_code(code)
     end
 
     recovery_code&.consume!(code)
+  end
+
+  def login_attempt_limiter
+    @login_attempt_limiter ||= LoginAttemptLimiter.new
   end
 
   def two_factor_challenge_params

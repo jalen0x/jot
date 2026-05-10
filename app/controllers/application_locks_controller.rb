@@ -1,3 +1,5 @@
+# Override: lib/template_base/app/controllers/application_locks_controller.rb
+# Keeps the fork's plain-string flash copy and pre-call password/PIN validation.
 class ApplicationLocksController < ApplicationController
   before_action :authenticate_user!
   skip_before_action :require_application_unlock, only: :destroy
@@ -26,7 +28,10 @@ class ApplicationLocksController < ApplicationController
       @application_lock = current_user.build_application_lock
       render_show_error("PIN code must be exactly six digits.")
     else
-      current_user.create_application_lock!(pin_digest: ApplicationLock.digest(permitted[:pin_code]))
+      current_user.create_application_lock!(
+        pin: permitted[:pin_code],
+        pin_confirmation: permitted[:pin_code_confirmation]
+      )
       mark_application_unlocked
       redirect_to application_lock_path, notice: "Application lock enabled."
     end

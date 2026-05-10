@@ -47,7 +47,7 @@ class TwoFactorRecoveryCodesTest < ActionDispatch::IntegrationTest
     assert_equal 10, raw_codes.uniq.size
     assert_empty old_ids & user.two_factor_recovery_codes.pluck(:id)
     raw_codes.each do |raw_code|
-      assert user.two_factor_recovery_codes.any? { |recovery_code| recovery_code.matches_code?(raw_code) }
+      assert user.two_factor_recovery_codes.any? { |recovery_code| recovery_code.authenticate_code(raw_code) }
     end
 
     get two_factor_authentication_path

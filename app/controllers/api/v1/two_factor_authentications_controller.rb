@@ -20,10 +20,15 @@ class Api::V1::TwoFactorAuthenticationsController < ApiController
     elsif !setup_authentication(permitted[:otp_secret]).verify_otp(permitted[:otp_code])
       render_unprocessable("Verification code is invalid.")
     else
-      recovery_codes = TwoFactorAuthenticationEnabler.new.enable(user: current_user, otp_secret: permitted[:otp_secret])
+      result = TwoFactorAuthenticationEnabler.new.enable(
+        user: current_user,
+        current_password: permitted[:current_password],
+        otp_code: permitted[:otp_code],
+        otp_secret: permitted[:otp_secret]
+      )
       render json: {
         two_factor_authentication: current_user.reload.two_factor_authentication,
-        two_factor_recovery_codes: recovery_codes
+        two_factor_recovery_codes: result.recovery_codes
       }, status: :created
     end
   end

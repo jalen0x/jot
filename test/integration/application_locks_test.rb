@@ -21,7 +21,7 @@ class ApplicationLocksTest < ActionDispatch::IntegrationTest
 
   test "create rejects a wrong current password" do
     post application_lock_path, params: {
-      application_lock: { current_password: "wrong-password", pin: "123456", pin_confirmation: "123456" }
+      application_lock: { current_password: "wrong-password", pin_code: "123456", pin_code_confirmation: "123456" }
     }
 
     assert_response :unprocessable_content
@@ -30,7 +30,7 @@ class ApplicationLocksTest < ActionDispatch::IntegrationTest
 
   test "create rejects mismatched pin confirmation" do
     post application_lock_path, params: {
-      application_lock: { current_password: "password123", pin: "123456", pin_confirmation: "654321" }
+      application_lock: { current_password: "password123", pin_code: "123456", pin_code_confirmation: "654321" }
     }
 
     assert_response :unprocessable_content
@@ -40,7 +40,7 @@ class ApplicationLocksTest < ActionDispatch::IntegrationTest
   test "create rejects a non-numeric or wrong-length pin" do
     [ "abcdef", "12345", "1234567" ].each do |bad|
       post application_lock_path, params: {
-        application_lock: { current_password: "password123", pin: bad, pin_confirmation: bad }
+        application_lock: { current_password: "password123", pin_code: bad, pin_code_confirmation: bad }
       }
       assert_response :unprocessable_content
     end
@@ -50,7 +50,7 @@ class ApplicationLocksTest < ActionDispatch::IntegrationTest
 
   test "create with valid params enables the lock and marks it unlocked" do
     post application_lock_path, params: {
-      application_lock: { current_password: "password123", pin: "123456", pin_confirmation: "123456" }
+      application_lock: { current_password: "password123", pin_code: "123456", pin_code_confirmation: "123456" }
     }
 
     assert_redirected_to application_lock_path
@@ -69,7 +69,7 @@ class ApplicationLocksTest < ActionDispatch::IntegrationTest
 
   test "destroy with valid password disables the lock and clears the unlock session" do
     @user.create_application_lock!(pin: "123456")
-    session_state = post(application_lock_session_path, params: { application_lock: { pin: "123456" } })
+    session_state = post(application_lock_session_path, params: { application_lock: { pin_code: "123456" } })
     assert_equal @user.id, session[:application_lock_unlocked_user_id]
 
     delete application_lock_path, params: { application_lock: { current_password: "password123" } }

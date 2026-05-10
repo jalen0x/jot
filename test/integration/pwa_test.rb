@@ -20,7 +20,10 @@ class PwaTest < ActionDispatch::IntegrationTest
   end
 
   test "links the manifest from the application layout" do
-    get root_path
+    user = FactoryBot.create(:user, password: "password123")
+    post user_session_path, params: { user: { email: user.email, password: "password123" } }
+
+    get dashboard_path
 
     assert_response :success
     assert_includes response.body, %(rel="manifest")

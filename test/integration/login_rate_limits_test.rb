@@ -2,12 +2,7 @@ require "test_helper"
 
 class LoginRateLimitsTest < ActionDispatch::IntegrationTest
   setup do
-    @previous_store = LoginAttemptLimiter.store
-    LoginAttemptLimiter.store = ActiveSupport::Cache::MemoryStore.new
-  end
-
-  teardown do
-    LoginAttemptLimiter.store = @previous_store
+    Rails.cache.clear
   end
 
   test "rate limits repeated failed sign-in attempts" do

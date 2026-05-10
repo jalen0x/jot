@@ -3,7 +3,7 @@ require "test_helper"
 class ApiV1ApplicationLocksTest < ActionDispatch::IntegrationTest
   test "shows disabled status for the token owner" do
     user = create(:user)
-    ApplicationLock.create!(user: create(:user), pin_digest: ApplicationLock.digest("123456"))
+    ApplicationLock.create!(user: create(:user), pin: "123456", pin_confirmation: "123456")
     raw_token = issue_token(user)
 
     get api_v1_application_lock_path, headers: json_headers(raw_token)
@@ -16,7 +16,7 @@ class ApiV1ApplicationLocksTest < ActionDispatch::IntegrationTest
 
   test "shows enabled status without internal digest fields" do
     user = create(:user)
-    ApplicationLock.create!(user: user, pin_digest: ApplicationLock.digest("123456"))
+    ApplicationLock.create!(user: user, pin: "123456", pin_confirmation: "123456")
     raw_token = issue_token(user)
 
     get api_v1_application_lock_path, headers: json_headers(raw_token)
@@ -40,7 +40,7 @@ class ApiV1ApplicationLocksTest < ActionDispatch::IntegrationTest
 
     assert_response :created
     application_lock = user.reload.application_lock
-    assert application_lock.matches_pin?("123456")
+    assert application_lock.authenticate_pin("123456")
     refute_equal "123456", application_lock.pin_digest
     assert_equal true, JSON.parse(response.body).dig("application_lock", "enabled")
   end
@@ -89,7 +89,7 @@ class ApiV1ApplicationLocksTest < ActionDispatch::IntegrationTest
 
   test "disables application lock with current password" do
     user = create(:user, password: "password123")
-    ApplicationLock.create!(user: user, pin_digest: ApplicationLock.digest("123456"))
+    ApplicationLock.create!(user: user, pin: "123456", pin_confirmation: "123456")
     raw_token = issue_token(user)
 
     delete api_v1_application_lock_path,
@@ -104,7 +104,7 @@ class ApiV1ApplicationLocksTest < ActionDispatch::IntegrationTest
 
   test "rejects an incorrect password when disabling" do
     user = create(:user, password: "password123")
-    application_lock = ApplicationLock.create!(user: user, pin_digest: ApplicationLock.digest("123456"))
+    application_lock = ApplicationLock.create!(user: user, pin: "123456", pin_confirmation: "123456")
     raw_token = issue_token(user)
 
     delete api_v1_application_lock_path,

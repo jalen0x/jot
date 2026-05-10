@@ -20,7 +20,10 @@ class Api::V1::ApplicationLocksController < ApiController
     elsif !valid_pin?(permitted[:pin_code])
       render_unprocessable("PIN code must be exactly six digits.")
     else
-      application_lock = current_user.create_application_lock!(pin_digest: ApplicationLock.digest(permitted[:pin_code]))
+      application_lock = current_user.create_application_lock!(
+        pin: permitted[:pin_code],
+        pin_confirmation: permitted[:pin_code_confirmation]
+      )
       render json: { application_lock: application_lock }, status: :created
     end
   end

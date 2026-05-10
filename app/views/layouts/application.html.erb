@@ -1,3 +1,5 @@
+<%# Override: lib/template_base/app/views/layouts/application.html.erb %>
+<%# Adds the fork's ledger navigation, PWA manifest link, and conditional header so unauth pages stay full-bleed. %>
 <!DOCTYPE html>
 <html>
   <head>
@@ -20,14 +22,14 @@
   </head>
 
   <body class="min-h-screen bg-neutral-primary-soft text-body antialiased">
-    <header class="border-b border-default bg-neutral-primary/90 backdrop-blur-sm">
-      <div class="mx-auto flex w-full max-w-7xl flex-col gap-4 px-6 py-4 sm:px-8 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <%= link_to TemplateBase.config.application_name, root_path, class: "text-lg font-semibold tracking-tight text-heading" %>
-          <p class="text-sm text-body-subtle"><%= TemplateBase.config.domain %></p>
-        </div>
+    <% if user_signed_in? %>
+      <header class="border-b border-default bg-neutral-primary/90 backdrop-blur-sm">
+        <div class="mx-auto flex w-full max-w-7xl flex-col gap-4 px-6 py-4 sm:px-8 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <%= link_to TemplateBase.config.application_name, root_path, class: "text-lg font-semibold tracking-tight text-heading" %>
+            <p class="text-sm text-body-subtle"><%= TemplateBase.config.domain %></p>
+          </div>
 
-        <% if user_signed_in? %>
           <% navigation_links = [
             [ "Dashboard", dashboard_path ],
             [ "Reports", reports_path ],
@@ -69,14 +71,9 @@
             <span class="text-body-subtle"><%= current_user.name.presence || current_user.email %></span>
             <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
           </nav>
-        <% else %>
-          <nav class="flex flex-wrap items-center gap-3 text-sm font-medium">
-            <%= link_to "Sign in", new_user_session_path, data: { turbo_frame: "modal_content" }, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-            <%= link_to "Create account", new_user_registration_path, data: { turbo_frame: "modal_content" }, class: "text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-          </nav>
-        <% end %>
-      </div>
-    </header>
+        </div>
+      </header>
+    <% end %>
 
     <%= render(FlashComponent.new(
       flash: flash,

@@ -1,3 +1,5 @@
+# Override: lib/template_base/app/controllers/two_factor_authentications_controller.rb
+# Keeps the fork's plain-string flash copy and pre-call password/OTP verification.
 class TwoFactorAuthenticationsController < ApplicationController
   before_action :authenticate_user!
 
@@ -30,11 +32,20 @@ class TwoFactorAuthenticationsController < ApplicationController
       return
     end
 
-    @recovery_codes = TwoFactorAuthenticationEnabler.new.enable(
+    result = TwoFactorAuthenticationEnabler.new.enable(
       user: current_user,
+      current_password: permitted[:current_password],
+      otp_code: permitted[:otp_code],
       otp_secret: session[:pending_two_factor_secret]
     )
+
+    unless result.enabled?
+      render_setup_error(result.error == :invalid_password ? "Current password is incorrect." : "Verification code is invalid.")
+      return
+    end
+
     session.delete(:pending_two_factor_secret)
+    @recovery_codes = result.recovery_codes
     load_two_factor_authentication
     flash.now[:notice] = "Two-factor authentication enabled."
 

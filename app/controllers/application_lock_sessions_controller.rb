@@ -1,3 +1,5 @@
+# Override: lib/template_base/app/controllers/application_lock_sessions_controller.rb
+# Keeps the fork's plain-string flash copy and dashboard redirect on unlock.
 class ApplicationLockSessionsController < ApplicationController
   before_action :authenticate_user!
   skip_before_action :require_application_unlock
@@ -15,7 +17,7 @@ class ApplicationLockSessionsController < ApplicationController
 
     if @application_lock.blank?
       redirect_to application_lock_path, alert: "Application lock is not enabled."
-    elsif @application_lock.matches_pin?(unlock_params[:pin_code])
+    elsif @application_lock.authenticate_pin(unlock_params[:pin_code])
       mark_application_unlocked
       redirect_to dashboard_path, notice: "Application unlocked."
     else

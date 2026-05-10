@@ -75,7 +75,7 @@ class ApiV1TwoFactorAuthenticationsTest < ActionDispatch::IntegrationTest
     assert_equal 10, raw_codes.uniq.size
     raw_codes.each do |raw_code|
       assert_match(/\A[a-z0-9]{5}-[a-z0-9]{5}\z/, raw_code)
-      assert user.two_factor_recovery_codes.any? { |recovery_code| recovery_code.matches_code?(raw_code) }
+      assert user.two_factor_recovery_codes.any? { |recovery_code| recovery_code.authenticate_code(raw_code) }
     end
   end
 
@@ -151,7 +151,7 @@ class ApiV1TwoFactorAuthenticationsTest < ActionDispatch::IntegrationTest
     assert_equal 10, raw_codes.uniq.size
     assert_empty old_ids & user.two_factor_recovery_codes.reload.pluck(:id)
     raw_codes.each do |raw_code|
-      assert user.two_factor_recovery_codes.any? { |recovery_code| recovery_code.matches_code?(raw_code) }
+      assert user.two_factor_recovery_codes.any? { |recovery_code| recovery_code.authenticate_code(raw_code) }
     end
     refute_match(/code_digest/, response.body)
   end

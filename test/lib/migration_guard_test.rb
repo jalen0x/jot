@@ -45,6 +45,7 @@ class MigrationGuardTest < ActiveSupport::TestCase
       git(root, "init", "--initial-branch=main")
       git(root, "config", "user.email", "test@example.com")
       git(root, "config", "user.name", "Test User")
+      git(root, "config", "commit.gpgsign", "false")
       yield root
     end
   end
