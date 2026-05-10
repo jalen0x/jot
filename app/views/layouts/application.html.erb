@@ -80,7 +80,9 @@
       hide_alert: instance_variable_defined?(:@hide_flash_alert) && @hide_flash_alert
     )) %>
 
-    <main class="mx-auto flex w-full max-w-7xl flex-col px-6 pb-16 pt-10 sm:px-8">
+    <% full_bleed_auth_page = devise_controller? && !user_signed_in? %>
+    <% full_bleed_unlock_page = controller_path == "application_lock_sessions" %>
+    <main class="<%= full_bleed_auth_page || full_bleed_unlock_page ? "min-h-screen" : "mx-auto flex w-full max-w-7xl flex-col px-6 pb-16 pt-10 sm:px-8" %>">
       <%= yield %>
     </main>
 
