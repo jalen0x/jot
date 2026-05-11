@@ -1,4 +1,4 @@
-<%# locals: (form:, field:, accounts:, selected_id: nil, prompt: nil, allow_blank: false, action: nil, target: nil, blank_label: nil) %>
+<%# locals: (form:, field:, accounts:, label:, selected_id: nil, prompt: nil, allow_blank: false, action: nil, target: nil, blank_label: nil) %>
 <div class="relative" data-controller="combobox"
      data-combobox-placeholder-value="<%= prompt %>"
      <%= "data-action=\"#{action}\"".html_safe if action.present? %>
@@ -6,12 +6,14 @@
   <%= form.hidden_field field, value: selected_id, data: { combobox_target: "input" } %>
 
   <button type="button" data-action="click->combobox#toggle" data-combobox-target="button"
-          class="inline-flex items-center justify-between w-full bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-3 py-2.5 shadow-xs focus:outline-none text-start">
-    <span class="truncate" data-combobox-target="display"></span>
+          class="inline-flex items-center justify-between w-full px-2.5 pb-2.5 pt-4 bg-transparent box-border border border-default-medium hover:border-default-strong focus:ring-0 focus:border-brand font-normal text-sm rounded-base shadow-xs focus:outline-none text-start">
+    <span class="truncate text-heading" data-combobox-target="display"></span>
     <svg class="w-4 h-4 ms-1.5 -me-0.5 text-body-subtle" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
       <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
     </svg>
   </button>
+
+  <span class="pointer-events-none absolute text-sm text-body bg-neutral-primary-soft px-2 -translate-y-4 scale-75 top-2 z-10 origin-[0] start-1"><%= label %></span>
 
   <div data-combobox-target="panel" hidden class="absolute z-30 mt-1 w-full bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg">
     <div class="p-2 border-b border-default-medium">
@@ -40,7 +42,7 @@
       <% accounts.each do |account| %>
         <li data-combobox-target="option" data-value="<%= account.id %>"
             data-display="<%= account_display_name(account) %>"
-            data-search="<%= [account.name, account.currency_code].join(' ').downcase %>"
+            data-search="<%= [ account.name, account.currency_code ].join(' ').downcase %>"
             data-currency="<%= account.currency_code %>"
             data-action="click->combobox#select"
             class="inline-flex items-center w-full gap-3 p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded cursor-pointer">

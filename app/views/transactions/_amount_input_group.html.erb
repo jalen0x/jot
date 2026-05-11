@@ -4,20 +4,25 @@
   <%
     label_data = {}
     label_data[:transaction_form_target] = label_target if label_target
+    end_padding = show_formula_icon ? "pe-10" : "pe-2.5"
   %>
-  <%= form.label field, label_text, data: label_data, class: "block mb-2 text-sm font-medium #{color_class}" %>
-  <div class="flex shadow-xs rounded-base">
-    <span data-transaction-form-target="<%= prefix_target %>"
-          class="inline-flex items-center px-4 text-xl font-semibold bg-neutral-tertiary border border-default-medium border-e-0 rounded-s-base <%= color_class %>"></span>
+  <div class="relative">
     <%= form.text_field field,
         value: amount_input_value(cents),
         required: required,
+        placeholder: " ",
         inputmode: "decimal",
-        class: "block w-full px-4 py-3 bg-neutral-primary border border-default-medium text-3xl font-semibold focus:ring-brand focus:border-brand focus:z-10 #{show_formula_icon ? "" : "rounded-e-base"} #{color_class}",
+        class: "block ps-12 #{end_padding} pb-2.5 pt-4 w-full text-xl font-semibold bg-transparent rounded-base border border-default-medium appearance-none focus:outline-none focus:ring-0 focus:border-brand peer #{color_class}",
         data: { transaction_form_target: input_target, action: "keydown.enter->transaction-form#evaluateAmount" } %>
+
+    <span data-transaction-form-target="<%= prefix_target %>"
+          class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-base font-semibold peer-placeholder-shown:invisible <%= color_class %>"></span>
+
+    <%= form.label field, label_text, data: label_data, class: "absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-neutral-primary-soft px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 start-1 #{color_class}" %>
+
     <% if show_formula_icon %>
-      <span class="inline-flex items-center px-3 text-body-subtle bg-neutral-tertiary border border-default-medium border-s-0 rounded-e-base" title="<%= formula_hint %>" aria-hidden="true">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+      <span class="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3 text-body-subtle" title="<%= formula_hint %>" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4">
           <rect x="4" y="3" width="16" height="18" rx="2" />
           <line x1="8" y1="7" x2="16" y2="7" />
           <line x1="8" y1="11" x2="10" y2="11" />
