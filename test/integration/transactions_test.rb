@@ -248,6 +248,31 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_select "input[name='transaction[source_amount]'][value='10.50']"
   end
 
+  test "create with after_save=new redirects to the new transaction form" do
+    user = create(:user)
+    account = create_account(user: user, balance_cents: 0)
+    category = create_category(user: user, category_type: :expense)
+    sign_in user
+
+    post transactions_path, params: {
+      after_save: "new",
+      transaction: {
+        transaction_kind: "expense",
+        account_id: account.id.to_s,
+        destination_account_id: "",
+        transaction_category_id: category.id.to_s,
+        transacted_at: "2026-05-03 10:00:00",
+        timezone_utc_offset_minutes: "0",
+        source_amount: "5.00",
+        destination_amount: "0",
+        comment: "Coffee"
+      }
+    }
+
+    assert_redirected_to new_transaction_path
+    assert_equal 1, user.transactions.where(comment: "Coffee").count
+  end
+
   test "creates an expense for current user" do
     user = create(:user)
     account = create_account(user: user, balance_cents: 5_000)

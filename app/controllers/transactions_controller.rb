@@ -24,7 +24,7 @@ class TransactionsController < ApplicationController
     result = TransactionRecorder.new.record_transaction(user: current_user, attributes: transaction_params, tag_ids: transaction_tag_ids, picture_files: picture_files)
 
     if result.recorded?
-      redirect_to transactions_path, notice: "Transaction recorded."
+      redirect_to post_save_destination, notice: "Transaction recorded."
     else
       @transaction = result.transaction
       load_form_collections
@@ -71,6 +71,13 @@ class TransactionsController < ApplicationController
 
   def filter_params
     ledger_filter_params
+  end
+
+  def post_save_destination
+    case params[:after_save]
+    when "new" then new_transaction_path
+    else transactions_path
+    end
   end
 
   def transaction_params

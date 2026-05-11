@@ -22,7 +22,10 @@ export default class extends Controller {
     "sourceAccount",
     "destinationAccount",
     "sourceCurrencyPrefix",
-    "destinationCurrencyPrefix"
+    "destinationCurrencyPrefix",
+    "timezoneInput",
+    "latitudeInput",
+    "longitudeInput"
   ]
   static values = {
     amountLabel: String,
@@ -33,6 +36,25 @@ export default class extends Controller {
 
   connect() {
     this.refresh()
+    this.#prefillTimezone()
+  }
+
+  #prefillTimezone() {
+    if (!this.hasTimezoneInputTarget) return
+    const field = this.timezoneInputTarget
+    if (field.value && field.value !== "0") return
+    field.value = -new Date().getTimezoneOffset()
+  }
+
+  useCurrentLocation() {
+    if (!navigator.geolocation || !this.hasLatitudeInputTarget || !this.hasLongitudeInputTarget) return
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        this.latitudeInputTarget.value = position.coords.latitude.toFixed(7)
+        this.longitudeInputTarget.value = position.coords.longitude.toFixed(7)
+      },
+      () => {} // ignore denial / errors silently
+    )
   }
 
   selectKind(event) {
