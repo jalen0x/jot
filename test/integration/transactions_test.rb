@@ -207,6 +207,47 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_predicate transaction.reload.pictures, :attached?
   end
 
+  test "transaction params accept decimal amount and store as integer cents" do
+    user = create(:user)
+    account = create_account(user: user, balance_cents: 0)
+    category = create_category(user: user, category_type: :expense)
+    sign_in user
+
+    {
+      "10.50" => 1_050,
+      "10"    => 1_000,
+      "0.99"  =>    99
+    }.each do |input, expected_cents|
+      post transactions_path, params: {
+        transaction: {
+          transaction_kind: "expense",
+          account_id: account.id.to_s,
+          destination_account_id: "",
+          transaction_category_id: category.id.to_s,
+          transacted_at: "2026-05-03 10:00:00",
+          timezone_utc_offset_minutes: "0",
+          source_amount: input,
+          destination_amount: "0",
+          comment: "Lunch #{input}"
+        }
+      }
+
+      transaction = user.transactions.find_by!(comment: "Lunch #{input}")
+      assert_equal expected_cents, transaction.source_amount_cents, "input was #{input.inspect}"
+    end
+  end
+
+  test "edit form pre-fills decimal amount derived from stored cents" do
+    user = create(:user)
+    transaction = create_transaction(user: user, comment: "Lunch", source_amount_cents: 1_050)
+    sign_in user
+
+    get edit_transaction_path(transaction)
+
+    assert_response :success
+    assert_select "input[name='transaction[source_amount]'][value='10.50']"
+  end
+
   test "creates an expense for current user" do
     user = create(:user)
     account = create_account(user: user, balance_cents: 5_000)

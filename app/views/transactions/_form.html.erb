@@ -3,7 +3,14 @@
 <% submit_label ||= t(".create") %>
 <% submitting_label ||= t(".saving") %>
 
-<%= form_with model: transaction, class: "rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs" do |form| %>
+<%= form_with model: transaction,
+              class: "rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs",
+              data: {
+                controller: "transaction-form",
+                transaction_form_amount_label_value: t(".amount"),
+                transaction_form_source_amount_label_value: t(".source_amount"),
+                transaction_form_destination_amount_label_value: t(".destination_amount")
+              } do |form| %>
   <% if transaction.errors.any? %>
     <div class="mb-5 rounded-base border border-danger bg-danger-soft p-4 text-sm text-fg-danger-strong">
       <p class="font-medium"><%= t(".save_failed") %></p>
@@ -23,7 +30,7 @@
   <div class="mb-4 grid gap-4 sm:grid-cols-2">
     <div>
       <%= form.label :transaction_kind, t(".type"), class: "mb-2 block text-sm font-medium text-heading" %>
-      <%= form.select :transaction_kind, Transaction.transaction_kinds.except("balance_adjustment").keys.map { |key| [ key.humanize, key ] }, {}, class: field_classes %>
+      <%= form.select :transaction_kind, Transaction.transaction_kinds.except("balance_adjustment").keys.map { |key| [ key.humanize, key ] }, {}, class: field_classes, data: { transaction_form_target: "kindSelect", action: "change->transaction-form#kindChanged" } %>
     </div>
     <div>
       <%= form.label :transacted_at, t(".when"), class: "mb-2 block text-sm font-medium text-heading" %>
@@ -32,23 +39,37 @@
   </div>
 
   <div class="mb-4 grid gap-4 sm:grid-cols-2">
+    <% account_options = accounts.map { |a| [ a.name, a.id, { data: { currency: a.currency_code } } ] } %>
     <div>
       <%= form.label :account_id, t(".account"), class: "mb-2 block text-sm font-medium text-heading" %>
-      <%= form.collection_select :account_id, accounts, :id, :name, { prompt: t(".choose_account") }, required: true, class: field_classes %>
+      <%= form.select :account_id, options_for_select(account_options, transaction.account_id), { prompt: t(".choose_account") }, required: true, class: field_classes, data: { transaction_form_target: "sourceAccount", action: "change->transaction-form#sourceAccountChanged" } %>
     </div>
-    <div>
+    <div data-transaction-form-target="destinationAccountField">
       <%= form.label :destination_account_id, t(".destination_account"), class: "mb-2 block text-sm font-medium text-heading" %>
-      <%= form.collection_select :destination_account_id, accounts, :id, :name, { include_blank: t(".not_a_transfer") }, class: field_classes %>
+      <%= form.select :destination_account_id, options_for_select(account_options, transaction.destination_account_id), { include_blank: t(".not_a_transfer") }, class: field_classes, data: { transaction_form_target: "destinationAccount", action: "change->transaction-form#destinationAccountChanged" } %>
     </div>
   </div>
 
-  <div class="mb-4 grid gap-4 sm:grid-cols-3">
-    <div>
-      <%= form.label :transaction_category_id, t(".category"), class: "mb-2 block text-sm font-medium text-heading" %>
-      <%= form.collection_select :transaction_category_id, transaction_categories, :id, :name, { prompt: t(".choose_category") }, required: true, class: field_classes %>
+  <div class="mb-4">
+    <%= form.label :transaction_category_id, t(".category"), class: "mb-2 block text-sm font-medium text-heading" %>
+    <%= form.collection_select :transaction_category_id, transaction_categories, :id, :name, { prompt: t(".choose_category") }, required: true, class: field_classes %>
+  </div>
+
+  <div class="mb-4 grid gap-4 sm:grid-cols-2">
+    <div data-transaction-form-target="sourceAmountField">
+      <%= form.label :source_amount, t(".amount"), class: "block mb-2 text-sm font-medium text-heading" %>
+      <div class="relative">
+        <span class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-sm font-medium text-body-subtle" data-transaction-form-target="sourceCurrencyPrefix"></span>
+        <%= form.text_field :source_amount, value: amount_input_value(transaction.source_amount_cents), required: true, inputmode: "decimal", class: "#{field_classes} ps-14", data: { action: "keydown.enter->transaction-form#evaluateAmount" } %>
+      </div>
     </div>
-    <%= render FormField::InputComponent.new(form: form, field: :source_amount_cents, label: t(".source_cents"), type: :number, required: true) %>
-    <%= render FormField::InputComponent.new(form: form, field: :destination_amount_cents, label: t(".destination_cents"), type: :number) %>
+    <div data-transaction-form-target="destinationAmountField">
+      <%= form.label :destination_amount, t(".destination_amount"), class: "block mb-2 text-sm font-medium text-heading" %>
+      <div class="relative">
+        <span class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-sm font-medium text-body-subtle" data-transaction-form-target="destinationCurrencyPrefix"></span>
+        <%= form.text_field :destination_amount, value: amount_input_value(transaction.destination_amount_cents), inputmode: "decimal", class: "#{field_classes} ps-14", data: { action: "keydown.enter->transaction-form#evaluateAmount" } %>
+      </div>
+    </div>
   </div>
 
   <div class="mb-4">

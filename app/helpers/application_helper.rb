@@ -119,6 +119,10 @@ module ApplicationHelper
 
   HIDDEN_AMOUNT_MASK = "••••".freeze
 
+  def amount_input_value(cents)
+    format("%.2f", (cents || 0).to_d / 100)
+  end
+
   def format_money(cents, currency_code, amount_options: {}, currency_class: nil, mask: false)
     amount = mask ? HIDDEN_AMOUNT_MASK : number_to_currency(cents.to_f / 100, preferred_amount_format_options.merge(amount_options))
     code = currency_class.present? ? tag.span(currency_code, class: currency_class) : currency_code.to_s

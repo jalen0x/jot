@@ -74,13 +74,15 @@ class TransactionsController < ApplicationController
   end
 
   def transaction_params
-    params.expect(transaction: [
+    permitted = params.expect(transaction: [
       :transaction_kind,
       :account_id,
       :destination_account_id,
       :transaction_category_id,
       :transacted_at,
       :timezone_utc_offset_minutes,
+      :source_amount,
+      :destination_amount,
       :source_amount_cents,
       :destination_amount_cents,
       :hide_amount,
@@ -90,6 +92,18 @@ class TransactionsController < ApplicationController
       transaction_tag_ids: [],
       pictures: []
     ])
+
+    permitted[:source_amount_cents] = cents_from(permitted.delete(:source_amount)) if permitted.key?(:source_amount)
+    permitted[:destination_amount_cents] = cents_from(permitted.delete(:destination_amount)) if permitted.key?(:destination_amount)
+
+    permitted
+  end
+
+  def cents_from(amount_str)
+    return 0 if amount_str.blank?
+    (BigDecimal(amount_str.to_s) * 100).to_i
+  rescue ArgumentError
+    0
   end
 
   def transaction_tag_ids
