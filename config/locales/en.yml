@@ -138,6 +138,11 @@ en:
       report_scope: "Report scope"
       categories: "Categories"
   transactions:
+    kinds:
+      expense: "Expense"
+      income: "Income"
+      transfer: "Transfer"
+      balance_adjustment: "Balance adjustment"
     index:
       title: "Transactions"
       eyebrow: "Transaction Data"
@@ -198,6 +203,8 @@ en:
       amount: "Amount"
       source_amount: "Source amount"
       destination_amount: "Destination amount"
+      timezone_offset: "UTC offset (min)"
+      formula_hint: "Type an expression like 12.5+3.8 and press Enter to evaluate."
       tags: "Tags"
       latitude: "Latitude"
       longitude: "Longitude"

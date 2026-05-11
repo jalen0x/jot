@@ -11,7 +11,7 @@ class TransactionsSystemTest < BrowserSystemTestCase
     assert_no_selector "label", text: /Source amount/i
     assert_no_selector "label", text: /Destination amount/i
 
-    select "Transfer", from: "transaction_transaction_kind"
+    click_button "Transfer"
 
     assert_selector "label", text: /Source amount/i
     assert_selector "label", text: /Destination amount/i

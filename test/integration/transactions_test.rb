@@ -388,7 +388,7 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     get new_transaction_path
 
     assert_response :success
-    assert_select "select#transaction_account_id option[selected]", text: "Savings"
+    assert_select "select#transaction_account_id option[selected]", text: /\ASavings/
   end
 
   test "deletes a transaction for current user" do

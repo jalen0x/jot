@@ -123,6 +123,18 @@ module ApplicationHelper
     format("%.2f", (cents || 0).to_d / 100)
   end
 
+  def account_display_name(account)
+    "#{account.name} (#{account.currency_code})"
+  end
+
+  def category_display_name(category)
+    if category.parent_category
+      "#{category.parent_category.name} > #{category.name}"
+    else
+      category.name
+    end
+  end
+
   def format_money(cents, currency_code, amount_options: {}, currency_class: nil, mask: false)
     amount = mask ? HIDDEN_AMOUNT_MASK : number_to_currency(cents.to_f / 100, preferred_amount_format_options.merge(amount_options))
     code = currency_class.present? ? tag.span(currency_code, class: currency_class) : currency_code.to_s

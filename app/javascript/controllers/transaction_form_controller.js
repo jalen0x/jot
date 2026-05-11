@@ -1,26 +1,22 @@
-// Dynamic transaction form behavior: toggles destination account / destination
-// amount visibility based on transaction_kind, and swaps the amount label between
-// "Amount" (for income/expense) and "Source amount" (for transfer).
-//
-// Usage:
-//   <form data-controller="transaction-form"
-//         data-transaction-form-amount-label-value="Amount"
-//         data-transaction-form-source-amount-label-value="Source amount"
-//         data-transaction-form-destination-amount-label-value="Destination amount">
-//     <select data-transaction-form-target="kindSelect"
-//             data-action="change->transaction-form#kindChanged">...</select>
-//     <div data-transaction-form-target="destinationAccountField">...</div>
-//     <div data-transaction-form-target="sourceAmountField">...</div>
-//     <div data-transaction-form-target="destinationAmountField">...</div>
-//   </form>
+// Dynamic transaction form behavior:
+// - transaction_kind selection via pill tab buttons (hidden input carries the value)
+// - toggles destination account / destination amount visibility for transfers
+// - swaps the source amount label between "Amount" and "Source amount"
+// - colors the amount inputs/labels by kind
+// - shows the selected account's currency code as a prefix next to each amount
+// - evaluates an arithmetic expression typed into an amount input on Enter
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = [
-    "kindSelect",
+    "kindInput",
+    "kindTab",
     "destinationAccountField",
     "sourceAmountField",
+    "sourceAmountLabel",
+    "sourceAmountInput",
     "destinationAmountField",
+    "destinationAmountInput",
     "sourceAccount",
     "destinationAccount",
     "sourceCurrencyPrefix",
@@ -29,14 +25,18 @@ export default class extends Controller {
   static values = {
     amountLabel: String,
     sourceAmountLabel: String,
-    destinationAmountLabel: String
+    destinationAmountLabel: String,
+    amountColors: Object
   }
 
   connect() {
     this.refresh()
   }
 
-  kindChanged() {
+  selectKind(event) {
+    const kind = event.currentTarget.dataset.kind
+    if (!kind || kind === this.kindInputTarget.value) return
+    this.kindInputTarget.value = kind
     this.refresh()
   }
 
@@ -49,15 +49,27 @@ export default class extends Controller {
   }
 
   refresh() {
-    const isTransfer = this.kindSelectTarget.value === "transfer"
+    const kind = this.kindInputTarget.value
+    const isTransfer = kind === "transfer"
+
+    this.kindTabTargets.forEach((tab) => {
+      const active = tab.dataset.kind === kind
+      tab.setAttribute("aria-pressed", active)
+      tab.classList.toggle("bg-brand", active)
+      tab.classList.toggle("text-white", active)
+      tab.classList.toggle("shadow-xs", active)
+      tab.classList.toggle("text-body", !active)
+      tab.classList.toggle("hover:text-heading", !active)
+    })
+
     this.destinationAccountFieldTarget.hidden = !isTransfer
     this.destinationAmountFieldTarget.hidden = !isTransfer
 
-    const sourceLabel = this.sourceAmountFieldTarget.querySelector("label")
-    if (sourceLabel) {
-      sourceLabel.textContent = isTransfer ? this.sourceAmountLabelValue : this.amountLabelValue
+    if (this.hasSourceAmountLabelTarget) {
+      this.sourceAmountLabelTarget.textContent = isTransfer ? this.sourceAmountLabelValue : this.amountLabelValue
     }
 
+    this.#applyAmountColor(kind)
     this.updateSourceCurrency()
     this.updateDestinationCurrency()
   }
@@ -72,13 +84,7 @@ export default class extends Controller {
     this.destinationCurrencyPrefixTarget.textContent = this.#currencyOf(this.destinationAccountTarget)
   }
 
-  #currencyOf(select) {
-    const option = select.selectedOptions[0]
-    return option ? (option.dataset.currency || "") : ""
-  }
-
   // Evaluate an arithmetic expression typed into an amount field.
-  // Triggered on Enter; preventDefault keeps the form from submitting.
   // Whitelist guards against arbitrary JS via the Function constructor.
   evaluateAmount(event) {
     const input = event.target
@@ -95,5 +101,30 @@ export default class extends Controller {
     } catch (_e) {
       // leave the expression in place so the user can correct it
     }
+  }
+
+  #applyAmountColor(kind) {
+    const colors = this.amountColorsValue || {}
+    const next = colors[kind]
+    if (!next) return
+
+    const targets = [
+      this.hasSourceAmountLabelTarget ? this.sourceAmountLabelTarget : null,
+      this.hasSourceAmountInputTarget ? this.sourceAmountInputTarget : null,
+      this.hasSourceCurrencyPrefixTarget ? this.sourceCurrencyPrefixTarget : null,
+      this.hasDestinationAmountInputTarget ? this.destinationAmountInputTarget : null,
+      this.hasDestinationCurrencyPrefixTarget ? this.destinationCurrencyPrefixTarget : null
+    ].filter(Boolean)
+
+    const allColors = Object.values(colors).flatMap((c) => c.split(/\s+/))
+    targets.forEach((el) => {
+      allColors.forEach((cls) => cls && el.classList.remove(cls))
+      next.split(/\s+/).forEach((cls) => cls && el.classList.add(cls))
+    })
+  }
+
+  #currencyOf(select) {
+    const option = select.selectedOptions[0]
+    return option ? (option.dataset.currency || "") : ""
   }
 }

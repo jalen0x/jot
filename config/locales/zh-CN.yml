@@ -196,6 +196,11 @@ zh-CN:
       report_scope: "报表范围"
       categories: "分类"
   transactions:
+    kinds:
+      expense: "支出"
+      income: "收入"
+      transfer: "转账"
+      balance_adjustment: "余额调整"
     index:
       title: "交易"
       eyebrow: "交易数据"
@@ -256,6 +261,8 @@ zh-CN:
       amount: "金额"
       source_amount: "来源金额"
       destination_amount: "目标金额"
+      timezone_offset: "时区偏移（分钟）"
+      formula_hint: "可以输入 12.5+3.8 这样的算式，按 Enter 求值。"
       tags: "标签"
       latitude: "纬度"
       longitude: "经度"
