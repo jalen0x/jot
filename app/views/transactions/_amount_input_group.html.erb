@@ -12,11 +12,11 @@
         required: required,
         placeholder: " ",
         inputmode: "decimal",
-        class: "block ps-12 #{end_padding} pb-2.5 pt-4 w-full text-xl font-semibold bg-transparent rounded-base border border-default-medium appearance-none focus:outline-none focus:ring-0 focus:border-brand peer #{color_class}",
+        class: "block ps-16 #{end_padding} pb-2.5 pt-4 w-full text-xl font-semibold leading-none tabular-nums bg-transparent rounded-base border border-default-medium appearance-none focus:outline-none focus:ring-0 focus:border-brand peer #{color_class}",
         data: { transaction_form_target: input_target, action: "keydown.enter->transaction-form#evaluateAmount" } %>
 
     <span data-transaction-form-target="<%= prefix_target %>"
-          class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-base font-semibold peer-placeholder-shown:invisible <%= color_class %>"></span>
+          class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-xl font-semibold leading-none peer-placeholder-shown:invisible <%= color_class %>"></span>
 
     <%= form.label field, label_text, data: label_data, class: "absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-neutral-primary-soft px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 start-1 #{color_class}" %>
 
