@@ -260,6 +260,7 @@ zh-CN:
       latitude: "纬度"
       longitude: "经度"
       pictures: "图片"
+      hide_amount: "隐藏金额"
       comment: "备注"
       cancel: "取消"
   transaction_categories:

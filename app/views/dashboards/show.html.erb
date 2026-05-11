@@ -171,7 +171,7 @@
               <p class="mt-1 text-sm text-body-subtle"><%= l(transaction.transacted_at, format: :long) %> · <%= transaction.account.name %> · <%= transaction.transaction_category.name %></p>
             </div>
             <p class="text-sm font-semibold <%= amount_color_class(transaction.transaction_kind) %>">
-              <%= format_money(transaction.source_amount_cents, transaction.account.currency_code) %>
+              <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, mask: transaction.hide_amount?) %>
             </p>
             <%= link_to t(".edit"), edit_transaction_path(transaction), class: "text-sm font-medium text-fg-brand hover:underline" %>
           </li>

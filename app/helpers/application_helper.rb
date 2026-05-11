@@ -117,8 +117,10 @@ module ApplicationHelper
     "https://www.openstreetmap.org/?#{query}#map=16/#{formatted_latitude}/#{formatted_longitude}"
   end
 
-  def format_money(cents, currency_code, amount_options: {}, currency_class: nil)
-    amount = number_to_currency(cents.to_f / 100, preferred_amount_format_options.merge(amount_options))
+  HIDDEN_AMOUNT_MASK = "••••".freeze
+
+  def format_money(cents, currency_code, amount_options: {}, currency_class: nil, mask: false)
+    amount = mask ? HIDDEN_AMOUNT_MASK : number_to_currency(cents.to_f / 100, preferred_amount_format_options.merge(amount_options))
     code = currency_class.present? ? tag.span(currency_code, class: currency_class) : currency_code.to_s
 
     case preferred_currency_display_format

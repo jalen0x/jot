@@ -61,6 +61,8 @@
     <%= render FormField::InputComponent.new(form: form, field: :geo_longitude, label: t(".longitude"), type: :number) %>
   </div>
 
+  <%= render FormField::CheckboxComponent.new(form: form, field: :hide_amount, label: t(".hide_amount")) %>
+
   <% unless transaction.persisted? %>
     <div class="mb-4">
       <%= form.label :pictures, t(".pictures"), class: "mb-2 block text-sm font-medium text-heading" %>

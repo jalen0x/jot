@@ -25,17 +25,18 @@ class TransactionRecorder
   def transaction_attributes(attributes)
     attributes = attributes.to_h.symbolize_keys
 
-    {
+    attrs = {
       transaction_kind: attributes[:transaction_kind],
       transacted_at: attributes[:transacted_at],
       timezone_utc_offset_minutes: attributes[:timezone_utc_offset_minutes].to_i,
       source_amount_cents: attributes[:source_amount_cents].to_i,
       destination_amount_cents: attributes[:destination_amount_cents].to_i,
-      hide_amount: ActiveModel::Type::Boolean.new.cast(attributes[:hide_amount]),
       comment: attributes[:comment],
       geo_latitude: coordinate_value(attributes, :latitude, :geo_latitude),
       geo_longitude: coordinate_value(attributes, :longitude, :geo_longitude)
     }
+    attrs[:hide_amount] = ActiveModel::Type::Boolean.new.cast(attributes[:hide_amount]) unless attributes[:hide_amount].nil?
+    attrs
   end
 
   def coordinate_value(attributes, nested_key, direct_key)

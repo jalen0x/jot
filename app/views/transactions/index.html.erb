@@ -86,7 +86,7 @@
                 <td class="px-5 py-4 font-medium text-heading"><%= transaction.account.name %></td>
                 <td class="px-5 py-4 text-body-subtle"><%= transaction.transaction_category.name %></td>
                 <td class="px-5 py-4 text-end font-semibold <%= amount_color_class(transaction.transaction_kind) %>">
-                  <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, amount_options: @amount_format_options) %>
+                  <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, amount_options: @amount_format_options, mask: transaction.hide_amount?) %>
                 </td>
                 <td class="px-5 py-4">
                   <div class="flex justify-end gap-2">
@@ -120,7 +120,7 @@
                 <% end %>
               </div>
               <p class="shrink-0 text-end text-sm font-semibold <%= amount_color_class(transaction.transaction_kind) %>">
-                <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, amount_options: @amount_format_options) %>
+                <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, amount_options: @amount_format_options, mask: transaction.hide_amount?) %>
               </p>
             </div>
 
