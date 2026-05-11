@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
   include Pundit::Authorization
+  include Pagy::Method
 
   before_action :require_application_unlock
   helper_method :application_lock_unlocked?, :application_lock_unlocked_or_disabled?

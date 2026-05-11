@@ -6,6 +6,12 @@ zh-CN:
   components:
     modal:
       close: "关闭弹窗"
+  pagination:
+    label: "分页"
+    previous: "上一页"
+    next: "下一页"
+    info: "显示 %{from}–%{to}，共 %{count} 条"
+    go_to_page: "跳转至第 %{page} 页"
   date:
     formats:
       default: "%Y-%m-%d"

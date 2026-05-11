@@ -6,6 +6,12 @@ en:
   components:
     modal:
       close: "Close modal"
+  pagination:
+    label: "Pagination"
+    previous: "Previous"
+    next: "Next"
+    info: "Showing %{from}–%{to} of %{count}"
+    go_to_page: "Go to page %{page}"
   account_reconciliation_statements:
     show:
       title: "%{account_name} reconciliation"

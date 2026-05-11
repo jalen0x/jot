@@ -4,7 +4,8 @@ class TransactionsController < ApplicationController
   # GET /transactions
   def index
     authorize Transaction
-    @transactions = LedgerQuery.new.list_transactions(user: current_user, filters: filter_params)
+    scope = LedgerQuery.new.list_transactions(user: current_user, filters: filter_params)
+    @pagy, @transactions = pagy(:offset, scope)
     @amount_format_options = amount_format_options
     @transaction_datetime_format = transaction_datetime_format
     load_filter_collections

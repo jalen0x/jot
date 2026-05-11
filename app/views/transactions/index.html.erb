@@ -38,7 +38,7 @@
     </div>
   <% end %>
 
-  <% if @transactions.any? %>
+  <% if @pagy.count.positive? %>
     <article class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
       <div class="hidden overflow-x-auto md:block">
         <table class="w-full text-start text-sm text-body">
@@ -151,6 +151,8 @@
         <% end %>
       </ul>
     </article>
+
+    <%= render "application/pagy_nav", pagy: @pagy %>
   <% else %>
     <div class="rounded-base border border-default bg-neutral-primary-soft p-8 text-center shadow-xs">
       <h2 class="text-xl font-semibold text-heading"><%= t(".empty_title") %></h2>
