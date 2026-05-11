@@ -1,0 +1,48 @@
+<%# locals: (form:, field:, accounts:, selected_id: nil, prompt: nil, allow_blank: false, action: nil, target: nil, blank_label: nil) %>
+<% wrapper_data = { controller: "combobox", combobox_placeholder_value: prompt.to_s } %>
+<% wrapper_data[:action] = action if action.present? %>
+<% wrapper_data[:transaction_form_target] = target if target.present? %>
+
+<div class="relative" data-controller="<%= wrapper_data[:controller] %>"
+     data-combobox-placeholder-value="<%= prompt %>"
+     <%= "data-action=\"#{action}\"".html_safe if action.present? %>
+     <%= "data-transaction-form-target=\"#{target}\"".html_safe if target.present? %>>
+  <%= form.hidden_field field, value: selected_id, data: { combobox_target: "input" } %>
+  <button type="button" data-action="click->combobox#toggle" data-combobox-target="button"
+          class="flex w-full items-center justify-between gap-2 rounded-base border border-default-medium bg-neutral-secondary-medium px-3 py-2.5 text-sm shadow-xs focus:border-brand focus:ring-brand">
+    <span class="truncate" data-combobox-target="display"></span>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4 shrink-0 text-body-subtle"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
+  </button>
+  <div data-combobox-target="panel" hidden class="absolute z-30 mt-1 w-full overflow-hidden rounded-base border border-default bg-neutral-primary shadow-md">
+    <div class="border-b border-default p-2">
+      <input type="search" data-combobox-target="search" data-action="input->combobox#filter"
+             autocomplete="off"
+             placeholder="<%= t("transactions.form.search_account") %>"
+             class="block w-full rounded-base border border-default-medium bg-neutral-secondary-medium px-3 py-1.5 text-sm focus:border-brand focus:ring-brand">
+    </div>
+    <ul data-combobox-target="list" class="max-h-72 overflow-y-auto py-1">
+      <% if allow_blank %>
+        <li data-combobox-target="option" data-value="" data-display="<%= blank_label %>" data-search="" data-currency=""
+            data-action="click->combobox#select"
+            class="flex cursor-pointer items-center gap-3 px-3 py-2 text-sm text-body-subtle hover:bg-neutral-secondary-soft">
+          <span class="h-3 w-3 shrink-0 rounded-full border border-default-medium"></span>
+          <span class="flex-1"><%= blank_label %></span>
+        </li>
+      <% end %>
+      <% accounts.each do |account| %>
+        <li data-combobox-target="option" data-value="<%= account.id %>"
+            data-display="<%= account_display_name(account) %>"
+            data-search="<%= [ account.name, account.currency_code ].join(' ').downcase %>"
+            data-currency="<%= account.currency_code %>"
+            data-action="click->combobox#select"
+            class="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-neutral-secondary-soft">
+          <span class="h-3 w-3 shrink-0 rounded-full border border-default-medium" style="background-color: #<%= account.color_hex %>"></span>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-medium text-heading"><%= account_display_name(account) %></p>
+            <p class="text-xs text-body-subtle"><%= format_money(account.balance_cents, account.currency_code) %></p>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</div>

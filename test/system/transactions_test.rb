@@ -26,12 +26,12 @@ class TransactionsSystemTest < BrowserSystemTestCase
 
     visit new_transaction_path
 
-    select "Checking USD", from: "transaction_account_id"
+    pick_account "Checking USD (USD)"
     within "[data-transaction-form-target='sourceAmountField']" do
       assert_text "USD"
     end
 
-    select "Savings EUR", from: "transaction_account_id"
+    pick_account "Savings EUR (EUR)"
     within "[data-transaction-form-target='sourceAmountField']" do
       assert_text "EUR"
       assert_no_text "USD"
@@ -53,6 +53,13 @@ class TransactionsSystemTest < BrowserSystemTestCase
   end
 
   private
+
+  def pick_account(display_name, scope: "[data-transaction-form-target='sourceAccount']")
+    within scope do
+      find("button[data-combobox-target='button']").click
+      find("li[data-combobox-target='option']", text: display_name).click
+    end
+  end
 
   def create_account(user:, name:, currency_code: "USD", balance_cents: 0)
     Account.create!(

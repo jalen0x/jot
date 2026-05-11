@@ -196,6 +196,7 @@ en:
       when: "When"
       account: "Account"
       choose_account: "Choose account"
+      search_account: "Search accounts…"
       destination_account: "Destination account"
       not_a_transfer: "Not a transfer"
       category: "Category"

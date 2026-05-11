@@ -254,6 +254,7 @@ zh-CN:
       when: "时间"
       account: "账户"
       choose_account: "选择账户"
+      search_account: "查找账户…"
       destination_account: "目标账户"
       not_a_transfer: "不是转账"
       category: "分类"

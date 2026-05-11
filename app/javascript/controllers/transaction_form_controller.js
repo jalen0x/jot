@@ -123,8 +123,12 @@ export default class extends Controller {
     })
   }
 
-  #currencyOf(select) {
-    const option = select.selectedOptions[0]
-    return option ? (option.dataset.currency || "") : ""
+  #currencyOf(node) {
+    if (!node) return ""
+    if (node.selectedOptions) {
+      const option = node.selectedOptions[0]
+      return option ? (option.dataset.currency || "") : ""
+    }
+    return node.dataset?.currency || ""
   }
 }

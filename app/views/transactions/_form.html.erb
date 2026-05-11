@@ -79,15 +79,14 @@
     <%= form.select :transaction_category_id, transaction_categories.map { |c| [ category_display_name(c), c.id ] }, { prompt: t(".choose_category"), selected: transaction.transaction_category_id }, required: true, class: field_classes %>
   </div>
 
-  <% account_options = accounts.map { |a| [ account_display_name(a), a.id, { data: { currency: a.currency_code } } ] } %>
   <div class="mb-4 grid gap-4 sm:grid-cols-2">
     <div>
       <%= form.label :account_id, t(".account"), class: "mb-2 block text-sm font-medium text-heading" %>
-      <%= form.select :account_id, options_for_select(account_options, transaction.account_id), { prompt: t(".choose_account") }, required: true, class: field_classes, data: { transaction_form_target: "sourceAccount", action: "change->transaction-form#sourceAccountChanged" } %>
+      <%= render "account_combobox", form: form, field: :account_id, accounts: accounts, selected_id: transaction.account_id, prompt: t(".choose_account"), action: "change->transaction-form#sourceAccountChanged", target: "sourceAccount" %>
     </div>
     <div data-transaction-form-target="destinationAccountField">
       <%= form.label :destination_account_id, t(".destination_account"), class: "mb-2 block text-sm font-medium text-heading" %>
-      <%= form.select :destination_account_id, options_for_select(account_options, transaction.destination_account_id), { include_blank: t(".not_a_transfer") }, class: field_classes, data: { transaction_form_target: "destinationAccount", action: "change->transaction-form#destinationAccountChanged" } %>
+      <%= render "account_combobox", form: form, field: :destination_account_id, accounts: accounts, selected_id: transaction.destination_account_id, prompt: t(".not_a_transfer"), allow_blank: true, blank_label: t(".not_a_transfer"), action: "change->transaction-form#destinationAccountChanged", target: "destinationAccount" %>
     </div>
   </div>
 
