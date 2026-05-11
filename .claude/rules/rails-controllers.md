@@ -7,7 +7,13 @@ paths:
 
 - Add method comments with HTTP verb and path: `# GET /categories`.
 - Use `before_action` only for cross-cutting concerns (`authenticate_user!`, Pundit setup, `rescue_from`); load per-action data explicitly inside the action.
-- Use `pagy` for pagination: `@pagy, @resources = pagy(Resource.all)`.
+- Use Pagy v43 for pagination. Paginator type is explicit, never implicit:
+  - Offset (page numbers, runs COUNT): `@pagy, @records = pagy(:offset, scope)`
+  - Keyset (cursor, no COUNT, requires `.order(..., :id)` for uniqueness; views only support `@pagy.next_tag`): `@pagy, @records = pagy(:keyset, scope.order(:created_at, :id))`
+  - Global wiring: `include Pagy::Method` in `ApplicationController`; in `config/initializers/pagy.rb` set `Pagy::OPTIONS[:limit] = 25` then call `Pagy::OPTIONS.freeze`. v43 collapsed `Pagy::Backend` + `Pagy::Frontend` into the single `Pagy::Method`; nav helpers are instance methods on `@pagy`, so no `ApplicationHelper` include is needed.
+  - Offset nav UI: render the shared partial — `<%= render "application/pagy_nav", pagy: @pagy %>`. The partial uses pagy's documented custom-template idiom (`pagy.send(:series)` and `pagy.send(:a_lambda)`). Both methods are intentionally `protected` in v43; do NOT define a public wrapper or alias for them. `a_lambda` generates anchors ~22x faster than `link_to` and accepts per-anchor `classes:` / `aria_label:`.
+  - Gate empty states on `@pagy.count.positive?`, never `@records.any?` — the latter issues a duplicate `COUNT` on the paginated relation because pagy already ran one during `pagy(:offset, ...)`.
+  - Out-of-range pages: v43 silently serves an empty page by default. To raise instead, pass `raise_range_error: true` to `pagy(...)` and `rescue_from Pagy::RangeError` in a controller.
 - Use `params.expect(:resource)` instead of `params.require`.
 - Use `status: :see_other` for redirects after `DELETE`.
 - Use `status: :unprocessable_content` for failed creates/updates.
