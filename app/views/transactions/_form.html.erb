@@ -157,7 +157,7 @@
   </div>
 
   <div class="mt-6 flex items-center justify-end gap-3 border-t border-default pt-4">
-    <%= render(ButtonComponent.new(variant: :secondary, href: transactions_path)) { t(".cancel") } %>
+    <%= render(ButtonComponent.new(variant: :secondary, href: transactions_path, data: modal_turbo_frame_data)) { t(".cancel") } %>
     <% unless transaction.persisted? %>
       <div class="inline-flex rounded-base shadow-xs">
         <button type="submit" name="after_save" value="back" data-turbo-submits-with="<%= submitting_label %>"

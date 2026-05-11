@@ -8,7 +8,8 @@ class ModalComponent < ViewComponent::Base
     sm: "max-w-sm",
     md: "max-w-md",
     lg: "max-w-lg",
-    xl: "max-w-xl"
+    xl: "max-w-xl",
+    wide: "max-w-4xl"
   }.freeze
 
   def initialize(title: nil, size: :md, close_button: true, body_class: "px-6 py-4 text-body")

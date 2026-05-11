@@ -38,6 +38,21 @@ class TransactionsSystemTest < BrowserSystemTestCase
     end
   end
 
+  test "clicking the new transaction link opens the form inside a modal" do
+    user = create(:user, password: "password123")
+    create_account(user: user, name: "Cash")
+    create_category(user: user, category_type: :expense)
+    sign_in_as(user)
+
+    visit transactions_path
+    click_link "New transaction", match: :first
+
+    within "#modal_content" do
+      assert_selector "form"
+      assert_selector "label", text: /\AAmount\z/
+    end
+  end
+
   test "amount input evaluates a formula expression when Enter is pressed" do
     user = create(:user, password: "password123")
     create_account(user: user, name: "Cash")
