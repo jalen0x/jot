@@ -90,8 +90,6 @@ class TransactionsController < ApplicationController
       :timezone_utc_offset_minutes,
       :source_amount,
       :destination_amount,
-      :source_amount_cents,
-      :destination_amount_cents,
       :hide_amount,
       :comment,
       :geo_latitude,
@@ -139,7 +137,7 @@ class TransactionsController < ApplicationController
 
   def load_form_collections
     @accounts = current_user.accounts.kept.order(:display_order, :name)
-    @transaction_categories = current_user.transaction_categories.kept.order(:category_type, :display_order, :name)
+    @transaction_categories = current_user.transaction_categories.kept.includes(:parent_category).order(:category_type, :display_order, :name)
     @transaction_tags = current_user.transaction_tags.kept.order(:display_order, :name)
   end
 

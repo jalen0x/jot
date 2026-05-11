@@ -43,14 +43,14 @@
       <% end %>
       <% accounts.each do |account| %>
         <li data-combobox-target="option" data-value="<%= account.id %>"
-            data-display="<%= account_display_name(account) %>"
+            data-display="<%= account.display_name %>"
             data-search="<%= [ account.name, account.currency_code ].join(' ').downcase %>"
             data-currency="<%= account.currency_code %>"
             data-action="click->combobox#select"
             class="inline-flex items-center w-full gap-3 p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded cursor-pointer">
           <span class="h-3 w-3 shrink-0 rounded-full border border-default-medium" style="background-color: #<%= account.color_hex %>"></span>
           <div class="min-w-0 flex-1">
-            <p class="truncate text-heading"><%= account_display_name(account) %></p>
+            <p class="truncate text-heading"><%= account.display_name %></p>
             <p class="text-xs text-body-subtle"><%= format_money(account.balance_cents, account.currency_code) %></p>
           </div>
         </li>

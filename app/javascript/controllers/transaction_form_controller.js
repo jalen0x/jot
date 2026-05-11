@@ -1,10 +1,3 @@
-// Dynamic transaction form behavior:
-// - transaction_kind selection via pill tab buttons (hidden input carries the value)
-// - toggles destination account / destination amount visibility for transfers
-// - swaps the source amount label between "Amount" and "Source amount"
-// - colors the amount inputs/labels by kind
-// - shows the selected account's currency code as a prefix next to each amount
-// - evaluates an arithmetic expression typed into an amount input on Enter
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
@@ -123,8 +116,7 @@ export default class extends Controller {
     this.destinationCurrencyPrefixTarget.textContent = this.#currencyOf(this.destinationAccountTarget)
   }
 
-  // Evaluate an arithmetic expression typed into an amount field.
-  // Whitelist guards against arbitrary JS via the Function constructor.
+  // Whitelist guards Function() against arbitrary JS execution.
   evaluateAmount(event) {
     const input = event.target
     const expr = input.value

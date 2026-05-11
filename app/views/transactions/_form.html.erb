@@ -68,19 +68,19 @@
     <div class="space-y-3">
       <section data-transaction-form-target="section" data-section="basic" class="space-y-3">
         <div class="grid gap-3 sm:grid-cols-2">
-          <%= render "amount_input_group", form: form,
-                                            field: :source_amount,
-                                            label_target: "sourceAmountLabel",
-                                            prefix_target: "sourceCurrencyPrefix",
-                                            input_target: "sourceAmountInput",
-                                            wrapper_target: "sourceAmountField",
-                                            label_text: t(".amount"),
-                                            cents: transaction.source_amount_cents,
-                                            color_class: amount_color_class(selected_kind),
-                                            required: true,
-                                            show_formula_icon: true,
-                                            formula_hint: t(".formula_hint") %>
-
+          <div data-transaction-form-target="sourceAmountField">
+            <%= render "amount_input_group", form: form,
+                                              field: :source_amount,
+                                              label_target: "sourceAmountLabel",
+                                              prefix_target: "sourceCurrencyPrefix",
+                                              input_target: "sourceAmountInput",
+                                              label_text: t(".amount"),
+                                              cents: transaction.source_amount_cents,
+                                              color_class: amount_color_class(selected_kind),
+                                              required: true,
+                                              show_formula_icon: true,
+                                              formula_hint: t(".formula_hint") %>
+          </div>
           <div data-transaction-form-target="destinationAmountField">
             <%= render "amount_input_group", form: form,
                                               field: :destination_amount,
@@ -95,7 +95,7 @@
         </div>
 
         <div class="relative">
-          <%= form.select :transaction_category_id, transaction_categories.map { |c| [category_display_name(c), c.id] }, { prompt: " ", selected: transaction.transaction_category_id }, required: true, class: select_class %>
+          <%= form.select :transaction_category_id, transaction_categories.map { |c| [c.display_name, c.id] }, { prompt: " ", selected: transaction.transaction_category_id }, required: true, class: select_class %>
           <%= form.label :transaction_category_id, t(".category"), class: floating_label_class %>
         </div>
 
