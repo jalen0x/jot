@@ -98,7 +98,6 @@ en:
       total_assets: "Total assets"
       total_liabilities: "Total liabilities"
       net_assets: "Net assets"
-      income_expense: "Income / Expense"
       monthly_trend: "Monthly income and expense"
       monthly_trend_description: "Latest six months in %{currency}."
       recent_transactions: "Recent transactions"

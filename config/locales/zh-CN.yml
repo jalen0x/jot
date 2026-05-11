@@ -156,7 +156,6 @@ zh-CN:
       total_assets: "总资产"
       total_liabilities: "总负债"
       net_assets: "净资产"
-      income_expense: "收入 / 支出"
       monthly_trend: "月度收支"
       monthly_trend_description: "最近六个月，货币 %{currency}。"
       recent_transactions: "最近交易"
