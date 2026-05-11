@@ -1,0 +1,33 @@
+<%# locals: (form:, field:, label_text:, cents:, color_class:, required: false, prefix_target:, input_target:, label_target: nil, wrapper_target: nil, show_formula_icon: false, formula_hint: nil) %>
+<% wrapper_attrs = wrapper_target ? { "data-transaction-form-target" => wrapper_target } : {} %>
+<%= content_tag :div, wrapper_attrs do %>
+  <%
+    label_data = {}
+    label_data[:transaction_form_target] = label_target if label_target
+  %>
+  <%= form.label field, label_text, data: label_data, class: "block mb-2 text-sm font-medium #{color_class}" %>
+  <div class="flex shadow-xs rounded-base">
+    <span data-transaction-form-target="<%= prefix_target %>"
+          class="inline-flex items-center px-4 text-xl font-semibold bg-neutral-tertiary border border-default-medium border-e-0 rounded-s-base <%= color_class %>"></span>
+    <%= form.text_field field,
+        value: amount_input_value(cents),
+        required: required,
+        inputmode: "decimal",
+        class: "block w-full px-4 py-3 bg-neutral-primary border border-default-medium text-3xl font-semibold focus:ring-brand focus:border-brand focus:z-10 #{show_formula_icon ? "" : "rounded-e-base"} #{color_class}",
+        data: { transaction_form_target: input_target, action: "keydown.enter->transaction-form#evaluateAmount" } %>
+    <% if show_formula_icon %>
+      <span class="inline-flex items-center px-3 text-body-subtle bg-neutral-tertiary border border-default-medium border-s-0 rounded-e-base" title="<%= formula_hint %>" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+          <rect x="4" y="3" width="16" height="18" rx="2" />
+          <line x1="8" y1="7" x2="16" y2="7" />
+          <line x1="8" y1="11" x2="10" y2="11" />
+          <line x1="13" y1="11" x2="16" y2="11" />
+          <line x1="8" y1="15" x2="10" y2="15" />
+          <line x1="13" y1="15" x2="16" y2="15" />
+          <line x1="8" y1="18" x2="10" y2="18" />
+          <line x1="13" y1="18" x2="16" y2="18" />
+        </svg>
+      </span>
+    <% end %>
+  </div>
+<% end %>

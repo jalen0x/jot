@@ -6,8 +6,6 @@
 <% kind_options = Transaction.transaction_kinds.except("balance_adjustment").keys %>
 <% amount_colors = kind_options.index_with { |k| amount_color_class(k) } %>
 <% sections = [["basic", t(".section_basic")], ["map", t(".section_map")], ["pictures", t(".section_pictures")]] %>
-<% kind_tab_classes = "rounded-base px-4 py-2 text-sm font-medium transition text-start" %>
-<% section_tab_classes = "rounded-base px-3 py-2 text-sm font-medium text-start" %>
 
 <%= form_with model: transaction,
               class: "rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs",
@@ -19,76 +17,78 @@
                 transaction_form_amount_colors_value: amount_colors.to_json
               } do |form| %>
   <% if transaction.errors.any? %>
-    <div class="mb-5 rounded-base border border-danger bg-danger-soft p-4 text-sm text-fg-danger-strong">
-      <p class="font-medium"><%= t(".save_failed") %></p>
-      <ul class="mt-2 list-disc ps-5">
-        <% transaction.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
+    <div class="mb-5 flex items-start gap-3 rounded-base border border-danger bg-danger-soft p-4 text-sm text-fg-danger-strong" role="alert">
+      <svg class="mt-0.5 h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+        <path fill-rule="evenodd" d="M18 10A8 8 0 11 2 10a8 8 0 0116 0zm-8-3a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+      </svg>
+      <div>
+        <p class="font-medium"><%= t(".save_failed") %></p>
+        <ul class="mt-1 list-disc ps-5">
+          <% transaction.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
     </div>
   <% end %>
 
   <%= form.hidden_field :transaction_kind, value: selected_kind, data: { transaction_form_target: "kindInput" } %>
 
-  <div class="grid gap-6 lg:grid-cols-[200px_1fr]">
+  <div class="grid gap-6 lg:grid-cols-[180px_1fr]">
     <aside class="space-y-4">
-      <div role="radiogroup" aria-label="<%= t(".type") %>" class="flex flex-col gap-1 rounded-base border border-default-medium bg-neutral-secondary-medium p-1">
+      <ul role="radiogroup" aria-label="<%= t(".type") %>" class="space-y-1 text-sm font-medium">
         <% kind_options.each do |kind| %>
           <% active = (kind == selected_kind) %>
-          <button type="button" data-action="click->transaction-form#selectKind" data-kind="<%= kind %>" data-transaction-form-target="kindTab" aria-pressed="<%= active %>" class="<%= kind_tab_classes %> <%= active ? "bg-brand text-white shadow-xs" : "text-body hover:text-heading" %>">
-            <%= t("transactions.kinds.#{kind}", default: kind.humanize) %>
-          </button>
+          <li>
+            <button type="button" data-action="click->transaction-form#selectKind" data-kind="<%= kind %>" data-transaction-form-target="kindTab" aria-pressed="<%= active %>"
+                    class="inline-flex w-full items-center rounded-base px-4 py-2.5 leading-5 transition <%= active ? "bg-brand text-white shadow-xs" : "text-body hover:bg-neutral-secondary-medium hover:text-heading" %>">
+              <%= t("transactions.kinds.#{kind}", default: kind.humanize) %>
+            </button>
+          </li>
         <% end %>
-      </div>
+      </ul>
 
-      <div role="tablist" aria-label="<%= t(".sections") %>" class="flex flex-col gap-1">
+      <hr class="border-default">
+
+      <ul role="tablist" aria-label="<%= t(".sections") %>" class="space-y-1 text-sm font-medium">
         <% sections.each_with_index do |(key, label), index| %>
           <% active = index.zero? %>
-          <button type="button" data-action="click->transaction-form#selectSection" data-section="<%= key %>" data-transaction-form-target="sectionTab" aria-selected="<%= active %>" class="<%= section_tab_classes %> <%= active ? "text-fg-brand" : "text-body hover:text-heading" %>">
-            <%= label %>
-          </button>
+          <li role="presentation">
+            <button type="button" role="tab" data-action="click->transaction-form#selectSection" data-section="<%= key %>" data-transaction-form-target="sectionTab" aria-selected="<%= active %>"
+                    class="inline-flex w-full items-center rounded-base px-4 py-2 leading-5 transition <%= active ? "text-fg-brand" : "text-body hover:bg-neutral-secondary-medium hover:text-heading" %>">
+              <%= label %>
+            </button>
+          </li>
         <% end %>
-      </div>
+      </ul>
     </aside>
 
     <div class="space-y-5">
       <section data-transaction-form-target="section" data-section="basic" class="space-y-4">
         <div class="rounded-base border border-default bg-neutral-secondary-soft p-5">
-          <div data-transaction-form-target="sourceAmountField">
-            <%= form.label :source_amount, t(".amount"), data: { transaction_form_target: "sourceAmountLabel" }, class: "block mb-2 text-sm font-medium #{amount_color_class(selected_kind)}" %>
-            <div class="relative">
-              <span class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-4 text-xl font-semibold <%= amount_color_class(selected_kind) %>" data-transaction-form-target="sourceCurrencyPrefix"></span>
-              <%= form.text_field :source_amount,
-                value: amount_input_value(transaction.source_amount_cents),
-                required: true,
-                inputmode: "decimal",
-                class: "w-full bg-neutral-primary border border-default-medium text-3xl font-semibold rounded-base focus:ring-brand focus:border-brand px-4 py-3 ps-16 pe-12 shadow-xs #{amount_color_class(selected_kind)}",
-                data: { transaction_form_target: "sourceAmountInput", action: "keydown.enter->transaction-form#evaluateAmount" } %>
-              <span class="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3 text-body-subtle" title="<%= t(".formula_hint") %>">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
-                  <rect x="4" y="3" width="16" height="18" rx="2" />
-                  <line x1="8" y1="7" x2="16" y2="7" />
-                  <line x1="8" y1="11" x2="10" y2="11" />
-                  <line x1="13" y1="11" x2="16" y2="11" />
-                  <line x1="8" y1="15" x2="10" y2="15" />
-                  <line x1="13" y1="15" x2="16" y2="15" />
-                  <line x1="8" y1="18" x2="10" y2="18" />
-                  <line x1="13" y1="18" x2="16" y2="18" />
-                </svg>
-              </span>
-            </div>
-          </div>
+          <%= render "amount_input_group", form: form,
+                                            field: :source_amount,
+                                            label_target: "sourceAmountLabel",
+                                            prefix_target: "sourceCurrencyPrefix",
+                                            input_target: "sourceAmountInput",
+                                            wrapper_target: "sourceAmountField",
+                                            label_text: t(".amount"),
+                                            cents: transaction.source_amount_cents,
+                                            color_class: amount_color_class(selected_kind),
+                                            required: true,
+                                            show_formula_icon: true,
+                                            formula_hint: t(".formula_hint") %>
+
           <div class="mt-4" data-transaction-form-target="destinationAmountField">
-            <%= form.label :destination_amount, t(".destination_amount"), class: "block mb-2 text-sm font-medium #{amount_color_class(selected_kind)}" %>
-            <div class="relative">
-              <span class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-4 text-xl font-semibold <%= amount_color_class(selected_kind) %>" data-transaction-form-target="destinationCurrencyPrefix"></span>
-              <%= form.text_field :destination_amount,
-                value: amount_input_value(transaction.destination_amount_cents),
-                inputmode: "decimal",
-                class: "w-full bg-neutral-primary border border-default-medium text-3xl font-semibold rounded-base focus:ring-brand focus:border-brand px-4 py-3 ps-16 pe-12 shadow-xs #{amount_color_class(selected_kind)}",
-                data: { transaction_form_target: "destinationAmountInput", action: "keydown.enter->transaction-form#evaluateAmount" } %>
-            </div>
+            <%= render "amount_input_group", form: form,
+                                              field: :destination_amount,
+                                              prefix_target: "destinationCurrencyPrefix",
+                                              input_target: "destinationAmountInput",
+                                              label_text: t(".destination_amount"),
+                                              cents: transaction.destination_amount_cents,
+                                              color_class: amount_color_class(selected_kind),
+                                              required: false,
+                                              show_formula_icon: false %>
           </div>
         </div>
 
@@ -137,7 +137,8 @@
         <div class="mt-3 flex items-center justify-between gap-3">
           <p class="text-xs text-body-subtle"><%= t(".map_hint") %></p>
           <button type="button" data-action="click->transaction-form#useCurrentLocation"
-                  class="text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-1.5 focus:outline-none">
+                  class="inline-flex items-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-3 focus:ring-neutral-tertiary-soft shadow-xs font-medium leading-5 rounded-base text-sm px-3 py-1.5 focus:outline-none">
+            <svg class="me-1.5 h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" /><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.8 13.938h-.011a7 7 0 1 0-11.464.144h-.016l.14.171c.1.127.2.251.3.371L12 21l5.13-6.248c.194-.209.374-.429.54-.659l.13-.155Z" /></svg>
             <%= t(".use_current_location") %>
           </button>
         </div>
@@ -147,10 +148,14 @@
         <% if transaction.persisted? %>
           <p class="text-sm text-body-subtle"><%= t(".pictures_hint_persisted") %></p>
         <% else %>
-          <div>
-            <%= form.label :pictures, t(".pictures"), class: "mb-2 block text-sm font-medium text-heading" %>
-            <%= form.file_field :pictures, multiple: true, class: "cursor-pointer bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full shadow-xs placeholder:text-body" %>
-          </div>
+          <label for="<%= form.field_id(:pictures) %>" class="flex flex-col items-center justify-center w-full h-44 bg-neutral-secondary-medium border border-dashed border-default-strong rounded-base cursor-pointer hover:bg-neutral-tertiary-medium">
+            <div class="flex flex-col items-center justify-center px-6 py-5 text-body">
+              <svg class="mb-3 h-8 w-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2" /></svg>
+              <p class="mb-1 text-sm"><span class="font-semibold text-heading"><%= t(".pictures_dropzone_action") %></span> <%= t(".pictures_dropzone_subaction") %></p>
+              <p class="text-xs"><%= t(".pictures_dropzone_hint") %></p>
+            </div>
+            <%= form.file_field :pictures, multiple: true, class: "hidden" %>
+          </label>
         <% end %>
       </section>
     </div>
@@ -159,21 +164,21 @@
   <div class="mt-6 flex items-center justify-end gap-3 border-t border-default pt-4">
     <%= render(ButtonComponent.new(variant: :secondary, href: transactions_path, data: modal_turbo_frame_data)) { t(".cancel") } %>
     <% unless transaction.persisted? %>
-      <div class="inline-flex rounded-base shadow-xs">
+      <div class="inline-flex rounded-base shadow-xs -space-x-px" role="group">
         <button type="submit" name="after_save" value="back" data-turbo-submits-with="<%= submitting_label %>"
-                class="text-white bg-brand border border-transparent border-e-white/20 hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium font-medium leading-5 rounded-s-base text-sm px-4 py-2.5 focus:outline-none">
+                class="inline-flex items-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium font-medium leading-5 rounded-s-base text-sm px-4 py-2.5 focus:outline-none">
           <%= submit_label %>
         </button>
-        <button type="button" data-dropdown-toggle="save-options-menu" data-dropdown-placement="top-end"
-                class="text-white bg-brand border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium rounded-e-base px-2 focus:outline-none"
+        <button id="save-options-toggle" data-dropdown-toggle="save-options-menu" data-dropdown-placement="top-end" type="button"
+                class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium font-medium rounded-e-base text-sm w-9 focus:outline-none"
                 aria-label="<%= t(".save_options") %>">
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" /></svg>
+          <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 15 7-7 7 7" /></svg>
         </button>
       </div>
-      <div id="save-options-menu" class="z-30 hidden rounded-base border border-default bg-neutral-primary shadow-md">
-        <ul class="py-1 text-sm">
+      <div id="save-options-menu" class="z-30 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-48">
+        <ul class="p-2 text-sm text-body font-medium" aria-labelledby="save-options-toggle">
           <li>
-            <button type="submit" name="after_save" value="new" class="block w-full px-4 py-2 text-start text-heading hover:bg-neutral-secondary-soft">
+            <button type="submit" name="after_save" value="new" class="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded">
               <%= t(".save_and_new") %>
             </button>
           </li>
