@@ -1,6 +1,8 @@
 <%# locals: (form:, field:, accounts:, label:, selected_id: nil, prompt: nil, allow_blank: false, action: nil, target: nil, blank_label: nil) %>
+<% selected_account = selected_id.present? ? accounts.find { |a| a.id.to_s == selected_id.to_s } : nil %>
 <div class="relative" data-controller="combobox"
      data-combobox-placeholder-value="<%= prompt %>"
+     data-currency="<%= selected_account&.currency_code %>"
      <%= "data-action=\"#{action}\"".html_safe if action.present? %>
      <%= "data-transaction-form-target=\"#{target}\"".html_safe if target.present? %>>
   <%= form.hidden_field field, value: selected_id, data: { combobox_target: "input" } %>
