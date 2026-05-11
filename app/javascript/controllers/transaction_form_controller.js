@@ -11,6 +11,8 @@ export default class extends Controller {
   static targets = [
     "kindInput",
     "kindTab",
+    "sectionTab",
+    "section",
     "destinationAccountField",
     "sourceAmountField",
     "sourceAmountLabel",
@@ -38,6 +40,21 @@ export default class extends Controller {
     if (!kind || kind === this.kindInputTarget.value) return
     this.kindInputTarget.value = kind
     this.refresh()
+  }
+
+  selectSection(event) {
+    const key = event.currentTarget.dataset.section
+    if (!key) return
+    this.sectionTabTargets.forEach((tab) => {
+      const active = tab.dataset.section === key
+      tab.setAttribute("aria-selected", active)
+      tab.classList.toggle("text-fg-brand", active)
+      tab.classList.toggle("text-body", !active)
+      tab.classList.toggle("hover:text-heading", !active)
+    })
+    this.sectionTargets.forEach((section) => {
+      section.hidden = section.dataset.section !== key
+    })
   }
 
   sourceAccountChanged() {

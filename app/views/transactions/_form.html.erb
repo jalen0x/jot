@@ -5,6 +5,9 @@
 <% selected_kind = (transaction.transaction_kind.presence || "expense") %>
 <% kind_options = Transaction.transaction_kinds.except("balance_adjustment").keys %>
 <% amount_colors = kind_options.index_with { |k| amount_color_class(k) } %>
+<% sections = [["basic", t(".section_basic")], ["map", t(".section_map")], ["pictures", t(".section_pictures")]] %>
+<% kind_tab_classes = "rounded-base px-4 py-2 text-sm font-medium transition text-start" %>
+<% section_tab_classes = "rounded-base px-3 py-2 text-sm font-medium text-start" %>
 
 <%= form_with model: transaction,
               class: "rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs",
@@ -27,102 +30,127 @@
   <% end %>
 
   <%= form.hidden_field :transaction_kind, value: selected_kind, data: { transaction_form_target: "kindInput" } %>
-  <div class="mb-5 flex gap-1 rounded-base border border-default-medium bg-neutral-secondary-medium p-1" role="radiogroup" aria-label="<%= t(".type") %>">
-    <% kind_options.each do |kind| %>
-      <% active = (kind == selected_kind) %>
-      <button type="button" data-action="click->transaction-form#selectKind" data-kind="<%= kind %>" data-transaction-form-target="kindTab" aria-pressed="<%= active %>" class="flex-1 rounded-base px-4 py-2 text-sm font-medium transition <%= active ? "bg-brand text-white shadow-xs" : "text-body hover:text-heading" %>">
-        <%= t("transactions.kinds.#{kind}", default: kind.humanize) %>
-      </button>
-    <% end %>
-  </div>
 
-  <div class="mb-5 rounded-base border border-default bg-neutral-secondary-soft p-5">
-    <div data-transaction-form-target="sourceAmountField">
-      <%= form.label :source_amount, t(".amount"), data: { transaction_form_target: "sourceAmountLabel" }, class: "block mb-2 text-sm font-medium #{amount_color_class(selected_kind)}" %>
-      <div class="relative">
-        <span class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-4 text-xl font-semibold <%= amount_color_class(selected_kind) %>" data-transaction-form-target="sourceCurrencyPrefix"></span>
-        <%= form.text_field :source_amount,
-          value: amount_input_value(transaction.source_amount_cents),
-          required: true,
-          inputmode: "decimal",
-          class: "w-full bg-neutral-primary border border-default-medium text-3xl font-semibold rounded-base focus:ring-brand focus:border-brand px-4 py-3 ps-16 pe-12 shadow-xs #{amount_color_class(selected_kind)}",
-          data: { transaction_form_target: "sourceAmountInput", action: "keydown.enter->transaction-form#evaluateAmount" } %>
-        <span class="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3 text-body-subtle" title="<%= t(".formula_hint") %>">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
-            <rect x="4" y="3" width="16" height="18" rx="2" />
-            <line x1="8" y1="7" x2="16" y2="7" />
-            <line x1="8" y1="11" x2="10" y2="11" />
-            <line x1="13" y1="11" x2="16" y2="11" />
-            <line x1="8" y1="15" x2="10" y2="15" />
-            <line x1="13" y1="15" x2="16" y2="15" />
-            <line x1="8" y1="18" x2="10" y2="18" />
-            <line x1="13" y1="18" x2="16" y2="18" />
-          </svg>
-        </span>
+  <div class="grid gap-6 lg:grid-cols-[200px_1fr]">
+    <aside class="space-y-4">
+      <div role="radiogroup" aria-label="<%= t(".type") %>" class="flex flex-col gap-1 rounded-base border border-default-medium bg-neutral-secondary-medium p-1">
+        <% kind_options.each do |kind| %>
+          <% active = (kind == selected_kind) %>
+          <button type="button" data-action="click->transaction-form#selectKind" data-kind="<%= kind %>" data-transaction-form-target="kindTab" aria-pressed="<%= active %>" class="<%= kind_tab_classes %> <%= active ? "bg-brand text-white shadow-xs" : "text-body hover:text-heading" %>">
+            <%= t("transactions.kinds.#{kind}", default: kind.humanize) %>
+          </button>
+        <% end %>
       </div>
-    </div>
-    <div class="mt-4" data-transaction-form-target="destinationAmountField">
-      <%= form.label :destination_amount, t(".destination_amount"), class: "block mb-2 text-sm font-medium #{amount_color_class(selected_kind)}" %>
-      <div class="relative">
-        <span class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-4 text-xl font-semibold <%= amount_color_class(selected_kind) %>" data-transaction-form-target="destinationCurrencyPrefix"></span>
-        <%= form.text_field :destination_amount,
-          value: amount_input_value(transaction.destination_amount_cents),
-          inputmode: "decimal",
-          class: "w-full bg-neutral-primary border border-default-medium text-3xl font-semibold rounded-base focus:ring-brand focus:border-brand px-4 py-3 ps-16 pe-12 shadow-xs #{amount_color_class(selected_kind)}",
-          data: { transaction_form_target: "destinationAmountInput", action: "keydown.enter->transaction-form#evaluateAmount" } %>
+
+      <div role="tablist" aria-label="<%= t(".sections") %>" class="flex flex-col gap-1">
+        <% sections.each_with_index do |(key, label), index| %>
+          <% active = index.zero? %>
+          <button type="button" data-action="click->transaction-form#selectSection" data-section="<%= key %>" data-transaction-form-target="sectionTab" aria-selected="<%= active %>" class="<%= section_tab_classes %> <%= active ? "text-fg-brand" : "text-body hover:text-heading" %>">
+            <%= label %>
+          </button>
+        <% end %>
       </div>
+    </aside>
+
+    <div class="space-y-5">
+      <section data-transaction-form-target="section" data-section="basic" class="space-y-4">
+        <div class="rounded-base border border-default bg-neutral-secondary-soft p-5">
+          <div data-transaction-form-target="sourceAmountField">
+            <%= form.label :source_amount, t(".amount"), data: { transaction_form_target: "sourceAmountLabel" }, class: "block mb-2 text-sm font-medium #{amount_color_class(selected_kind)}" %>
+            <div class="relative">
+              <span class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-4 text-xl font-semibold <%= amount_color_class(selected_kind) %>" data-transaction-form-target="sourceCurrencyPrefix"></span>
+              <%= form.text_field :source_amount,
+                value: amount_input_value(transaction.source_amount_cents),
+                required: true,
+                inputmode: "decimal",
+                class: "w-full bg-neutral-primary border border-default-medium text-3xl font-semibold rounded-base focus:ring-brand focus:border-brand px-4 py-3 ps-16 pe-12 shadow-xs #{amount_color_class(selected_kind)}",
+                data: { transaction_form_target: "sourceAmountInput", action: "keydown.enter->transaction-form#evaluateAmount" } %>
+              <span class="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3 text-body-subtle" title="<%= t(".formula_hint") %>">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+                  <rect x="4" y="3" width="16" height="18" rx="2" />
+                  <line x1="8" y1="7" x2="16" y2="7" />
+                  <line x1="8" y1="11" x2="10" y2="11" />
+                  <line x1="13" y1="11" x2="16" y2="11" />
+                  <line x1="8" y1="15" x2="10" y2="15" />
+                  <line x1="13" y1="15" x2="16" y2="15" />
+                  <line x1="8" y1="18" x2="10" y2="18" />
+                  <line x1="13" y1="18" x2="16" y2="18" />
+                </svg>
+              </span>
+            </div>
+          </div>
+          <div class="mt-4" data-transaction-form-target="destinationAmountField">
+            <%= form.label :destination_amount, t(".destination_amount"), class: "block mb-2 text-sm font-medium #{amount_color_class(selected_kind)}" %>
+            <div class="relative">
+              <span class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-4 text-xl font-semibold <%= amount_color_class(selected_kind) %>" data-transaction-form-target="destinationCurrencyPrefix"></span>
+              <%= form.text_field :destination_amount,
+                value: amount_input_value(transaction.destination_amount_cents),
+                inputmode: "decimal",
+                class: "w-full bg-neutral-primary border border-default-medium text-3xl font-semibold rounded-base focus:ring-brand focus:border-brand px-4 py-3 ps-16 pe-12 shadow-xs #{amount_color_class(selected_kind)}",
+                data: { transaction_form_target: "destinationAmountInput", action: "keydown.enter->transaction-form#evaluateAmount" } %>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <%= form.label :transaction_category_id, t(".category"), class: "mb-2 block text-sm font-medium text-heading" %>
+          <%= form.select :transaction_category_id, transaction_categories.map { |c| [category_display_name(c), c.id] }, { prompt: t(".choose_category"), selected: transaction.transaction_category_id }, required: true, class: field_classes %>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <%= form.label :account_id, t(".account"), class: "mb-2 block text-sm font-medium text-heading" %>
+            <%= render "account_combobox", form: form, field: :account_id, accounts: accounts, selected_id: transaction.account_id, prompt: t(".choose_account"), action: "change->transaction-form#sourceAccountChanged", target: "sourceAccount" %>
+          </div>
+          <div data-transaction-form-target="destinationAccountField">
+            <%= form.label :destination_account_id, t(".destination_account"), class: "mb-2 block text-sm font-medium text-heading" %>
+            <%= render "account_combobox", form: form, field: :destination_account_id, accounts: accounts, selected_id: transaction.destination_account_id, prompt: t(".not_a_transfer"), allow_blank: true, blank_label: t(".not_a_transfer"), action: "change->transaction-form#destinationAccountChanged", target: "destinationAccount" %>
+          </div>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-[2fr_1fr]">
+          <div>
+            <%= form.label :transacted_at, t(".when"), class: "mb-2 block text-sm font-medium text-heading" %>
+            <%= form.datetime_field :transacted_at, required: true, class: field_classes %>
+          </div>
+          <div>
+            <%= form.label :timezone_utc_offset_minutes, t(".timezone_offset"), class: "mb-2 block text-sm font-medium text-heading" %>
+            <%= form.number_field :timezone_utc_offset_minutes, class: field_classes %>
+          </div>
+        </div>
+
+        <div>
+          <%= form.label :transaction_tag_ids, t(".tags"), class: "mb-2 block text-sm font-medium text-heading" %>
+          <%= form.collection_select :transaction_tag_ids, transaction_tags, :id, :name, {}, multiple: true, class: field_classes %>
+        </div>
+
+        <%= render FormField::CheckboxComponent.new(form: form, field: :hide_amount, label: t(".hide_amount")) %>
+
+        <%= render FormField::InputComponent.new(form: form, field: :comment, label: t(".comment"), type: :textarea) %>
+      </section>
+
+      <section data-transaction-form-target="section" data-section="map" hidden>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <%= render FormField::InputComponent.new(form: form, field: :geo_latitude, label: t(".latitude"), type: :number) %>
+          <%= render FormField::InputComponent.new(form: form, field: :geo_longitude, label: t(".longitude"), type: :number) %>
+        </div>
+        <p class="mt-3 text-xs text-body-subtle"><%= t(".map_hint") %></p>
+      </section>
+
+      <section data-transaction-form-target="section" data-section="pictures" hidden>
+        <% if transaction.persisted? %>
+          <p class="text-sm text-body-subtle"><%= t(".pictures_hint_persisted") %></p>
+        <% else %>
+          <div>
+            <%= form.label :pictures, t(".pictures"), class: "mb-2 block text-sm font-medium text-heading" %>
+            <%= form.file_field :pictures, multiple: true, class: "cursor-pointer bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full shadow-xs placeholder:text-body" %>
+          </div>
+        <% end %>
+      </section>
     </div>
   </div>
 
-  <div class="mb-4">
-    <%= form.label :transaction_category_id, t(".category"), class: "mb-2 block text-sm font-medium text-heading" %>
-    <%= form.select :transaction_category_id, transaction_categories.map { |c| [ category_display_name(c), c.id ] }, { prompt: t(".choose_category"), selected: transaction.transaction_category_id }, required: true, class: field_classes %>
-  </div>
-
-  <div class="mb-4 grid gap-4 sm:grid-cols-2">
-    <div>
-      <%= form.label :account_id, t(".account"), class: "mb-2 block text-sm font-medium text-heading" %>
-      <%= render "account_combobox", form: form, field: :account_id, accounts: accounts, selected_id: transaction.account_id, prompt: t(".choose_account"), action: "change->transaction-form#sourceAccountChanged", target: "sourceAccount" %>
-    </div>
-    <div data-transaction-form-target="destinationAccountField">
-      <%= form.label :destination_account_id, t(".destination_account"), class: "mb-2 block text-sm font-medium text-heading" %>
-      <%= render "account_combobox", form: form, field: :destination_account_id, accounts: accounts, selected_id: transaction.destination_account_id, prompt: t(".not_a_transfer"), allow_blank: true, blank_label: t(".not_a_transfer"), action: "change->transaction-form#destinationAccountChanged", target: "destinationAccount" %>
-    </div>
-  </div>
-
-  <div class="mb-4 grid gap-4 sm:grid-cols-[2fr_1fr]">
-    <div>
-      <%= form.label :transacted_at, t(".when"), class: "mb-2 block text-sm font-medium text-heading" %>
-      <%= form.datetime_field :transacted_at, required: true, class: field_classes %>
-    </div>
-    <div>
-      <%= form.label :timezone_utc_offset_minutes, t(".timezone_offset"), class: "mb-2 block text-sm font-medium text-heading" %>
-      <%= form.number_field :timezone_utc_offset_minutes, class: field_classes %>
-    </div>
-  </div>
-
-  <div class="mb-4">
-    <%= form.label :transaction_tag_ids, t(".tags"), class: "mb-2 block text-sm font-medium text-heading" %>
-    <%= form.collection_select :transaction_tag_ids, transaction_tags, :id, :name, {}, multiple: true, class: field_classes %>
-  </div>
-
-  <div class="mb-4 grid gap-4 sm:grid-cols-2">
-    <%= render FormField::InputComponent.new(form: form, field: :geo_latitude, label: t(".latitude"), type: :number) %>
-    <%= render FormField::InputComponent.new(form: form, field: :geo_longitude, label: t(".longitude"), type: :number) %>
-  </div>
-
-  <%= render FormField::CheckboxComponent.new(form: form, field: :hide_amount, label: t(".hide_amount")) %>
-
-  <% unless transaction.persisted? %>
-    <div class="mb-4">
-      <%= form.label :pictures, t(".pictures"), class: "mb-2 block text-sm font-medium text-heading" %>
-      <%= form.file_field :pictures, multiple: true, class: "cursor-pointer bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full shadow-xs placeholder:text-body" %>
-    </div>
-  <% end %>
-
-  <%= render FormField::InputComponent.new(form: form, field: :comment, label: t(".comment"), type: :textarea) %>
-
-  <div class="flex items-center justify-end gap-3">
+  <div class="mt-6 flex items-center justify-end gap-3 border-t border-default pt-4">
     <%= render(ButtonComponent.new(variant: :secondary, href: transactions_path)) { t(".cancel") } %>
     <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: submitting_label })) { submit_label } %>
   </div>
