@@ -47,7 +47,7 @@ gem "image_processing", "~> 1.2"
 gem "aws-sdk-s3", require: false
 
 # Authentication & authorization
-gem "devise", "~> 5.0.0.rc"
+gem "devise", "~> 5.0.4"
 gem "rotp", "~> 6.3"
 gem "pundit", "~> 2.1"
 
