@@ -2,40 +2,35 @@
 <% return if pagy.pages <= 1 %>
 <%
   link_classes = "flex h-9 items-center justify-center border border-default-medium bg-neutral-primary px-3 text-body hover:bg-neutral-tertiary-medium hover:text-heading"
-  disabled_classes = "flex h-9 cursor-not-allowed items-center justify-center border border-default-medium bg-neutral-primary px-3 text-body-subtle"
+  disabled_classes = "flex h-9 items-center justify-center border border-default-medium bg-neutral-primary px-3 text-body-subtle"
   current_classes = "flex h-9 items-center justify-center border border-default-medium bg-brand-softer px-3 font-medium text-fg-brand"
+  a_lambda = pagy.send(:a_lambda)
 %>
 <nav aria-label="<%= t("pagination.label") %>" class="mt-6 flex flex-col items-center justify-between gap-3 sm:flex-row">
   <p class="text-sm text-body-subtle"><%= t("pagination.info", from: pagy.from, to: pagy.to, count: pagy.count) %></p>
 
-  <ul class="inline-flex -space-x-px text-sm">
-    <li>
-      <% if pagy.previous %>
-        <%= link_to t("pagination.previous"), pagy.page_url(:previous), class: "#{link_classes} rounded-s-base", rel: "prev" %>
-      <% else %>
-        <span aria-disabled="true" class="<%= disabled_classes %> rounded-s-base"><%= t("pagination.previous") %></span>
-      <% end %>
-    </li>
-
-    <% pagy.series.each do |item| %>
-      <li>
-        <% case item %>
-        <% when Integer %>
-          <%= link_to item, pagy.page_url(item), class: link_classes, aria: { label: t("pagination.go_to_page", page: item) } %>
-        <% when String %>
-          <span aria-current="page" class="<%= current_classes %>"><%= item %></span>
-        <% when :gap %>
-          <span aria-hidden="true" class="<%= disabled_classes %>">…</span>
-        <% end %>
-      </li>
+  <div class="inline-flex -space-x-px text-sm">
+    <% if pagy.previous %>
+      <%== a_lambda.(pagy.previous, t("pagination.previous"), classes: "#{link_classes} rounded-s-base", aria_label: t("pagination.previous")) %>
+    <% else %>
+      <a role="link" aria-disabled="true" class="<%= disabled_classes %> rounded-s-base cursor-not-allowed"><%= t("pagination.previous") %></a>
     <% end %>
 
-    <li>
-      <% if pagy.next %>
-        <%= link_to t("pagination.next"), pagy.page_url(:next), class: "#{link_classes} rounded-e-base", rel: "next" %>
-      <% else %>
-        <span aria-disabled="true" class="<%= disabled_classes %> rounded-e-base"><%= t("pagination.next") %></span>
+    <% pagy.send(:series).each do |item| %>
+      <% case item %>
+      <% when Integer %>
+        <%== a_lambda.(item, classes: link_classes, aria_label: t("pagination.go_to_page", page: item)) %>
+      <% when String %>
+        <a role="link" aria-disabled="true" aria-current="page" class="<%= current_classes %>"><%= item %></a>
+      <% when :gap %>
+        <a role="separator" aria-disabled="true" class="<%= disabled_classes %>">&hellip;</a>
       <% end %>
-    </li>
-  </ul>
+    <% end %>
+
+    <% if pagy.next %>
+      <%== a_lambda.(pagy.next, t("pagination.next"), classes: "#{link_classes} rounded-e-base", aria_label: t("pagination.next")) %>
+    <% else %>
+      <a role="link" aria-disabled="true" class="<%= disabled_classes %> rounded-e-base cursor-not-allowed"><%= t("pagination.next") %></a>
+    <% end %>
+  </div>
 </nav>

@@ -147,6 +147,18 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_select "form[action='#{transaction_picture_path(transaction, attachment)}'][data-turbo-confirm] button", text: /remove picture/i
   end
 
+  test "renders pagy navigation when there are more than one page of transactions" do
+    user = create(:user)
+    26.times { |index| create_transaction(user: user, comment: "Transaction #{index}") }
+    sign_in user
+
+    get transactions_path
+
+    assert_response :success
+    assert_select "nav[aria-label=?]", I18n.t("pagination.label")
+    assert_select "nav[aria-label=?] a[href*='page=2']", I18n.t("pagination.label")
+  end
+
   test "preloads transaction picture attachments on the index" do
     user = create(:user)
     3.times do |index|
