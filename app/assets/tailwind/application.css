@@ -34,6 +34,97 @@
 @plugin "flowbite/plugin";
 @source "../../../node_modules/flowbite";
 
+@theme {
+  --font-sans: "Aptos", "Avenir Next", "ui-sans-serif", "system-ui", "sans-serif";
+  --font-body: "Aptos", "Avenir Next", "ui-sans-serif", "system-ui", "sans-serif";
+
+  --color-body: var(--color-stone-600);
+  --color-body-subtle: var(--color-stone-500);
+  --color-heading: var(--color-stone-950);
+  --color-fg-brand-subtle: var(--color-orange-200);
+  --color-fg-brand: #9f5f32;
+  --color-fg-brand-strong: #6f3f21;
+
+  --color-neutral-primary-soft: #fffdf8;
+  --color-neutral-primary: #fffaf1;
+  --color-neutral-primary-medium: #fff7e8;
+  --color-neutral-primary-strong: #f7ead8;
+  --color-neutral-secondary-soft: #f6efe3;
+  --color-neutral-secondary: #f2e8d8;
+  --color-neutral-secondary-medium: #eee1cf;
+  --color-neutral-secondary-strong: #e6d5bd;
+  --color-neutral-secondary-strongest: #d9c2a4;
+  --color-neutral-tertiary-soft: #efe2d0;
+  --color-neutral-tertiary: #e6d3b9;
+  --color-neutral-tertiary-medium: #dcc29d;
+
+  --color-brand-softer: #f8eadb;
+  --color-brand-soft: #efd0b1;
+  --color-brand: #c67e48;
+  --color-brand-medium: #e6b88d;
+  --color-brand-strong: #9f5f32;
+  --color-brand-subtle: #dfb184;
+  --color-brand-light: #c67e48;
+
+  --color-default-subtle: #eadcc8;
+  --color-default: #e1cfb6;
+  --color-default-medium: #d4bd9d;
+  --color-default-strong: #b99a72;
+
+  --color-success-soft: #e8f4e8;
+  --color-success: #3d8a52;
+  --color-success-medium: #cde6d0;
+  --color-success-strong: #2f6d40;
+  --color-fg-success: #2f7d46;
+  --color-fg-success-strong: #1f5e31;
+  --color-danger-soft: #fae9e3;
+  --color-danger: #c45b42;
+  --color-danger-medium: #efc7ba;
+  --color-danger-strong: #9c3f2d;
+  --color-fg-danger: #b54835;
+  --color-fg-danger-strong: #873224;
+  --color-warning-soft: #fff2d5;
+  --color-warning: #d58a19;
+  --color-warning-medium: #f3d39c;
+  --color-warning-strong: #a96812;
+  --color-fg-warning: #9b6212;
+}
+
+@layer base {
+  .dark {
+    --color-body: var(--color-stone-300);
+    --color-body-subtle: var(--color-stone-400);
+    --color-heading: #fff7ed;
+    --color-fg-brand: #f0b37b;
+    --color-fg-brand-strong: #ffd7ad;
+    --color-neutral-primary-soft: #211913;
+    --color-neutral-primary: #1a130f;
+    --color-neutral-primary-medium: #2b211a;
+    --color-neutral-primary-strong: #3a2b20;
+    --color-neutral-secondary-soft: #18120e;
+    --color-neutral-secondary: #211913;
+    --color-neutral-secondary-medium: #2b211a;
+    --color-neutral-tertiary-soft: #3a2b20;
+    --color-neutral-tertiary: #493626;
+    --color-neutral-tertiary-medium: #5a412d;
+    --color-brand-softer: #3b2719;
+    --color-brand-soft: #5a3922;
+    --color-brand: #c67e48;
+    --color-brand-medium: #714825;
+    --color-brand-strong: #e0a06a;
+    --color-default-subtle: #30251e;
+    --color-default: #463528;
+    --color-default-medium: #5a4432;
+    --color-default-strong: #7a604a;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top left, color-mix(in srgb, var(--color-brand-soft) 35%, transparent), transparent 32rem),
+      var(--color-neutral-secondary-soft);
+  }
+}
+
 @layer base {
   button:not(:disabled),
   [role="button"]:not(:disabled),

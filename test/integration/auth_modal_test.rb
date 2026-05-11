@@ -30,7 +30,7 @@ class AuthModalTest < ActionDispatch::IntegrationTest
 
       assert_response :success
       assert_select "img[src*='#{image_name}']"
-      assert_select "img[src*='#{image_name}-dark']"
+      assert_select "img[src*='#{image_name}-dark']", count: 0
     end
   end
 
@@ -42,6 +42,6 @@ class AuthModalTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "img[src*='girl-and-computer']"
-    assert_select "img[src*='girl-and-computer-dark']"
+    assert_select "img[src*='girl-and-computer-dark']", count: 0
   end
 end

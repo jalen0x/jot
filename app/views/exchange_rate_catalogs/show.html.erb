@@ -17,18 +17,18 @@
   </div>
 
   <div class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
-    <table class="w-full text-left text-sm text-body">
+    <table class="w-full text-start text-sm text-body">
       <thead class="border-b border-default bg-neutral-secondary-medium text-xs uppercase text-body-subtle">
         <tr>
           <th scope="col" class="px-5 py-3"><%= t(".currency") %></th>
-          <th scope="col" class="px-5 py-3 text-right"><%= t(".rate") %></th>
+          <th scope="col" class="px-5 py-3 text-end"><%= t(".rate") %></th>
         </tr>
       </thead>
       <tbody>
         <% @catalog.exchange_rates.each do |exchange_rate| %>
           <tr class="border-b border-default last:border-0">
             <td class="px-5 py-4 font-medium text-heading"><%= exchange_rate.currency_code %></td>
-            <td class="px-5 py-4 text-right font-semibold text-heading"><%= exchange_rate.rate %></td>
+            <td class="px-5 py-4 text-end font-semibold text-heading"><%= exchange_rate.rate %></td>
           </tr>
         <% end %>
       </tbody>

@@ -1,20 +1,27 @@
-<div id="<%= dom_id(receipt_recognition) %>" class="bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs">
-  <dl class="grid gap-4 text-sm sm:grid-cols-2">
-    <div>
-      <dt class="font-medium text-heading">Status</dt>
-      <dd class="mt-1 text-body"><%= receipt_recognition.status.humanize %></dd>
+<article id="<%= dom_id(receipt_recognition) %>" class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+  <div class="border-b border-default px-5 py-4">
+    <h2 class="text-lg font-semibold text-heading"><%= t(".result_heading") %></h2>
+    <p class="mt-1 text-sm text-body"><%= t(".result_description") %></p>
+  </div>
+
+  <dl class="grid gap-4 p-5 text-sm sm:grid-cols-2">
+    <div class="rounded-base bg-neutral-secondary-soft p-4">
+      <dt class="font-medium text-body-subtle"><%= t(".status") %></dt>
+      <dd class="mt-1 text-lg font-semibold text-heading"><%= receipt_recognition.status.humanize %></dd>
     </div>
-    <div>
-      <dt class="font-medium text-heading">Image</dt>
-      <dd class="mt-1 text-body"><%= receipt_recognition.image.filename if receipt_recognition.image.attached? %></dd>
+    <div class="rounded-base bg-neutral-secondary-soft p-4">
+      <dt class="font-medium text-body-subtle"><%= t(".image") %></dt>
+      <dd class="mt-1 text-lg font-semibold text-heading"><%= receipt_recognition.image.filename if receipt_recognition.image.attached? %></dd>
     </div>
   </dl>
 
-  <% if receipt_recognition.succeeded? %>
-    <pre class="mt-5 overflow-x-auto rounded-base bg-neutral-secondary-medium p-4 text-sm text-heading"><%= JSON.pretty_generate(receipt_recognition.result_json) %></pre>
-  <% elsif receipt_recognition.failed? %>
-    <p class="mt-5 rounded-base border border-danger bg-danger-soft p-4 text-sm text-heading"><%= receipt_recognition.error_message %></p>
-  <% else %>
-    <p class="mt-5 text-sm text-body-subtle">Recognition is waiting for the background worker.</p>
-  <% end %>
-</div>
+  <div class="px-5 pb-5">
+    <% if receipt_recognition.succeeded? %>
+      <pre class="overflow-x-auto rounded-base border border-default bg-neutral-secondary-medium p-4 text-sm text-heading"><%= JSON.pretty_generate(receipt_recognition.result_json) %></pre>
+    <% elsif receipt_recognition.failed? %>
+      <p class="rounded-base border border-danger bg-danger-soft p-4 text-sm text-fg-danger-strong"><%= receipt_recognition.error_message %></p>
+    <% else %>
+      <p class="rounded-base border border-default bg-neutral-secondary-soft p-4 text-sm text-body-subtle"><%= t(".waiting") %></p>
+    <% end %>
+  </div>
+</article>

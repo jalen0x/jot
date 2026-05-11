@@ -1,0 +1,60 @@
+<% if turbo_frame_request? %>
+  <%= turbo_frame_tag "modal_content" do %>
+    <%= render(ModalComponent.new(size: :lg, body_class: "text-body")) do %>
+      <div class="p-6 space-y-4 sm:p-8">
+        <%= yield :form_block %>
+      </div>
+    <% end %>
+  <% end %>
+<% else %>
+  <% auth_illustration = content_for(:auth_illustration).presence || "sign-in.svg" %>
+
+  <section class="grid min-h-screen bg-neutral-secondary-soft lg:grid-cols-[minmax(0,1fr)_minmax(26rem,34rem)]">
+    <div class="relative hidden overflow-hidden border-e border-default bg-neutral-primary-soft lg:flex lg:flex-col lg:justify-between">
+      <div class="p-10">
+        <%= link_to root_path, class: "inline-flex items-center gap-3 text-heading" do %>
+          <span class="flex h-11 w-11 items-center justify-center rounded-base bg-brand text-base font-bold text-white shadow-xs">
+            <%= TemplateBase.config.application_name.first %>
+          </span>
+          <span>
+            <span class="block text-xl font-semibold tracking-tight"><%= TemplateBase.config.application_name %></span>
+            <span class="block text-sm text-body-subtle"><%= t("devise.shared.form_block.ledger_console") %></span>
+          </span>
+        <% end %>
+      </div>
+
+      <div class="relative z-10 mx-auto flex w-full max-w-3xl flex-1 items-center px-12">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t("devise.shared.form_block.eyebrow") %></p>
+          <h1 class="mt-4 max-w-xl text-4xl font-semibold leading-tight tracking-tight text-heading"><%= t("devise.shared.form_block.heading") %></h1>
+          <p class="mt-4 max-w-lg text-base text-body"><%= t("devise.shared.form_block.description") %></p>
+          <%= image_tag auth_illustration, class: "mt-10 max-h-[24rem] w-full object-contain", alt: "" %>
+        </div>
+      </div>
+
+      <div class="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-brand-softer"></div>
+      <div class="absolute right-12 top-28 h-32 w-32 rounded-base border border-default bg-neutral-secondary-soft"></div>
+    </div>
+
+    <div class="flex min-h-screen flex-col bg-neutral-primary-soft">
+      <div class="p-6 lg:hidden">
+        <%= link_to root_path, class: "inline-flex items-center gap-3 text-heading" do %>
+          <span class="flex h-10 w-10 items-center justify-center rounded-base bg-brand text-sm font-bold text-white shadow-xs">
+            <%= TemplateBase.config.application_name.first %>
+          </span>
+          <span class="text-lg font-semibold tracking-tight"><%= TemplateBase.config.application_name %></span>
+        <% end %>
+      </div>
+
+      <div class="flex flex-1 items-center justify-center px-6 py-10">
+        <div class="w-full max-w-md rounded-base border border-default bg-neutral-primary p-6 shadow-xs sm:p-8">
+          <%= yield :form_block %>
+        </div>
+      </div>
+
+      <div class="px-6 pb-6 text-center text-xs text-body-subtle">
+        <%= t("devise.shared.form_block.powered_by", app: TemplateBase.config.application_name) %>
+      </div>
+    </div>
+  </section>
+<% end %>

@@ -55,13 +55,13 @@
     </div>
 
     <div class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
-      <table class="w-full text-left text-sm text-body">
+      <table class="w-full text-start text-sm text-body">
         <thead class="border-b border-default bg-neutral-secondary-medium text-xs uppercase text-body-subtle">
           <tr>
             <th scope="col" class="px-5 py-3"><%= t(".transaction") %></th>
             <th scope="col" class="px-5 py-3"><%= t(".kind") %></th>
             <th scope="col" class="px-5 py-3"><%= t(".date") %></th>
-            <th scope="col" class="px-5 py-3 text-right"><%= t(".amount") %></th>
+            <th scope="col" class="px-5 py-3 text-end"><%= t(".amount") %></th>
           </tr>
         </thead>
         <tbody>
@@ -71,7 +71,7 @@
                 <td class="px-5 py-4 font-medium text-heading"><%= transaction.comment.presence || transaction.transaction_kind.humanize %></td>
                 <td class="px-5 py-4"><%= transaction.transaction_kind.humanize %></td>
                 <td class="px-5 py-4"><%= transaction.transacted_at.to_date.iso8601 %></td>
-                <td class="px-5 py-4 text-right font-semibold text-heading">
+                <td class="px-5 py-4 text-end font-semibold text-heading">
                   <%= format_money(transaction.source_amount_cents, transaction.account.currency_code) %>
                 </td>
               </tr>

@@ -1,12 +1,12 @@
-<% content_for :title, "Receipt Recognition" %>
+<% content_for :title, t(".title") %>
 <%= turbo_stream_from @receipt_recognition %>
 
-<section class="space-y-8">
-  <div class="max-w-3xl space-y-3">
-    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">AI</p>
-    <h1 class="text-3xl font-semibold tracking-tight text-heading">Receipt recognition</h1>
-    <p class="text-body">The background job updates this result after the provider finishes reading the receipt image.</p>
-  </div>
+<section class="space-y-5">
+  <header>
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+    <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
+  </header>
 
   <%= render @receipt_recognition %>
 </section>

@@ -11,9 +11,9 @@ class NavigationTest < BrowserSystemTestCase
     click_button "Log in"
 
     assert_no_horizontal_overflow
-    find("summary", text: "Menu").click
-    within("details") do
-      click_link "Transactions"
+    click_button "Open menu"
+    within("#app-sidebar") do
+      click_link "Transaction Details"
     end
 
     assert_text "Transactions"

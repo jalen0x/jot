@@ -1,31 +1,40 @@
-<% content_for :title, "Recognize Receipt" %>
+<% content_for :title, t(".title") %>
 
-<section class="max-w-3xl space-y-8">
-  <div class="space-y-3">
-    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">AI</p>
-    <h1 class="text-3xl font-semibold tracking-tight text-heading">Recognize receipt</h1>
-    <p class="text-body">Upload a receipt image and let the background recognizer extract merchant, amount, currency, and notes.</p>
-  </div>
+<section class="space-y-5">
+  <header>
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+    <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
+  </header>
 
-  <%= form_with model: @receipt_recognition, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
-    <% if @receipt_recognition.errors.any? %>
-      <div class="mb-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
-        <p class="font-medium">Receipt recognition could not be started.</p>
-        <ul class="mt-2 list-disc ps-5">
-          <% @receipt_recognition.errors.full_messages.each do |message| %>
-            <li><%= message %></li>
-          <% end %>
-        </ul>
+  <div class="grid gap-5 lg:grid-cols-[18rem_1fr]">
+    <aside class="rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs">
+      <span class="flex h-11 w-11 items-center justify-center rounded-base bg-brand-softer text-fg-brand"><%= app_shell_icon(:receipt, css_class: "h-5 w-5") %></span>
+      <h2 class="mt-4 text-lg font-semibold text-heading"><%= t(".extracts_heading") %></h2>
+      <p class="mt-2 text-sm text-body"><%= t(".extracts_description") %></p>
+    </aside>
+
+    <%= form_with model: @receipt_recognition, class: "rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs" do |form| %>
+      <% if @receipt_recognition.errors.any? %>
+        <div class="mb-5 rounded-base border border-danger bg-danger-soft p-4 text-sm text-fg-danger-strong">
+          <p class="font-medium"><%= t(".save_failed") %></p>
+          <ul class="mt-2 list-disc ps-5">
+            <% @receipt_recognition.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="mb-5">
+        <%= form.label :image, t(".image"), class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.file_field :image, required: true, accept: "image/*", class: "cursor-pointer bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full shadow-xs placeholder:text-body" %>
+        <p class="mt-2 text-sm text-body-subtle"><%= t(".image_help") %></p>
+      </div>
+
+      <div class="flex justify-end">
+        <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: t(".starting") })) { t(".start_recognition") } %>
       </div>
     <% end %>
-
-    <div class="mb-5">
-      <%= form.label :image, "Receipt image", class: "block mb-2 text-sm font-medium text-heading" %>
-      <%= form.file_field :image, required: true, accept: "image/*", class: "cursor-pointer bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full shadow-xs placeholder:text-body" %>
-    </div>
-
-    <div class="flex justify-end">
-      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Starting..." })) { "Start recognition" } %>
-    </div>
-  <% end %>
+  </div>
 </section>

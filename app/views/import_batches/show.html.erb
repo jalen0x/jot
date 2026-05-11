@@ -1,35 +1,40 @@
-<% content_for :title, "Import status" %>
+<% content_for :title, t(".title") %>
 
-<section class="mx-auto w-full max-w-3xl">
-  <div class="mb-6">
-    <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
-    <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Import status</h1>
-    <p class="mt-2 text-sm text-body"><%= @import_batch.source_filename.presence || "Pasted import data" %></p>
-  </div>
+<section class="space-y-5">
+  <header>
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+    <p class="mt-2 max-w-2xl text-sm text-body"><%= @import_batch.source_filename.presence || t(".pasted_data") %></p>
+  </header>
 
-  <div class="bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs">
-    <dl class="grid gap-4 sm:grid-cols-3">
-      <div>
-        <dt class="text-sm font-medium text-body-subtle">Status</dt>
+  <article class="rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+    <div class="border-b border-default px-5 py-4">
+      <h2 class="text-lg font-semibold text-heading"><%= t(".batch_summary") %></h2>
+      <p class="mt-1 text-sm text-body"><%= t(".batch_summary_description") %></p>
+    </div>
+
+    <dl class="grid gap-4 p-5 sm:grid-cols-3">
+      <div class="rounded-base bg-neutral-secondary-soft p-4">
+        <dt class="text-sm font-medium text-body-subtle"><%= t(".status") %></dt>
         <dd class="mt-1 text-lg font-semibold text-heading"><%= @import_batch.status.humanize %></dd>
       </div>
-      <div>
-        <dt class="text-sm font-medium text-body-subtle">Imported rows</dt>
-        <dd class="mt-1 text-lg font-semibold text-heading"><%= @import_batch.imported_count %></dd>
+      <div class="rounded-base bg-neutral-secondary-soft p-4">
+        <dt class="text-sm font-medium text-body-subtle"><%= t(".imported_rows") %></dt>
+        <dd class="mt-1 text-lg font-semibold text-heading"><%= number_with_delimiter(@import_batch.imported_count) %></dd>
       </div>
-      <div>
-        <dt class="text-sm font-medium text-body-subtle">Created</dt>
+      <div class="rounded-base bg-neutral-secondary-soft p-4">
+        <dt class="text-sm font-medium text-body-subtle"><%= t(".created") %></dt>
         <dd class="mt-1 text-lg font-semibold text-heading"><%= l(@import_batch.created_at, format: :short) %></dd>
       </div>
     </dl>
 
     <% if @import_batch.error_message.present? %>
-      <div class="mt-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger"><%= @import_batch.error_message %></div>
+      <div class="mx-5 rounded-base border border-danger bg-danger-soft p-4 text-sm text-fg-danger-strong"><%= @import_batch.error_message %></div>
     <% end %>
 
-    <div class="mt-6 flex justify-end gap-3">
-      <%= render(ButtonComponent.new(variant: :secondary, href: new_import_batch_path)) { "Import another" } %>
-      <%= render(ButtonComponent.new(href: transactions_path)) { "View transactions" } %>
+    <div class="flex justify-end gap-3 px-5 py-5">
+      <%= render(ButtonComponent.new(variant: :secondary, href: new_import_batch_path)) { t(".import_another") } %>
+      <%= render(ButtonComponent.new(href: transactions_path)) { t(".view_transactions") } %>
     </div>
-  </div>
+  </article>
 </section>

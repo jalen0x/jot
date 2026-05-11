@@ -28,11 +28,11 @@ class TransactionTemplatesTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "h1", text: /transaction templates/i
-    assert_select "li", text: /#{template.name}/i
-    assert_select "li", text: /10.00 USD/
-    assert_select "li", text: /1000 cents/, count: 0
-    assert_select "li", text: /Archived/i, count: 0
-    assert_select "li", text: /Other Rent/i, count: 0
+    assert_select "tr", text: /#{template.name}/i
+    assert_select "tr", text: /10.00 USD/
+    assert_select "tr", text: /1000 cents/, count: 0
+    assert_select "tr", text: /Archived/i, count: 0
+    assert_select "tr", text: /Other Rent/i, count: 0
     assert_select "form[action='#{transaction_template_path(template)}'][data-turbo-confirm]"
   end
 

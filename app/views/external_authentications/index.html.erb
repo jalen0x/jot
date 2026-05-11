@@ -1,34 +1,53 @@
-<% content_for :title, "External Authentications" %>
+<% content_for :title, t(".title") %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
 
-<section class="space-y-8">
-  <div class="max-w-3xl space-y-3">
-    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Security</p>
-    <h1 class="text-3xl font-semibold tracking-tight text-heading">External authentications</h1>
-    <p class="text-body">Review connected sign-in providers and disconnect one after confirming your current password.</p>
-  </div>
+<section class="space-y-5">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+      <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+      <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
+    </div>
 
-  <div class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+    <div class="rounded-base border border-default bg-neutral-primary-soft px-4 py-3 text-sm shadow-xs">
+      <p class="font-medium text-heading"><%= t(".connected_count") %></p>
+      <p class="mt-1 text-2xl font-semibold text-heading"><%= number_with_delimiter(@external_authentications.size) %></p>
+    </div>
+  </header>
+
+  <article class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+    <div class="border-b border-default px-5 py-4">
+      <h2 class="text-lg font-semibold text-heading"><%= t(".provider_list") %></h2>
+      <p class="mt-1 text-sm text-body"><%= t(".provider_list_description") %></p>
+    </div>
+
     <ul class="divide-y divide-default">
       <% if @external_authentications.any? %>
         <% @external_authentications.each do |external_authentication| %>
-          <li class="grid gap-5 p-5 lg:grid-cols-[1fr_auto] lg:items-end">
-            <div>
-              <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Provider</p>
-              <p class="mt-1 text-lg font-semibold text-heading"><%= external_authentication.provider %></p>
+          <li class="grid gap-5 p-5 lg:grid-cols-[1fr_minmax(20rem,26rem)] lg:items-end">
+            <div class="flex min-w-0 items-center gap-3">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-base bg-brand-softer text-fg-brand"><%= app_shell_icon(:link, css_class: "h-5 w-5") %></span>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-body-subtle"><%= t(".provider") %></p>
+                <h2 class="mt-1 truncate text-lg font-semibold text-heading"><%= external_authentication.provider %></h2>
+              </div>
             </div>
 
-            <%= form_with scope: :external_authentication, url: external_authentication_path(external_authentication), method: :delete, class: "grid gap-3 sm:grid-cols-[minmax(14rem,1fr)_auto] sm:items-end" do |form| %>
+            <%= form_with scope: :external_authentication, url: external_authentication_path(external_authentication), method: :delete, class: "grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end" do |form| %>
               <div>
-                <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
-                <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+                <%= form.label :current_password, t(".current_password"), class: "mb-2 block text-sm font-medium text-heading" %>
+                <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: field_classes %>
               </div>
-              <%= render(ButtonComponent.new(variant: :danger, type: :submit, data: { turbo_submits_with: "Disconnecting..." })) { "Disconnect" } %>
+              <%= render(ButtonComponent.new(variant: :danger, type: :submit, data: { turbo_submits_with: t(".disconnecting") })) { t(".disconnect") } %>
             <% end %>
           </li>
         <% end %>
       <% else %>
-        <li class="px-5 py-8 text-center text-body-subtle">No external authentications connected.</li>
+        <li class="px-5 py-10 text-center">
+          <p class="font-semibold text-heading"><%= t(".empty_title") %></p>
+          <p class="mt-1 text-sm text-body-subtle"><%= t(".empty_description") %></p>
+        </li>
       <% end %>
     </ul>
-  </div>
+  </article>
 </section>

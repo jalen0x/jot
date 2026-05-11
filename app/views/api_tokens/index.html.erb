@@ -1,24 +1,38 @@
-<% content_for :title, "API Tokens" %>
+<% content_for :title, t(".title") %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
 
-<section class="space-y-8">
-  <div class="max-w-3xl space-y-3">
-    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Security</p>
-    <h1 class="text-3xl font-semibold tracking-tight text-heading">API tokens</h1>
-    <p class="text-body">Issue tokens for future API access. Raw tokens are shown once and stored only as digests.</p>
-  </div>
+<section class="space-y-5">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+      <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+      <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
+    </div>
+
+    <div class="rounded-base border border-default bg-neutral-primary-soft px-4 py-3 text-sm shadow-xs">
+      <p class="font-medium text-heading"><%= t(".active_tokens") %></p>
+      <p class="mt-1 text-2xl font-semibold text-heading"><%= number_with_delimiter(@api_tokens.size) %></p>
+    </div>
+  </header>
 
   <% if @issued_token.present? %>
-    <div class="rounded-base border border-success bg-neutral-primary p-4 text-sm text-heading">
-      <p class="font-medium">Your new API token</p>
-      <p class="mt-1 text-body">Copy this token now. It will not be shown again.</p>
-      <code class="mt-3 block overflow-x-auto rounded-base bg-neutral-secondary-medium p-3 text-sm text-heading"><%= @issued_token %></code>
-    </div>
+    <article class="rounded-base border border-success bg-success-soft p-5 shadow-xs">
+      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-success"><%= t(".issued_token_eyebrow") %></p>
+      <h2 class="mt-2 text-lg font-semibold text-heading"><%= t(".issued_token_heading") %></h2>
+      <p class="mt-1 text-sm text-body"><%= t(".issued_token_description") %></p>
+      <code class="mt-4 block overflow-x-auto rounded-base border border-default bg-neutral-primary px-3 py-2.5 text-sm text-heading"><%= @issued_token %></code>
+    </article>
   <% end %>
 
-  <%= form_with model: @api_token, url: api_tokens_path, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
+  <%= form_with model: @api_token, url: api_tokens_path, class: "rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs" do |form| %>
+    <div class="mb-5 flex flex-col gap-1 border-b border-default pb-4">
+      <h2 class="text-lg font-semibold text-heading"><%= t(".issue_heading") %></h2>
+      <p class="text-sm text-body"><%= t(".issue_description") %></p>
+    </div>
+
     <% if @api_token.errors.any? %>
-      <div class="mb-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
-        <p class="font-medium">API token could not be issued.</p>
+      <div class="mb-5 rounded-base border border-danger bg-danger-soft p-4 text-sm text-fg-danger-strong">
+        <p class="font-medium"><%= t(".issue_failed") %></p>
         <ul class="mt-2 list-disc ps-5">
           <% @api_token.errors.full_messages.each do |message| %>
             <li><%= message %></li>
@@ -27,54 +41,61 @@
       </div>
     <% end %>
 
-    <div class="grid gap-4 lg:grid-cols-3">
+    <div class="grid gap-4 lg:grid-cols-[1fr_12rem_1fr_auto] lg:items-end">
       <div>
-        <%= form.label :name, "Name", class: "mb-2 block text-sm font-medium text-heading" %>
-        <%= form.text_field :name, required: true, placeholder: "CLI", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+        <%= form.label :name, t(".name"), class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.text_field :name, required: true, placeholder: t(".name_placeholder"), class: field_classes %>
       </div>
       <div>
-        <%= form.label :expires_in_days, "Expires in days", class: "mb-2 block text-sm font-medium text-heading" %>
-        <%= form.number_field :expires_in_days, min: 0, placeholder: "Blank for no expiry", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+        <%= form.label :expires_in_days, t(".expires_in_days"), class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.number_field :expires_in_days, min: 0, placeholder: t(".expires_placeholder"), class: field_classes %>
       </div>
       <div>
-        <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
-        <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+        <%= form.label :current_password, t(".current_password"), class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: field_classes %>
       </div>
-    </div>
-
-    <div class="mt-5 flex justify-end">
-      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Issuing..." })) { "Issue token" } %>
+      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: t(".issuing") })) { t(".issue_token") } %>
     </div>
   <% end %>
 
-  <div class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
-    <table class="w-full text-left text-sm text-body">
-      <thead class="border-b border-default bg-neutral-secondary-medium text-xs uppercase text-body-subtle">
-        <tr>
-          <th scope="col" class="px-5 py-3">Name</th>
-          <th scope="col" class="px-5 py-3">Expires</th>
-          <th scope="col" class="px-5 py-3">Last used</th>
-          <th scope="col" class="px-5 py-3 text-right">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if @api_tokens.any? %>
-          <% @api_tokens.each do |api_token| %>
-            <tr class="border-b border-default last:border-0">
-              <td class="px-5 py-4 font-medium text-heading"><%= api_token.name %></td>
-              <td class="px-5 py-4"><%= api_token.expires_at ? l(api_token.expires_at, format: :long) : "Never" %></td>
-              <td class="px-5 py-4"><%= api_token.last_used_at ? l(api_token.last_used_at, format: :long) : "Never" %></td>
-              <td class="px-5 py-4 text-right">
-                <%= button_to "Revoke", api_token_path(api_token), method: :delete, form: { data: destructive_confirm_data("Revoke this API token?", accept: "Revoke") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+  <article class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+    <div class="border-b border-default px-5 py-4">
+      <h2 class="text-lg font-semibold text-heading"><%= t(".token_inventory") %></h2>
+      <p class="mt-1 text-sm text-body"><%= t(".token_inventory_description") %></p>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-start text-sm text-body">
+        <thead class="border-b border-default bg-neutral-secondary-medium text-xs uppercase tracking-wide text-body-subtle">
+          <tr>
+            <th scope="col" class="px-5 py-3"><%= t(".name") %></th>
+            <th scope="col" class="px-5 py-3"><%= t(".expires") %></th>
+            <th scope="col" class="px-5 py-3"><%= t(".last_used") %></th>
+            <th scope="col" class="px-5 py-3 text-end"><%= t(".actions") %></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-default">
+          <% if @api_tokens.any? %>
+            <% @api_tokens.each do |api_token| %>
+              <tr class="hover:bg-neutral-secondary-soft">
+                <td class="px-5 py-4 font-medium text-heading"><%= api_token.name %></td>
+                <td class="px-5 py-4"><%= api_token.expires_at ? l(api_token.expires_at, format: :long) : t(".never") %></td>
+                <td class="px-5 py-4"><%= api_token.last_used_at ? l(api_token.last_used_at, format: :long) : t(".never") %></td>
+                <td class="px-5 py-4 text-end">
+                  <%= button_to t(".revoke"), api_token_path(api_token), method: :delete, form: { data: destructive_confirm_data(t(".revoke_confirm"), accept: t(".revoke")) }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+                </td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr>
+              <td colspan="4" class="px-5 py-10 text-center">
+                <p class="font-semibold text-heading"><%= t(".empty_title") %></p>
+                <p class="mt-1 text-sm text-body-subtle"><%= t(".empty_description") %></p>
               </td>
             </tr>
           <% end %>
-        <% else %>
-          <tr>
-            <td colspan="4" class="px-5 py-8 text-center text-body-subtle">No active API tokens.</td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
+        </tbody>
+      </table>
+    </div>
+  </article>
 </section>

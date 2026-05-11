@@ -1,74 +1,93 @@
-<% content_for :title, "Categories" %>
+<% content_for :title, t(".title") %>
+<% all_categories = @transaction_categories.to_a + @sub_categories_by_parent_id.values.flatten %>
 
-<section class="flex flex-col gap-6">
+<section class="space-y-5">
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
-      <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Categories</h1>
-      <p class="mt-2 max-w-2xl text-sm text-body">Classify future income, expenses, and transfers.</p>
+      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+      <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+      <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
     </div>
 
-    <%= render(ButtonComponent.new(href: new_transaction_category_path)) { "New category" } %>
+    <%= render(ButtonComponent.new(href: new_transaction_category_path)) { t(".new") } %>
   </div>
 
-  <% if @transaction_categories.any? %>
-    <ul class="grid gap-4 md:grid-cols-2">
-      <% @transaction_categories.each do |category| %>
-        <li id="<%= dom_id(category) %>" class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <h2 class="text-lg font-semibold text-heading"><%= category.name %></h2>
-              <p class="mt-1 text-sm text-body-subtle"><%= category.category_type.humanize %></p>
-            </div>
-            <% if category.hidden? %>
-              <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">Hidden</span>
-            <% end %>
+  <div class="grid gap-5 xl:grid-cols-[18rem_1fr]">
+    <aside class="rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs">
+      <h2 class="text-lg font-semibold text-heading"><%= t(".category_list") %></h2>
+      <dl class="mt-5 space-y-4 text-sm">
+        <% TransactionCategory.category_types.keys.each do |type| %>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-body-subtle"><%= type.humanize %></dt>
+            <dd class="font-semibold text-heading"><%= number_with_delimiter(all_categories.count { |category| category.category_type == type }) %></dd>
           </div>
+        <% end %>
+      </dl>
+    </aside>
 
-          <% if category.comment.present? %>
-            <p class="mt-4 text-sm text-body"><%= category.comment %></p>
-          <% end %>
-
-          <% sub_categories = @sub_categories_by_parent_id.fetch(category.id, []) %>
-          <% if sub_categories.any? %>
-            <ul class="mt-4 space-y-3 border-t border-default pt-4">
-              <% sub_categories.each do |sub_category| %>
-                <li id="<%= dom_id(sub_category) %>" class="rounded-base bg-neutral-primary p-4">
-                  <div class="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 class="text-base font-semibold text-heading"><%= sub_category.name %></h3>
-                      <p class="mt-1 text-sm text-body-subtle"><%= sub_category.category_type.humanize %></p>
+    <% if @transaction_categories.any? %>
+      <ul class="grid gap-4 lg:grid-cols-2">
+        <% @transaction_categories.each do |category| %>
+          <li id="<%= dom_id(category) %>" class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+            <div class="border-b border-default bg-neutral-secondary-soft px-5 py-4">
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-base bg-brand-softer text-fg-brand"><%= app_shell_icon(:grid, css_class: "h-5 w-5") %></span>
+                    <div class="min-w-0">
+                      <h2 class="truncate text-lg font-semibold text-heading"><%= category.name %></h2>
+                      <p class="mt-1 text-sm text-body-subtle"><%= category.category_type.humanize %></p>
                     </div>
-                    <% if sub_category.hidden? %>
-                      <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">Hidden</span>
-                    <% end %>
                   </div>
-
-                  <% if sub_category.comment.present? %>
-                    <p class="mt-3 text-sm text-body"><%= sub_category.comment %></p>
+                  <% if category.comment.present? %>
+                    <p class="mt-3 text-sm text-body"><%= category.comment %></p>
                   <% end %>
+                </div>
+                <% if category.hidden? %>
+                  <span class="rounded-base bg-neutral-secondary-medium px-2.5 py-1 text-xs font-medium text-body-subtle"><%= t(".hidden") %></span>
+                <% end %>
+              </div>
+            </div>
 
-                  <div class="mt-3 flex justify-end gap-2">
-                    <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_category_path(sub_category))) { "Edit" } %>
-                    <%= button_to "Delete", transaction_category_path(sub_category), method: :delete, form: { data: destructive_confirm_data("Delete this category?") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-                  </div>
-                </li>
-              <% end %>
-            </ul>
-          <% end %>
+            <% sub_categories = @sub_categories_by_parent_id.fetch(category.id, []) %>
+            <% if sub_categories.any? %>
+              <ul class="divide-y divide-default">
+                <% sub_categories.each do |sub_category| %>
+                  <li id="<%= dom_id(sub_category) %>" class="px-5 py-4">
+                    <div class="flex items-start justify-between gap-4">
+                      <div class="min-w-0">
+                        <h3 class="truncate font-medium text-heading"><%= sub_category.name %></h3>
+                        <p class="mt-1 text-sm text-body-subtle"><%= sub_category.category_type.humanize %></p>
+                        <% if sub_category.comment.present? %>
+                          <p class="mt-2 text-sm text-body"><%= sub_category.comment %></p>
+                        <% end %>
+                      </div>
+                      <% if sub_category.hidden? %>
+                        <span class="rounded-base bg-neutral-secondary-medium px-2.5 py-1 text-xs font-medium text-body-subtle"><%= t(".hidden") %></span>
+                      <% end %>
+                    </div>
+                    <div class="mt-3 flex justify-end gap-2">
+                      <%= link_to t(".edit"), edit_transaction_category_path(sub_category), class: "rounded-base px-3 py-2 text-sm font-medium text-fg-brand hover:bg-brand-softer" %>
+                      <%= button_to t(".delete"), transaction_category_path(sub_category), method: :delete, form: { data: destructive_confirm_data(t(".delete_confirm")) }, class: "rounded-base px-3 py-2 text-sm font-medium text-danger hover:bg-danger-soft" %>
+                    </div>
+                  </li>
+                <% end %>
+              </ul>
+            <% end %>
 
-          <div class="mt-4 flex justify-end gap-2">
-            <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_category_path(category))) { "Edit" } %>
-            <%= button_to "Delete", transaction_category_path(category), method: :delete, form: { data: destructive_confirm_data("Delete this category?") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-          </div>
-        </li>
-      <% end %>
-    </ul>
-  <% else %>
-    <div class="bg-neutral-primary-soft border border-default rounded-base p-8 text-center shadow-xs">
-      <h2 class="text-xl font-semibold text-heading">No categories yet</h2>
-      <p class="mx-auto mt-2 max-w-xl text-sm text-body">Add your first income or expense category before recording classified transactions.</p>
-      <div class="mt-5"><%= render(ButtonComponent.new(href: new_transaction_category_path)) { "Create first category" } %></div>
-    </div>
-  <% end %>
+            <div class="flex justify-end gap-2 px-5 py-4">
+              <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_category_path(category))) { t(".edit") } %>
+              <%= button_to t(".delete"), transaction_category_path(category), method: :delete, form: { data: destructive_confirm_data(t(".delete_confirm")) }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <div class="rounded-base border border-default bg-neutral-primary-soft p-8 text-center shadow-xs">
+        <h2 class="text-xl font-semibold text-heading"><%= t(".empty_title") %></h2>
+        <p class="mx-auto mt-2 max-w-xl text-sm text-body"><%= t(".empty_description") %></p>
+        <div class="mt-5"><%= render(ButtonComponent.new(href: new_transaction_category_path)) { t(".create_first") } %></div>
+      </div>
+    <% end %>
+  </div>
 </section>

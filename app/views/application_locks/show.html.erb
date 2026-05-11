@@ -1,88 +1,86 @@
-<% content_for :title, "Application Lock" %>
+<% content_for :title, t(".title") %>
 <% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
 
-<section class="max-w-3xl space-y-8">
-  <div class="space-y-3">
-    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Security</p>
-    <h1 class="text-3xl font-semibold tracking-tight text-heading">Application lock</h1>
-    <p class="text-body">Require a six-digit PIN before this browser session can access your ledger.</p>
-  </div>
+<section class="mx-auto w-full max-w-4xl space-y-5">
+  <header>
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+    <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
+  </header>
 
-  <div class="rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-      <div>
-        <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Status</p>
-        <h2 class="mt-1 text-xl font-semibold text-heading">
-          <%= current_user.application_lock_enabled? ? "Enabled" : "Not enabled" %>
-        </h2>
-        <p class="mt-2 text-sm text-body">
-          <% if current_user.application_lock_enabled? %>
-            Your app can be locked without signing out.
-          <% else %>
-            Set a PIN to add a second local step after signing in.
-          <% end %>
-        </p>
+  <article class="rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+    <div class="flex flex-col gap-5 border-b border-default px-5 py-5 sm:flex-row sm:items-start sm:justify-between">
+      <div class="flex items-start gap-3">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-base <%= current_user.application_lock_enabled? ? "bg-brand-softer text-fg-brand" : "bg-neutral-secondary-medium text-body-subtle" %>"><%= app_shell_icon(:lock, css_class: "h-5 w-5") %></span>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-body-subtle"><%= t(".status") %></p>
+          <h2 class="mt-1 text-xl font-semibold text-heading">
+            <%= current_user.application_lock_enabled? ? t(".enabled_status") : t(".disabled_status") %>
+          </h2>
+          <p class="mt-2 text-sm text-body">
+            <%= current_user.application_lock_enabled? ? t(".enabled_status_description") : t(".disabled_status_description") %>
+          </p>
+        </div>
       </div>
 
       <% if current_user.application_lock_enabled? %>
-        <%= button_to "Lock now", application_lock_session_path, method: :delete, class: "text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+        <%= button_to t(".lock_now"), application_lock_session_path, method: :delete, class: "text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
       <% end %>
     </div>
-  </div>
 
-  <% if @application_lock.errors.any? %>
-    <div class="rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
-      <p class="font-medium">Application lock could not be saved.</p>
-      <ul class="mt-2 list-disc ps-5">
-        <% @application_lock.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
+    <div class="p-5">
+      <% if @application_lock.errors.any? %>
+        <div class="mb-5 rounded-base border border-danger bg-danger-soft p-4 text-sm text-fg-danger-strong">
+          <p class="font-medium"><%= t(".save_failed") %></p>
+          <ul class="mt-2 list-disc ps-5">
+            <% @application_lock.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% if current_user.application_lock_enabled? %>
+        <%= form_with scope: :application_lock, url: application_lock_path, method: :delete, class: "grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end" do |form| %>
+          <div>
+            <h2 class="text-lg font-semibold text-heading"><%= t(".disable_heading") %></h2>
+            <p class="mt-1 text-sm text-body"><%= t(".disable_description") %></p>
+            <div class="mt-4 max-w-md">
+              <%= form.label :current_password, t(".current_password"), class: "mb-2 block text-sm font-medium text-heading" %>
+              <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: field_classes %>
+            </div>
+          </div>
+
+          <%= render(ButtonComponent.new(variant: :danger, type: :submit, data: { turbo_submits_with: t(".disabling") })) { t(".disable") } %>
         <% end %>
-      </ul>
+      <% else %>
+        <%= form_with scope: :application_lock, url: application_lock_path, class: "space-y-5" do |form| %>
+          <div>
+            <h2 class="text-lg font-semibold text-heading"><%= t(".setup_heading") %></h2>
+            <p class="mt-1 text-sm text-body"><%= t(".setup_description") %></p>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-3">
+            <div>
+              <%= form.label :pin_code, t(".pin_code"), class: "mb-2 block text-sm font-medium text-heading" %>
+              <%= form.password_field :pin_code, required: true, inputmode: "numeric", pattern: "\\d{6}", maxlength: 6, autocomplete: "new-password", class: field_classes %>
+            </div>
+            <div>
+              <%= form.label :pin_code_confirmation, t(".pin_code_confirmation"), class: "mb-2 block text-sm font-medium text-heading" %>
+              <%= form.password_field :pin_code_confirmation, required: true, inputmode: "numeric", pattern: "\\d{6}", maxlength: 6, autocomplete: "new-password", class: field_classes %>
+            </div>
+            <div>
+              <%= form.label :current_password, t(".current_password"), class: "mb-2 block text-sm font-medium text-heading" %>
+              <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: field_classes %>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3">
+            <%= render(ButtonComponent.new(variant: :secondary, href: dashboard_path)) { t(".cancel") } %>
+            <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: t(".enabling") })) { t(".enable") } %>
+          </div>
+        <% end %>
+      <% end %>
     </div>
-  <% end %>
-
-  <% if current_user.application_lock_enabled? %>
-    <%= form_with scope: :application_lock, url: application_lock_path, method: :delete, class: "rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs space-y-5" do |form| %>
-      <div>
-        <h2 class="text-xl font-semibold text-heading">Disable application lock</h2>
-        <p class="mt-2 text-sm text-body">Enter your current password to remove the PIN lock from your account.</p>
-      </div>
-
-      <div>
-        <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
-        <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: field_classes %>
-      </div>
-
-      <div class="flex justify-end">
-        <%= render(ButtonComponent.new(variant: :danger, type: :submit, data: { turbo_submits_with: "Disabling..." })) { "Disable lock" } %>
-      </div>
-    <% end %>
-  <% else %>
-    <%= form_with scope: :application_lock, url: application_lock_path, class: "rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs space-y-5" do |form| %>
-      <div>
-        <h2 class="text-xl font-semibold text-heading">Enable application lock</h2>
-        <p class="mt-2 text-sm text-body">Choose a six-digit PIN. Only a digest of the PIN is stored.</p>
-      </div>
-
-      <div class="grid gap-4 sm:grid-cols-3">
-        <div>
-          <%= form.label :pin_code, "PIN code", class: "mb-2 block text-sm font-medium text-heading" %>
-          <%= form.password_field :pin_code, required: true, inputmode: "numeric", pattern: "\\d{6}", maxlength: 6, autocomplete: "new-password", class: field_classes %>
-        </div>
-        <div>
-          <%= form.label :pin_code_confirmation, "Confirm PIN", class: "mb-2 block text-sm font-medium text-heading" %>
-          <%= form.password_field :pin_code_confirmation, required: true, inputmode: "numeric", pattern: "\\d{6}", maxlength: 6, autocomplete: "new-password", class: field_classes %>
-        </div>
-        <div>
-          <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
-          <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: field_classes %>
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-3">
-        <%= render(ButtonComponent.new(variant: :secondary, href: dashboard_path)) { "Cancel" } %>
-        <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Enabling..." })) { "Enable lock" } %>
-      </div>
-    <% end %>
-  <% end %>
+  </article>
 </section>

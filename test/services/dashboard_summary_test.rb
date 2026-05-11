@@ -42,6 +42,40 @@ class DashboardSummaryTest < ActiveSupport::TestCase
     assert_equal [ "Transaction 5", "Transaction 4", "Transaction 3", "Transaction 2", "Transaction 1" ], summary.recent_transactions.map(&:comment)
   end
 
+  test "summarizes dashboard cards in the default currency without changing balance totals" do
+    user = create(:user)
+    UserPreference.create!(user: user, default_currency_code: "USD")
+    usd_account = create_account(user: user, name: "Checking", balance_cents: 5_000)
+    create_account(user: user, name: "Credit Card", balance_cents: -2_000)
+    cny_account = create_account(user: user, name: "Wallet", balance_cents: 300, currency_code: "CNY")
+
+    create_transaction(user: user, account: usd_account, comment: "April Salary", transaction_kind: :income, amount_cents: 2_500, transacted_at: Time.zone.parse("2026-04-20 10:00:00"))
+    create_transaction(user: user, account: usd_account, comment: "May Salary", transaction_kind: :income, amount_cents: 10_000, transacted_at: Time.zone.parse("2026-05-10 10:00:00"))
+    create_transaction(user: user, account: usd_account, comment: "Groceries", transaction_kind: :expense, amount_cents: 3_000, transacted_at: Time.zone.parse("2026-05-11 10:00:00"))
+    create_transaction(user: user, account: cny_account, comment: "Gift", transaction_kind: :income, amount_cents: 500, transacted_at: Time.zone.parse("2026-05-11 10:00:00"))
+
+    travel_to Time.zone.parse("2026-05-11 12:00:00") do
+      summary = DashboardSummary.new.summarize(user: user)
+
+      assert_equal({ "CNY" => 300, "USD" => 5_000 }, summary.total_assets.index_by(&:currency_code).transform_values(&:balance_cents))
+      assert_equal({ "USD" => 2_000 }, summary.total_liabilities.index_by(&:currency_code).transform_values(&:balance_cents))
+      assert_equal({ "CNY" => 300, "USD" => 3_000 }, summary.net_assets.index_by(&:currency_code).transform_values(&:balance_cents))
+
+      month_amounts = summary.period_summaries.find { |period| period.key == :this_month }.amounts.index_by(&:currency_code)
+      assert_equal 10_000, month_amounts.fetch("USD").income_cents
+      assert_equal 3_000, month_amounts.fetch("USD").expense_cents
+      assert_equal 7_000, month_amounts.fetch("USD").net_cents
+      assert_equal 500, month_amounts.fetch("CNY").income_cents
+
+      april, may = summary.trend_buckets.last(2)
+      assert_equal Date.new(2026, 4, 1), april.starts_on
+      assert_equal 2_500, april.income_cents
+      assert_equal Date.new(2026, 5, 1), may.starts_on
+      assert_equal 10_000, may.income_cents
+      assert_equal 3_000, may.expense_cents
+    end
+  end
+
   private
 
   def create_account(user:, name:, balance_cents:, currency_code: "USD")
@@ -58,12 +92,12 @@ class DashboardSummaryTest < ActiveSupport::TestCase
     )
   end
 
-  def create_transaction(user:, comment:, transacted_at: Time.zone.parse("2026-05-03 10:00:00"), account: nil)
+  def create_transaction(user:, comment:, transaction_kind: :expense, amount_cents: 1_000, transacted_at: Time.zone.parse("2026-05-03 10:00:00"), account: nil)
     account ||= create_account(user: user, name: "Cash #{comment}", balance_cents: 0)
     category = TransactionCategory.create!(
       user: user,
       name: "Food #{comment}",
-      category_type: :expense,
+      category_type: transaction_kind,
       icon_key: 1,
       color_hex: "F97316",
       display_order: 1
@@ -73,10 +107,10 @@ class DashboardSummaryTest < ActiveSupport::TestCase
       user: user,
       account: account,
       transaction_category: category,
-      transaction_kind: :expense,
+      transaction_kind: transaction_kind,
       transacted_at: transacted_at,
       timezone_utc_offset_minutes: 0,
-      source_amount_cents: 1000,
+      source_amount_cents: amount_cents,
       destination_amount_cents: 0,
       comment: comment
     )

@@ -1,25 +1,66 @@
-<% content_for :title, "Unlock Application" %>
+<% content_for :title, t(".title") %>
 <% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
 
-<section class="mx-auto max-w-md space-y-8">
-  <div class="space-y-3 text-center">
-    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Locked</p>
-    <h1 class="text-3xl font-semibold tracking-tight text-heading">Unlock application</h1>
-    <p class="text-body">Enter your six-digit PIN to continue.</p>
+<section class="grid min-h-screen bg-neutral-secondary-soft lg:grid-cols-[minmax(0,1fr)_minmax(26rem,34rem)]">
+  <div class="relative hidden overflow-hidden border-e border-default bg-neutral-primary-soft lg:flex lg:flex-col lg:justify-between">
+    <div class="p-10">
+      <%= link_to root_path, class: "inline-flex items-center gap-3 text-heading" do %>
+        <span class="flex h-11 w-11 items-center justify-center rounded-base bg-brand text-base font-bold text-white shadow-xs">
+          <%= TemplateBase.config.application_name.first %>
+        </span>
+        <span>
+          <span class="block text-xl font-semibold tracking-tight"><%= TemplateBase.config.application_name %></span>
+          <span class="block text-sm text-body-subtle"><%= t(".locked_workspace") %></span>
+        </span>
+      <% end %>
+    </div>
+
+    <div class="relative z-10 mx-auto flex w-full max-w-3xl flex-1 items-center px-12">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+        <h1 class="mt-4 max-w-xl text-4xl font-semibold leading-tight tracking-tight text-heading"><%= t(".heading") %></h1>
+        <p class="mt-4 max-w-lg text-base text-body"><%= t(".panel_description") %></p>
+        <div class="mt-10 flex h-64 w-64 items-center justify-center rounded-full border border-default bg-brand-softer text-fg-brand shadow-xs">
+          <%= app_shell_icon(:lock, css_class: "h-24 w-24") %>
+        </div>
+      </div>
+    </div>
+
+    <div class="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-brand-softer"></div>
+    <div class="absolute right-12 top-28 h-32 w-32 rounded-base border border-default bg-neutral-secondary-soft"></div>
   </div>
 
-  <%= form_with scope: :application_lock, url: application_lock_session_path, class: "rounded-base border border-default bg-neutral-primary-soft p-6 shadow-xs space-y-5" do |form| %>
-    <div>
-      <%= form.label :pin_code, "PIN code", class: "mb-2 block text-sm font-medium text-heading" %>
-      <%= form.password_field :pin_code, required: true, autofocus: true, inputmode: "numeric", pattern: "\\d{6}", maxlength: 6, autocomplete: "one-time-code", class: field_classes %>
+  <div class="flex min-h-screen flex-col bg-neutral-primary-soft">
+    <div class="p-6 lg:hidden">
+      <%= link_to root_path, class: "inline-flex items-center gap-3 text-heading" do %>
+        <span class="flex h-10 w-10 items-center justify-center rounded-base bg-brand text-sm font-bold text-white shadow-xs">
+          <%= TemplateBase.config.application_name.first %>
+        </span>
+        <span class="text-lg font-semibold tracking-tight"><%= TemplateBase.config.application_name %></span>
+      <% end %>
     </div>
 
-    <div class="flex justify-end">
-      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Unlocking..." })) { "Unlock" } %>
-    </div>
-  <% end %>
+    <div class="flex flex-1 items-center justify-center px-6 py-10">
+      <div class="w-full max-w-md rounded-base border border-default bg-neutral-primary p-6 shadow-xs sm:p-8">
+        <div class="mb-6">
+          <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+          <h1 class="mt-2 text-2xl font-semibold tracking-tight text-heading"><%= t(".title") %></h1>
+          <p class="mt-2 text-sm text-body"><%= t(".description") %></p>
+        </div>
 
-  <div class="flex justify-center">
-    <%= button_to "Sign out instead", destroy_user_session_path, method: :delete, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+        <%= form_with scope: :application_lock, url: application_lock_session_path, class: "space-y-5" do |form| %>
+          <div>
+            <%= form.label :pin_code, t(".pin_code"), class: "mb-2 block text-sm font-medium text-heading" %>
+            <%= form.password_field :pin_code, required: true, autofocus: true, inputmode: "numeric", pattern: "\\d{6}", maxlength: 6, autocomplete: "one-time-code", class: field_classes %>
+          </div>
+
+          <%= render(ButtonComponent.new(type: :submit, class: "w-full", data: { turbo_submits_with: t(".unlocking") })) { t(".unlock") } %>
+        <% end %>
+
+        <div class="mt-5 flex justify-center">
+          <%= button_to t(".sign_out"), destroy_user_session_path, method: :delete, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+        </div>
+      </div>
+    </div>
   </div>
 </section>

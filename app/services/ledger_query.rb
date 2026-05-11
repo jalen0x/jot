@@ -4,7 +4,7 @@ class LedgerQuery
 
   def list_transactions(user:, filters: {})
     filters = filters.to_h.deep_symbolize_keys
-    scope = user.transactions.kept.includes(:account, :destination_account, :transaction_category, :transaction_tags)
+    scope = user.transactions.kept.with_attached_pictures.includes(:account, :destination_account, :transaction_category, :transaction_tags)
     scope = scope.where(transaction_kind: filters[:transaction_kind]) if filters[:transaction_kind].present?
     scope = apply_id_filter(scope, column: :account_id, model: Account, single: filters[:account_id], multiple: filters[:account_ids])
     scope = apply_id_filter(scope, column: :transaction_category_id, model: TransactionCategory, single: filters[:transaction_category_id], multiple: filters[:transaction_category_ids])

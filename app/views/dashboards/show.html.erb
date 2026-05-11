@@ -1,66 +1,188 @@
-<% content_for :title, "Dashboard" %>
+<% content_for :title, t(".title") %>
+<% month_summary = @summary.period_summaries.find { |summary| summary.key == :this_month } %>
+<% trend_max = [ @summary.trend_buckets.flat_map { |bucket| [ bucket.income_cents, bucket.expense_cents ] }.max.to_i, 1 ].max %>
 
-<section class="flex flex-col gap-6">
+<section class="space-y-5">
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
-      <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Dashboard</h1>
-      <p class="mt-2 max-w-2xl text-sm text-body">A quick snapshot of your Rails ledger.</p>
+      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+      <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+      <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
     </div>
 
-    <%= render(ButtonComponent.new(href: new_transaction_path)) { "New transaction" } %>
+    <%= render(ButtonComponent.new(href: new_transaction_path)) { t(".new_transaction") } %>
   </div>
 
-  <div class="grid gap-4 md:grid-cols-3">
-    <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
-      <p class="text-sm font-medium text-body-subtle">Total balance</p>
-      <div class="mt-2 space-y-1">
-        <% if @summary.account_balances.any? %>
-          <% @summary.account_balances.each do |balance| %>
-            <p class="text-3xl font-semibold text-heading">
-              <%= format_money(balance.balance_cents, balance.currency_code, currency_class: "text-base font-medium text-body-subtle") %>
+  <div class="grid gap-5 xl:grid-cols-12">
+    <article class="relative overflow-hidden rounded-base border border-default bg-brand p-5 text-white shadow-xs xl:col-span-4">
+      <div class="relative z-10">
+        <div class="flex items-baseline gap-2">
+          <h2 class="text-2xl font-semibold"><%= l(month_summary.starts_on, format: "%B") %></h2>
+          <span class="text-sm font-medium text-white/80"><%= t(".expense") %></span>
+        </div>
+
+        <div class="mt-6 space-y-2">
+          <% if month_summary.amounts.any? %>
+            <% month_summary.amounts.each do |amount| %>
+              <p class="text-3xl font-semibold tracking-tight">
+                <%= format_money(amount.expense_cents, amount.currency_code, currency_class: "text-base font-medium text-white/80") %>
+              </p>
+            <% end %>
+          <% else %>
+            <p class="text-3xl font-semibold tracking-tight">
+              <%= format_money(0, @summary.default_currency_code, currency_class: "text-base font-medium text-white/80") %>
             </p>
           <% end %>
-        <% else %>
-          <p class="text-3xl font-semibold text-heading"><%= number_to_currency(0, unit: "") %></p>
-        <% end %>
+        </div>
+
+        <div class="mt-4 text-sm text-white/85">
+          <span class="me-2"><%= t(".monthly_income") %></span>
+          <% if month_summary.amounts.any? %>
+            <% month_summary.amounts.each do |amount| %>
+              <span class="me-2"><%= format_money(amount.income_cents, amount.currency_code, currency_class: "text-xs text-white/70") %></span>
+            <% end %>
+          <% else %>
+            <span><%= format_money(0, @summary.default_currency_code, currency_class: "text-xs text-white/70") %></span>
+          <% end %>
+        </div>
+
+        <div class="mt-5">
+          <%= link_to t(".view_details"), transactions_path, class: "inline-flex items-center rounded-base bg-white/15 px-3 py-2 text-sm font-medium text-white hover:bg-white/25" %>
+        </div>
       </div>
-    </div>
-    <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
-      <p class="text-sm font-medium text-body-subtle">Accounts</p>
-      <p class="mt-2 text-3xl font-semibold text-heading"><%= @summary.account_count %></p>
-    </div>
-    <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
-      <p class="text-sm font-medium text-body-subtle">Transactions</p>
-      <p class="mt-2 text-3xl font-semibold text-heading"><%= @summary.transaction_count %></p>
-    </div>
+      <div class="absolute -bottom-12 -right-10 h-44 w-44 rounded-full bg-white/10"></div>
+      <div class="absolute right-8 top-8 h-20 w-20 rounded-base border border-white/20 bg-white/10"></div>
+    </article>
+
+    <article class="rounded-base border border-default bg-neutral-primary-soft shadow-xs xl:col-span-8">
+      <div class="border-b border-default px-5 py-4">
+        <h2 class="text-lg font-semibold text-heading"><%= t(".asset_summary") %></h2>
+        <p class="mt-1 text-sm text-body-subtle"><%= t(".account_count", count: @summary.account_count) %></p>
+      </div>
+      <div class="grid gap-4 p-5 md:grid-cols-3">
+        <div class="flex items-center gap-3">
+          <span class="flex h-11 w-11 items-center justify-center rounded-base bg-neutral-secondary-medium text-heading shadow-xs"><%= app_shell_icon(:wallet, css_class: "h-5 w-5") %></span>
+          <div class="min-w-0">
+            <p class="text-sm text-body-subtle"><%= t(".total_assets") %></p>
+            <div class="mt-1 space-y-1 text-lg font-semibold text-heading">
+              <% (@summary.total_assets.presence || [ DashboardSummary::AccountBalance.new(currency_code: @summary.default_currency_code, balance_cents: 0) ]).each do |balance| %>
+                <p><%= format_money(balance.balance_cents, balance.currency_code, currency_class: "text-xs font-medium text-body-subtle") %></p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="flex h-11 w-11 items-center justify-center rounded-base bg-danger-soft text-fg-danger shadow-xs"><%= app_shell_icon(:receipt, css_class: "h-5 w-5") %></span>
+          <div class="min-w-0">
+            <p class="text-sm text-body-subtle"><%= t(".total_liabilities") %></p>
+            <div class="mt-1 space-y-1 text-lg font-semibold text-heading">
+              <% (@summary.total_liabilities.presence || [ DashboardSummary::AccountBalance.new(currency_code: @summary.default_currency_code, balance_cents: 0) ]).each do |balance| %>
+                <p><%= format_money(balance.balance_cents, balance.currency_code, currency_class: "text-xs font-medium text-body-subtle") %></p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="flex h-11 w-11 items-center justify-center rounded-base bg-brand-softer text-fg-brand shadow-xs"><%= app_shell_icon(:chart, css_class: "h-5 w-5") %></span>
+          <div class="min-w-0">
+            <p class="text-sm text-body-subtle"><%= t(".net_assets") %></p>
+            <div class="mt-1 space-y-1 text-lg font-semibold text-heading">
+              <% (@summary.net_assets.presence || [ DashboardSummary::AccountBalance.new(currency_code: @summary.default_currency_code, balance_cents: 0) ]).each do |balance| %>
+                <p><%= format_money(balance.balance_cents, balance.currency_code, currency_class: "text-xs font-medium text-body-subtle") %></p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
   </div>
 
-  <div class="bg-neutral-primary-soft border border-default rounded-base shadow-xs">
+  <div class="grid gap-5 xl:grid-cols-12">
+    <div class="grid gap-4 md:grid-cols-2 xl:col-span-6">
+      <% @summary.period_summaries.each do |summary| %>
+        <article class="rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-sm font-semibold text-heading"><%= t(".periods.#{summary.key}") %></p>
+              <p class="mt-1 text-xs text-body-subtle"><%= l(summary.starts_on, format: :long) %> - <%= l(summary.ends_on, format: :long) %></p>
+            </div>
+            <span class="rounded-base bg-neutral-secondary-medium px-2.5 py-1 text-xs font-medium text-body-subtle"><%= t(".income_expense") %></span>
+          </div>
+
+          <div class="mt-5 space-y-3">
+            <% (summary.amounts.presence || [ DashboardSummary::PeriodAmount.new(currency_code: @summary.default_currency_code, income_cents: 0, expense_cents: 0, net_cents: 0) ]).each do |amount| %>
+              <div class="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p class="text-body-subtle"><%= t(".income") %></p>
+                  <p class="mt-1 font-semibold <%= amount_color_class(:income) %>"><%= format_money(amount.income_cents, amount.currency_code) %></p>
+                </div>
+                <div>
+                  <p class="text-body-subtle"><%= t(".expense") %></p>
+                  <p class="mt-1 font-semibold <%= amount_color_class(:expense) %>"><%= format_money(amount.expense_cents, amount.currency_code) %></p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+
+    <article class="rounded-base border border-default bg-neutral-primary-soft shadow-xs xl:col-span-6">
+      <div class="border-b border-default px-5 py-4">
+        <h2 class="text-lg font-semibold text-heading"><%= t(".monthly_trend") %></h2>
+        <p class="mt-1 text-sm text-body-subtle"><%= t(".monthly_trend_description", currency: @summary.default_currency_code) %></p>
+      </div>
+      <div class="space-y-4 p-5">
+        <% @summary.trend_buckets.each do |bucket| %>
+          <div>
+            <div class="mb-1 flex items-center justify-between text-xs font-medium text-body-subtle">
+              <span><%= l(bucket.starts_on, format: "%b %Y") %></span>
+              <span><%= format_money(bucket.income_cents - bucket.expense_cents, @summary.default_currency_code) %></span>
+            </div>
+            <div class="grid gap-1">
+              <div class="h-2 rounded-full bg-neutral-secondary-medium">
+                <div class="h-2 rounded-full bg-success" style="width: <%= (bucket.income_cents * 100 / trend_max).round %>%"></div>
+              </div>
+              <div class="h-2 rounded-full bg-neutral-secondary-medium">
+                <div class="h-2 rounded-full bg-danger" style="width: <%= (bucket.expense_cents * 100 / trend_max).round %>%"></div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </article>
+  </div>
+
+  <article class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
     <div class="flex items-center justify-between border-b border-default px-5 py-4">
-      <h2 class="text-lg font-semibold text-heading">Recent transactions</h2>
-      <%= link_to "View all", transactions_path, class: "text-sm font-medium text-fg-brand hover:underline" %>
+      <div>
+        <h2 class="text-lg font-semibold text-heading"><%= t(".recent_transactions") %></h2>
+        <p class="mt-1 text-sm text-body-subtle"><%= t(".recent_transactions_description", count: @summary.transaction_count) %></p>
+      </div>
+      <%= link_to t(".view_all"), transactions_path, class: "text-sm font-medium text-fg-brand hover:underline" %>
     </div>
 
     <% if @summary.recent_transactions.any? %>
       <ul class="divide-y divide-default">
         <% @summary.recent_transactions.each do |transaction| %>
-          <li id="<%= dom_id(transaction) %>" class="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 class="font-medium text-heading"><%= transaction.comment.presence || transaction.transaction_kind.humanize %></h3>
-              <p class="mt-1 text-sm text-body-subtle"><%= transaction.account.name %> · <%= transaction.transaction_category.name %></p>
+          <li id="<%= dom_id(transaction) %>" class="grid gap-3 px-5 py-4 md:grid-cols-[1fr_auto_auto] md:items-center">
+            <div class="min-w-0">
+              <h3 class="truncate font-medium text-heading"><%= transaction.comment.presence || transaction.transaction_kind.humanize %></h3>
+              <p class="mt-1 text-sm text-body-subtle"><%= l(transaction.transacted_at, format: :long) %> · <%= transaction.account.name %> · <%= transaction.transaction_category.name %></p>
             </div>
             <p class="text-sm font-semibold <%= amount_color_class(transaction.transaction_kind) %>">
               <%= format_money(transaction.source_amount_cents, transaction.account.currency_code) %>
             </p>
+            <%= link_to t(".edit"), edit_transaction_path(transaction), class: "text-sm font-medium text-fg-brand hover:underline" %>
           </li>
         <% end %>
       </ul>
     <% else %>
-      <div class="px-5 py-8 text-center">
-        <h3 class="text-lg font-semibold text-heading">No transactions yet</h3>
-        <p class="mt-2 text-sm text-body">Record your first transaction to populate this dashboard.</p>
+      <div class="px-5 py-10 text-center">
+        <h3 class="text-lg font-semibold text-heading"><%= t(".empty_title") %></h3>
+        <p class="mt-2 text-sm text-body"><%= t(".empty_description") %></p>
+        <div class="mt-5"><%= render(ButtonComponent.new(href: new_transaction_path)) { t(".create_first_transaction") } %></div>
       </div>
     <% end %>
-  </div>
+  </article>
 </section>

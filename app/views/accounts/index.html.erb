@@ -1,82 +1,100 @@
-<% content_for :title, "Accounts" %>
+<% content_for :title, t(".title") %>
+<% all_accounts = @accounts.to_a + @sub_accounts_by_parent_id.values.flatten %>
+<% visible_count = all_accounts.count { |account| !account.hidden? } %>
+<% hidden_count = all_accounts.count(&:hidden?) %>
 
-<section class="flex flex-col gap-6">
+<section class="space-y-5">
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
-      <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Accounts</h1>
-      <p class="mt-2 max-w-2xl text-sm text-body">Create the accounts that transactions will update as the Rails rewrite grows.</p>
+      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+      <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+      <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
     </div>
 
-    <%= render(ButtonComponent.new(href: new_account_path)) { "New account" } %>
+    <%= render(ButtonComponent.new(href: new_account_path)) { t(".new") } %>
   </div>
 
-  <% if @accounts.any? %>
-    <ul class="grid gap-4 md:grid-cols-2">
-      <% @accounts.each do |account| %>
-        <li id="<%= dom_id(account) %>" class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <h2 class="text-lg font-semibold text-heading"><%= account.name %></h2>
-              <p class="mt-1 text-sm text-body-subtle"><%= account.currency_code %> · <%= account.account_category.humanize %></p>
-              <% if account.hidden? %>
-                <span class="mt-2 inline-flex rounded-base bg-neutral-secondary-medium px-2.5 py-1 text-xs font-medium text-body-subtle">Hidden</span>
-              <% end %>
-            </div>
-            <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
-              <%= format_money(account.balance_cents, account.currency_code) %>
-            </span>
-          </div>
+  <div class="grid gap-5 xl:grid-cols-[18rem_1fr]">
+    <aside class="rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs">
+      <h2 class="text-lg font-semibold text-heading"><%= t(".account_list") %></h2>
+      <dl class="mt-5 space-y-4 text-sm">
+        <div class="flex items-center justify-between gap-4">
+          <dt class="text-body-subtle"><%= t(".total") %></dt>
+          <dd class="font-semibold text-heading"><%= number_with_delimiter(all_accounts.size) %></dd>
+        </div>
+        <div class="flex items-center justify-between gap-4">
+          <dt class="text-body-subtle"><%= t(".visible") %></dt>
+          <dd class="font-semibold text-heading"><%= number_with_delimiter(visible_count) %></dd>
+        </div>
+        <div class="flex items-center justify-between gap-4">
+          <dt class="text-body-subtle"><%= t(".hidden") %></dt>
+          <dd class="font-semibold text-heading"><%= number_with_delimiter(hidden_count) %></dd>
+        </div>
+      </dl>
+    </aside>
 
-          <% if account.comment.present? %>
-            <p class="mt-4 text-sm text-body"><%= account.comment %></p>
-          <% end %>
-
-          <% sub_accounts = @sub_accounts_by_parent_id.fetch(account.id, []) %>
-          <% if sub_accounts.any? %>
-            <ul class="mt-4 space-y-3 border-t border-default pt-4">
-              <% sub_accounts.each do |sub_account| %>
-                <li id="<%= dom_id(sub_account) %>" class="rounded-base bg-neutral-primary p-4">
-                  <div class="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 class="text-base font-semibold text-heading"><%= sub_account.name %></h3>
-                      <p class="mt-1 text-sm text-body-subtle"><%= sub_account.currency_code %> · <%= sub_account.account_category.humanize %></p>
-                      <% if sub_account.hidden? %>
-                        <span class="mt-2 inline-flex rounded-base bg-neutral-secondary-medium px-2.5 py-1 text-xs font-medium text-body-subtle">Hidden</span>
-                      <% end %>
+    <% if @accounts.any? %>
+      <ul class="space-y-4">
+        <% @accounts.each do |account| %>
+          <li id="<%= dom_id(account) %>" class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+            <div class="border-b border-default bg-neutral-secondary-soft px-5 py-4">
+              <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-base bg-brand-softer text-fg-brand"><%= app_shell_icon(:wallet, css_class: "h-5 w-5") %></span>
+                    <div class="min-w-0">
+                      <h2 class="truncate text-lg font-semibold text-heading"><%= account.name %></h2>
+                      <p class="mt-1 text-sm text-body-subtle"><%= account.currency_code %> · <%= account.account_category.humanize %> · <%= account.account_structure.humanize %></p>
                     </div>
-                    <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
-                      <%= format_money(sub_account.balance_cents, sub_account.currency_code) %>
-                    </span>
                   </div>
-
-                  <% if sub_account.comment.present? %>
-                    <p class="mt-3 text-sm text-body"><%= sub_account.comment %></p>
+                  <% if account.comment.present? %>
+                    <p class="mt-3 text-sm text-body"><%= account.comment %></p>
                   <% end %>
+                </div>
 
-                  <div class="mt-3 flex justify-end gap-2">
-                    <%= render(ButtonComponent.new(variant: :secondary, href: account_reconciliation_statement_path(sub_account))) { t(".reconcile") } %>
-                    <%= render(ButtonComponent.new(variant: :secondary, href: edit_account_path(sub_account))) { "Edit" } %>
-                    <%= button_to "Delete", account_path(sub_account), method: :delete, form: { data: destructive_confirm_data("Delete this account?") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-                  </div>
-                </li>
-              <% end %>
-            </ul>
-          <% end %>
+                <div class="text-start md:text-end">
+                  <p class="text-xl font-semibold text-heading"><%= format_money(account.balance_cents, account.currency_code) %></p>
+                  <% if account.hidden? %>
+                    <span class="mt-2 inline-flex rounded-base bg-neutral-secondary-medium px-2.5 py-1 text-xs font-medium text-body-subtle"><%= t(".hidden") %></span>
+                  <% end %>
+                </div>
+              </div>
+            </div>
 
-          <div class="mt-4 flex justify-end gap-2">
-            <%= render(ButtonComponent.new(variant: :secondary, href: account_reconciliation_statement_path(account))) { t(".reconcile") } %>
-            <%= render(ButtonComponent.new(variant: :secondary, href: edit_account_path(account))) { "Edit" } %>
-            <%= button_to "Delete", account_path(account), method: :delete, form: { data: destructive_confirm_data("Delete this account?") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-          </div>
-        </li>
-      <% end %>
-    </ul>
-  <% else %>
-    <div class="bg-neutral-primary-soft border border-default rounded-base p-8 text-center shadow-xs">
-      <h2 class="text-xl font-semibold text-heading">No accounts yet</h2>
-      <p class="mx-auto mt-2 max-w-xl text-sm text-body">Start with cash, checking, credit card, or another account you use for daily bookkeeping.</p>
-      <div class="mt-5"><%= render(ButtonComponent.new(href: new_account_path)) { "Create first account" } %></div>
-    </div>
-  <% end %>
+            <% sub_accounts = @sub_accounts_by_parent_id.fetch(account.id, []) %>
+            <% if sub_accounts.any? %>
+              <ul class="divide-y divide-default">
+                <% sub_accounts.each do |sub_account| %>
+                  <li id="<%= dom_id(sub_account) %>" class="grid gap-3 px-5 py-4 md:grid-cols-[1fr_auto_auto] md:items-center">
+                    <div class="min-w-0">
+                      <h3 class="truncate font-medium text-heading"><%= sub_account.name %></h3>
+                      <p class="mt-1 text-sm text-body-subtle"><%= sub_account.currency_code %> · <%= sub_account.account_category.humanize %></p>
+                    </div>
+                    <p class="font-semibold text-heading"><%= format_money(sub_account.balance_cents, sub_account.currency_code) %></p>
+                    <div class="flex justify-end gap-2">
+                      <%= link_to t(".reconcile"), account_reconciliation_statement_path(sub_account), class: "rounded-base px-3 py-2 text-sm font-medium text-fg-brand hover:bg-brand-softer" %>
+                      <%= link_to t(".edit"), edit_account_path(sub_account), class: "rounded-base px-3 py-2 text-sm font-medium text-fg-brand hover:bg-brand-softer" %>
+                      <%= button_to t(".delete"), account_path(sub_account), method: :delete, form: { data: destructive_confirm_data(t(".delete_confirm")) }, class: "rounded-base px-3 py-2 text-sm font-medium text-danger hover:bg-danger-soft" %>
+                    </div>
+                  </li>
+                <% end %>
+              </ul>
+            <% end %>
+
+            <div class="flex flex-wrap justify-end gap-2 px-5 py-4">
+              <%= render(ButtonComponent.new(variant: :secondary, href: account_reconciliation_statement_path(account))) { t(".reconcile") } %>
+              <%= render(ButtonComponent.new(variant: :secondary, href: edit_account_path(account))) { t(".edit") } %>
+              <%= button_to t(".delete"), account_path(account), method: :delete, form: { data: destructive_confirm_data(t(".delete_confirm")) }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <div class="rounded-base border border-default bg-neutral-primary-soft p-8 text-center shadow-xs">
+        <h2 class="text-xl font-semibold text-heading"><%= t(".empty_title") %></h2>
+        <p class="mx-auto mt-2 max-w-xl text-sm text-body"><%= t(".empty_description") %></p>
+        <div class="mt-5"><%= render(ButtonComponent.new(href: new_account_path)) { t(".create_first") } %></div>
+      </div>
+    <% end %>
+  </div>
 </section>

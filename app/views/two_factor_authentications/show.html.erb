@@ -1,90 +1,91 @@
-<% content_for :title, "Two-Factor Authentication" %>
+<% content_for(:title) { t(".title") } %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
 
-<section class="space-y-8">
-  <div class="max-w-3xl space-y-3">
-    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Security</p>
-    <h1 class="text-3xl font-semibold tracking-tight text-heading">Two-factor authentication</h1>
-    <p class="text-body">Add a six-digit authenticator app code to your password sign-in.</p>
-  </div>
+<section class="mx-auto w-full max-w-4xl space-y-5">
+  <header>
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".title") %></h1>
+    <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
+  </header>
 
   <% if @error_message.present? %>
-    <div class="rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
-      <p class="font-medium"><%= @error_message %></p>
+    <div class="rounded-base border border-danger bg-danger-soft px-4 py-3 text-sm text-fg-danger-strong">
+      <%= @error_message %>
     </div>
   <% end %>
 
   <% if @recovery_codes.present? %>
-    <div class="rounded-base border border-success bg-neutral-primary p-4 text-sm text-heading">
-      <p class="font-medium">Your recovery codes</p>
-      <p class="mt-1 text-body">Copy these codes now. Each code can be used once and will not be shown again.</p>
-      <div class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-        <% @recovery_codes.each do |recovery_code| %>
-          <code class="rounded-base bg-neutral-secondary-medium px-3 py-2 text-center text-sm text-heading"><%= recovery_code %></code>
-        <% end %>
-      </div>
-    </div>
+    <%= render "two_factor_authentications/recovery_code_panel", recovery_codes: @recovery_codes %>
   <% end %>
 
   <% if @two_factor_authentication %>
-    <div class="bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs">
-      <div class="space-y-2">
-        <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Enabled</p>
-        <h2 class="text-xl font-semibold text-heading">Authenticator codes are required at sign-in.</h2>
-        <p class="text-body">Enabled <%= l(@two_factor_authentication.enabled_at, format: :long) %>.</p>
+    <article class="rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+      <div class="border-b border-default px-6 py-5">
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".enabled_label") %></p>
+        <h2 class="mt-2 text-xl font-semibold text-heading"><%= t(".enabled_heading") %></h2>
+        <p class="mt-1 text-sm text-body"><%= t(".enabled_at", time: l(@two_factor_authentication.enabled_at, format: :long)) %></p>
       </div>
 
-      <div class="mt-6 grid gap-6 lg:grid-cols-2">
+      <div class="grid gap-6 p-6 lg:grid-cols-2">
         <%= form_with url: two_factor_recovery_codes_path, scope: :two_factor_recovery_codes, class: "space-y-4" do |form| %>
           <div>
-            <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
-            <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+            <%= form.label :current_password, t(".current_password"), class: "mb-2 block text-sm font-medium text-heading" %>
+            <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: field_classes %>
           </div>
-
-          <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Regenerating..." })) { "Regenerate recovery codes" } %>
+          <%= form.submit t(".regenerate"), class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
         <% end %>
 
         <%= form_with url: two_factor_authentication_path, method: :delete, scope: :two_factor_authentication, class: "space-y-4" do |form| %>
           <div>
-            <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
-            <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+            <%= form.label :current_password, t(".current_password"), class: "mb-2 block text-sm font-medium text-heading" %>
+            <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: field_classes %>
           </div>
-
-          <%= form.submit "Disable two-factor authentication", class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+          <%= form.submit t(".disable"), class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
         <% end %>
       </div>
-    </div>
+    </article>
   <% else %>
-    <div class="bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs">
-      <div class="grid gap-6 lg:grid-cols-[1fr_1.25fr]">
-        <div class="space-y-4">
-          <h2 class="text-xl font-semibold text-heading">Set up your authenticator app</h2>
-          <p class="text-body">Add this setup key to your authenticator app, then enter the current six-digit code to enable 2FA.</p>
-          <div>
-            <p class="text-sm font-medium text-heading">Setup key</p>
-            <code class="mt-2 block overflow-x-auto rounded-base bg-neutral-secondary-medium p-3 text-sm text-heading"><%= @setup_secret %></code>
-          </div>
-          <div>
-            <p class="text-sm font-medium text-heading">Provisioning URI</p>
-            <code class="mt-2 block overflow-x-auto rounded-base bg-neutral-secondary-medium p-3 text-xs text-heading"><%= @provisioning_uri %></code>
-          </div>
+    <article class="rounded-base border border-default bg-neutral-primary-soft shadow-xs" data-controller="clipboard">
+      <div class="border-b border-default px-6 py-5">
+        <h2 class="text-xl font-semibold text-heading"><%= t(".setup_heading") %></h2>
+        <p class="mt-2 text-sm text-body"><%= t(".setup_description") %></p>
+      </div>
+
+      <div class="grid gap-6 p-6 lg:grid-cols-[auto_1fr] lg:items-start">
+        <div class="mx-auto size-44 shrink-0 rounded-base bg-white p-2 shadow-xs lg:mx-0">
+          <%= @qr_code_svg.html_safe %>
         </div>
 
-        <%= form_with url: two_factor_authentication_path, scope: :two_factor_authentication, class: "space-y-4" do |form| %>
+        <div class="space-y-5">
           <div>
-            <%= form.label :current_password, "Current password", class: "mb-2 block text-sm font-medium text-heading" %>
-            <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+            <%= label_tag :totp_setup_secret, t(".manual_entry"), class: "mb-2 block text-sm font-medium text-heading" %>
+            <div class="relative">
+              <%= text_field_tag :totp_setup_secret, @setup_secret, readonly: true, disabled: true, autocomplete: "off", data: { clipboard_target: "source" }, class: "bg-neutral-secondary-medium border border-default-medium text-body text-sm font-mono rounded-base focus:ring-brand focus:border-brand block w-full ps-3 pe-20 py-2.5 shadow-xs placeholder:text-body" %>
+              <button type="button" data-action="clipboard#copy" class="absolute end-1.5 top-1/2 -translate-y-1/2 rounded-base border border-default bg-neutral-primary px-3 py-1.5 text-xs font-semibold text-body hover:bg-neutral-tertiary-soft hover:text-heading focus:outline-none focus:ring-4 focus:ring-neutral-tertiary">
+                <span data-clipboard-target="defaultState"><%= t(".copy") %></span>
+                <span data-clipboard-target="successState" class="hidden text-fg-brand"><%= t(".copied") %></span>
+              </button>
+            </div>
           </div>
 
-          <div>
-            <%= form.label :otp_code, "Verification code", class: "mb-2 block text-sm font-medium text-heading" %>
-            <%= form.text_field :otp_code, required: true, inputmode: "numeric", autocomplete: "one-time-code", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
-          </div>
+          <%= form_with url: two_factor_authentication_path, scope: :two_factor_authentication, class: "space-y-5" do |form| %>
+            <div>
+              <%= form.label :otp_code, t(".verification_code"), class: "mb-2 block text-sm font-medium text-heading" %>
+              <%= render "devise/shared/second_factor_code_field", form: form, field: :otp_code, allow_backup_code: false, auto_submit: false %>
+            </div>
 
-          <div class="flex justify-end">
-            <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Enabling..." })) { "Enable two-factor authentication" } %>
-          </div>
-        <% end %>
+            <div>
+              <%= form.label :current_password, t(".current_password"), class: "mb-2 block text-sm font-medium text-heading" %>
+              <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: field_classes %>
+            </div>
+
+            <div class="flex items-center justify-end gap-3">
+              <%= link_to t(".cancel"), edit_user_registration_path, class: "text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+              <%= form.submit t(".enable"), class: "text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+            </div>
+          <% end %>
+        </div>
       </div>
-    </div>
+    </article>
   <% end %>
 </section>

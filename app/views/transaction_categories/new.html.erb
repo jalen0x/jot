@@ -1,11 +1,11 @@
-<% content_for :title, "New category" %>
+<% content_for :title, t(".title") %>
 
-<section class="mx-auto w-full max-w-2xl">
-  <div class="mb-6">
-    <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
-    <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">New category</h1>
-    <p class="mt-2 text-sm text-body">Add a classification for future transactions.</p>
-  </div>
+<section class="mx-auto w-full max-w-3xl space-y-5">
+  <header>
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+    <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
+  </header>
 
   <%= render "form", transaction_category: @transaction_category %>
 </section>

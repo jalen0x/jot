@@ -1,30 +1,51 @@
-<% content_for :title, "Import transactions" %>
+<% content_for :title, t(".title") %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
 
-<section class="mx-auto w-full max-w-3xl">
-  <div class="mb-6">
-    <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
-    <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Import transactions</h1>
-    <p class="mt-2 text-sm text-body">Paste CSV, TSV, or JSON exported from this Rails ledger.</p>
-  </div>
+<section class="space-y-5">
+  <header>
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+    <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
+  </header>
 
-  <%= form_with model: @import_batch, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
-    <% if @import_batch.errors.any? %>
-      <div class="mb-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
-        <p class="font-medium">Import could not be started.</p>
-        <ul class="mt-2 list-disc ps-5">
-          <% @import_batch.errors.full_messages.each do |message| %>
-            <li><%= message %></li>
-          <% end %>
-        </ul>
+  <div class="grid gap-5 lg:grid-cols-[18rem_1fr]">
+    <aside class="rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs">
+      <span class="flex h-11 w-11 items-center justify-center rounded-base bg-brand-softer text-fg-brand"><%= app_shell_icon(:upload, css_class: "h-5 w-5") %></span>
+      <h2 class="mt-4 text-lg font-semibold text-heading"><%= t(".accepted_formats") %></h2>
+      <p class="mt-2 text-sm text-body"><%= t(".accepted_formats_description") %></p>
+      <ul class="mt-4 space-y-2 text-sm text-body-subtle">
+        <li><%= t(".format_csv") %></li>
+        <li><%= t(".format_tsv") %></li>
+        <li><%= t(".format_json") %></li>
+      </ul>
+    </aside>
+
+    <%= form_with model: @import_batch, class: "rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs" do |form| %>
+      <% if @import_batch.errors.any? %>
+        <div class="mb-5 rounded-base border border-danger bg-danger-soft p-4 text-sm text-fg-danger-strong">
+          <p class="font-medium"><%= t(".save_failed") %></p>
+          <ul class="mt-2 list-disc ps-5">
+            <% @import_batch.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="mb-4">
+        <%= form.label :source_filename, t(".source_filename"), class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.text_field :source_filename, placeholder: t(".source_filename_placeholder"), class: field_classes %>
+      </div>
+
+      <div class="mb-5">
+        <%= form.label :raw_csv, t(".raw_data"), class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.text_area :raw_csv, required: true, rows: 14, class: "#{field_classes} font-mono" %>
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <%= render(ButtonComponent.new(variant: :secondary, href: data_management_path)) { t(".cancel") } %>
+        <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: t(".starting") })) { t(".start_import") } %>
       </div>
     <% end %>
-
-    <%= render FormField::InputComponent.new(form: form, field: :source_filename, label: "Source filename", placeholder: "transactions.csv, transactions.tsv, or transactions.json") %>
-    <%= render FormField::InputComponent.new(form: form, field: :raw_csv, label: "CSV, TSV, or JSON", type: :textarea, required: true) %>
-
-    <div class="flex justify-end gap-3">
-      <%= render(ButtonComponent.new(variant: :secondary, href: data_management_path)) { "Cancel" } %>
-      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Starting..." })) { "Start import" } %>
-    </div>
-  <% end %>
+  </div>
 </section>

@@ -1,61 +1,95 @@
-<% content_for :title, "Tags" %>
+<% content_for :title, t(".title") %>
+<% total_tags = @transaction_tag_groups.sum { |group| group.transaction_tags.select(&:kept?).size } + @ungrouped_tags.size %>
 
-<section class="flex flex-col gap-6">
+<section class="space-y-5">
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
-      <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Tags</h1>
-      <p class="mt-2 max-w-2xl text-sm text-body">Add optional labels for future transaction filtering.</p>
+      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+      <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+      <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
     </div>
 
     <div class="flex flex-wrap gap-3">
-      <%= render(ButtonComponent.new(variant: :secondary, href: new_transaction_tag_group_path)) { "New group" } %>
-      <%= render(ButtonComponent.new(href: new_transaction_tag_path)) { "New tag" } %>
+      <%= render(ButtonComponent.new(variant: :secondary, href: new_transaction_tag_group_path)) { t(".new_group") } %>
+      <%= render(ButtonComponent.new(href: new_transaction_tag_path)) { t(".new_tag") } %>
     </div>
   </div>
 
-  <% if @transaction_tag_groups.any? || @ungrouped_tags.any? %>
-    <ul class="grid gap-4 md:grid-cols-2">
-      <% @transaction_tag_groups.each do |group| %>
-        <li id="<%= dom_id(group) %>" class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
-          <h2 class="text-lg font-semibold text-heading"><%= group.name %></h2>
-          <ul class="mt-4 flex flex-wrap gap-2">
-            <% group.transaction_tags.select(&:kept?).sort_by(&:display_order).each do |tag| %>
-              <li class="flex items-center gap-2 rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
-                <span><%= tag.name %></span>
-                <%= link_to "Edit", edit_transaction_tag_path(tag), class: "text-fg-brand hover:underline" %>
-                <%= button_to "Delete", transaction_tag_path(tag), method: :delete, form_class: "inline", form: { data: destructive_confirm_data("Delete this tag?") }, class: "font-medium text-danger hover:underline" %>
-              </li>
-            <% end %>
-          </ul>
+  <div class="grid gap-5 xl:grid-cols-[18rem_1fr]">
+    <aside class="rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs">
+      <h2 class="text-lg font-semibold text-heading"><%= t(".tag_inventory") %></h2>
+      <dl class="mt-5 space-y-4 text-sm">
+        <div class="flex items-center justify-between gap-4">
+          <dt class="text-body-subtle"><%= t(".groups") %></dt>
+          <dd class="font-semibold text-heading"><%= number_with_delimiter(@transaction_tag_groups.size) %></dd>
+        </div>
+        <div class="flex items-center justify-between gap-4">
+          <dt class="text-body-subtle"><%= t(".tags") %></dt>
+          <dd class="font-semibold text-heading"><%= number_with_delimiter(total_tags) %></dd>
+        </div>
+        <div class="flex items-center justify-between gap-4">
+          <dt class="text-body-subtle"><%= t(".ungrouped") %></dt>
+          <dd class="font-semibold text-heading"><%= number_with_delimiter(@ungrouped_tags.size) %></dd>
+        </div>
+      </dl>
+    </aside>
 
-          <div class="mt-4 flex justify-end gap-2">
-            <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_tag_group_path(group))) { "Edit group" } %>
-            <%= button_to "Delete group", transaction_tag_group_path(group), method: :delete, form: { data: destructive_confirm_data("Delete this tag group?") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-          </div>
-        </li>
-      <% end %>
+    <% if @transaction_tag_groups.any? || @ungrouped_tags.any? %>
+      <ul class="grid gap-4 lg:grid-cols-2">
+        <% @transaction_tag_groups.each do |group| %>
+          <li id="<%= dom_id(group) %>" class="rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-semibold text-heading"><%= group.name %></h2>
+                <p class="mt-1 text-sm text-body-subtle"><%= t(".tag_count", count: group.transaction_tags.select(&:kept?).size) %></p>
+              </div>
+              <span class="flex h-10 w-10 items-center justify-center rounded-base bg-brand-softer text-fg-brand"><%= app_shell_icon(:tag, css_class: "h-5 w-5") %></span>
+            </div>
 
-      <% if @ungrouped_tags.any? %>
-        <li class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
-          <h2 class="text-lg font-semibold text-heading">Ungrouped</h2>
-          <ul class="mt-4 flex flex-wrap gap-2">
-            <% @ungrouped_tags.each do |tag| %>
-              <li class="flex items-center gap-2 rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
-                <span><%= tag.name %></span>
-                <%= link_to "Edit", edit_transaction_tag_path(tag), class: "text-fg-brand hover:underline" %>
-                <%= button_to "Delete", transaction_tag_path(tag), method: :delete, form_class: "inline", form: { data: destructive_confirm_data("Delete this tag?") }, class: "font-medium text-danger hover:underline" %>
-              </li>
-            <% end %>
-          </ul>
-        </li>
-      <% end %>
-    </ul>
-  <% else %>
-    <div class="bg-neutral-primary-soft border border-default rounded-base p-8 text-center shadow-xs">
-      <h2 class="text-xl font-semibold text-heading">No tags yet</h2>
-      <p class="mx-auto mt-2 max-w-xl text-sm text-body">Create tags when categories are too broad for the filters you need.</p>
-      <div class="mt-5"><%= render(ButtonComponent.new(href: new_transaction_tag_path)) { "Create first tag" } %></div>
-    </div>
-  <% end %>
+            <ul class="mt-4 flex flex-wrap gap-2">
+              <% group.transaction_tags.select(&:kept?).sort_by(&:display_order).each do |tag| %>
+                <li class="flex items-center gap-2 rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
+                  <span><%= tag.name %></span>
+                  <%= link_to t(".edit"), edit_transaction_tag_path(tag), class: "text-fg-brand hover:underline" %>
+                  <%= button_to t(".delete"), transaction_tag_path(tag), method: :delete, form_class: "inline", form: { data: destructive_confirm_data(t(".delete_tag_confirm")) }, class: "font-medium text-danger hover:underline" %>
+                </li>
+              <% end %>
+            </ul>
+
+            <div class="mt-5 flex justify-end gap-2">
+              <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_tag_group_path(group))) { t(".edit_group") } %>
+              <%= button_to t(".delete_group"), transaction_tag_group_path(group), method: :delete, form: { data: destructive_confirm_data(t(".delete_group_confirm")) }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+            </div>
+          </li>
+        <% end %>
+
+        <% if @ungrouped_tags.any? %>
+          <li class="rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-semibold text-heading"><%= t(".ungrouped") %></h2>
+                <p class="mt-1 text-sm text-body-subtle"><%= t(".tag_count", count: @ungrouped_tags.size) %></p>
+              </div>
+              <span class="flex h-10 w-10 items-center justify-center rounded-base bg-neutral-secondary-medium text-heading"><%= app_shell_icon(:tag, css_class: "h-5 w-5") %></span>
+            </div>
+            <ul class="mt-4 flex flex-wrap gap-2">
+              <% @ungrouped_tags.each do |tag| %>
+                <li class="flex items-center gap-2 rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
+                  <span><%= tag.name %></span>
+                  <%= link_to t(".edit"), edit_transaction_tag_path(tag), class: "text-fg-brand hover:underline" %>
+                  <%= button_to t(".delete"), transaction_tag_path(tag), method: :delete, form_class: "inline", form: { data: destructive_confirm_data(t(".delete_tag_confirm")) }, class: "font-medium text-danger hover:underline" %>
+                </li>
+              <% end %>
+            </ul>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <div class="rounded-base border border-default bg-neutral-primary-soft p-8 text-center shadow-xs">
+        <h2 class="text-xl font-semibold text-heading"><%= t(".empty_title") %></h2>
+        <p class="mx-auto mt-2 max-w-xl text-sm text-body"><%= t(".empty_description") %></p>
+        <div class="mt-5"><%= render(ButtonComponent.new(href: new_transaction_tag_path)) { t(".create_first") } %></div>
+      </div>
+    <% end %>
+  </div>
 </section>

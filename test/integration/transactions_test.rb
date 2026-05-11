@@ -147,6 +147,23 @@ class TransactionsTest < ActionDispatch::IntegrationTest
     assert_select "form[action='#{transaction_picture_path(transaction, attachment)}'][data-turbo-confirm] button", text: /remove picture/i
   end
 
+  test "preloads transaction picture attachments on the index" do
+    user = create(:user)
+    3.times do |index|
+      transaction = create_transaction(user: user, comment: "Receipt #{index}")
+      transaction.pictures.attach(io: StringIO.new("receipt #{index}"), filename: "receipt-#{index}.txt", content_type: "text/plain", identify: false)
+    end
+    sign_in user
+
+    queries = sql_queries do
+      get transactions_path
+    end
+
+    assert_response :success
+    per_record_picture_queries = queries.grep(/active_storage_attachments.*"record_id" = \$/)
+    assert_empty per_record_picture_queries, "expected no per-transaction attachment queries, got:\n#{per_record_picture_queries.join("\n")}"
+  end
+
   test "removes one transaction picture for current user" do
     user = create(:user)
     transaction = create_transaction(user: user, comment: "Lunch")
@@ -349,6 +366,19 @@ class TransactionsTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def sql_queries(&block)
+    queries = []
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      next if payload[:name].in?(%w[SCHEMA TRANSACTION])
+
+      queries << payload[:sql]
+    end
+    yield
+    queries
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
 
   def uploaded_receipt
     Rack::Test::UploadedFile.new(Rails.root.join("test/fixtures/files/receipt.txt"), "text/plain")

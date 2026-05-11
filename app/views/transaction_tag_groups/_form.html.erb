@@ -1,9 +1,11 @@
-<%# locals: (transaction_tag_group:, submit_label: "Create group", submitting_label: "Saving...") %>
+<%# locals: (transaction_tag_group:, submit_label: nil, submitting_label: nil) %>
+<% submit_label ||= t(".create") %>
+<% submitting_label ||= t(".saving") %>
 
-<%= form_with model: transaction_tag_group, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
+<%= form_with model: transaction_tag_group, class: "rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs" do |form| %>
   <% if transaction_tag_group.errors.any? %>
-    <div class="mb-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
-      <p class="font-medium">Tag group could not be saved.</p>
+    <div class="mb-5 rounded-base border border-danger bg-danger-soft p-4 text-sm text-fg-danger-strong">
+      <p class="font-medium"><%= t(".save_failed") %></p>
       <ul class="mt-2 list-disc ps-5">
         <% transaction_tag_group.errors.full_messages.each do |message| %>
           <li><%= message %></li>
@@ -12,10 +14,10 @@
     </div>
   <% end %>
 
-  <%= render FormField::InputComponent.new(form: form, field: :name, label: "Name", autofocus: true, required: true) %>
+  <%= render FormField::InputComponent.new(form: form, field: :name, label: t(".name"), autofocus: true, required: true) %>
 
   <div class="flex items-center justify-end gap-3">
-    <%= render(ButtonComponent.new(variant: :secondary, href: transaction_tag_groups_path)) { "Cancel" } %>
+    <%= render(ButtonComponent.new(variant: :secondary, href: transaction_tag_groups_path)) { t(".cancel") } %>
     <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: submitting_label })) { submit_label } %>
   </div>
 <% end %>

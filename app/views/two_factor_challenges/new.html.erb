@@ -1,26 +1,20 @@
-<% content_for :title, "Two-Factor Challenge" %>
+<% content_for :title, t(".title") %>
 
-<section class="mx-auto w-full max-w-md space-y-6">
-  <div class="space-y-3 text-center">
-    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Security check</p>
-    <h1 class="text-3xl font-semibold tracking-tight text-heading">Enter your authenticator code</h1>
-    <p class="text-body">Use the six-digit authenticator code or one unused recovery code to finish signing in.</p>
-  </div>
+<section class="mx-auto w-full max-w-md space-y-5">
+  <header>
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+    <p class="mt-2 text-sm text-body"><%= t(".description") %></p>
+  </header>
 
-  <% if @error_message.present? %>
-    <div class="rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
-      <p class="font-medium"><%= @error_message %></p>
-    </div>
-  <% end %>
-
-  <%= form_with url: two_factor_challenge_path, scope: :two_factor_challenge, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
-    <div>
-      <%= form.label :otp_code, "Verification or recovery code", class: "mb-2 block text-sm font-medium text-heading" %>
-      <%= form.text_field :otp_code, required: true, autofocus: true, inputmode: "numeric", autocomplete: "one-time-code", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+  <%= form_with url: two_factor_challenge_path, scope: :two_factor_challenge, class: "rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs" do |form| %>
+    <div class="mb-5">
+      <%= form.label :otp_code, t(".verification_or_recovery_code"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= render "devise/shared/second_factor_code_field", form: form, field: :otp_code, allow_backup_code: true, auto_submit: false %>
     </div>
 
-    <div class="mt-5 flex justify-end">
-      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Verifying..." })) { "Verify code" } %>
+    <div class="flex justify-end">
+      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: t(".verifying") })) { t(".verify_code") } %>
     </div>
   <% end %>
 </section>

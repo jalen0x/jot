@@ -31,6 +31,9 @@ class TwoFactorAuthenticationsController < ApplicationController
       @recovery_codes = result.recovery_codes
       flash.now[:notice] = t(".enabled")
       render :show, status: :created
+    elsif result.error == :invalid_setup
+      session.delete(:pending_two_factor_secret)
+      redirect_to two_factor_authentication_path, alert: t(".session_expired")
     else
       @error_message = t(".#{result.error}")
       prepare_setup

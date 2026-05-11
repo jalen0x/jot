@@ -1,10 +1,12 @@
-<%# locals: (account:, submit_label: "Create account", submitting_label: "Saving...") %>
+<%# locals: (account:, submit_label: nil, submitting_label: nil) %>
 <% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+<% submit_label ||= t(".create") %>
+<% submitting_label ||= t(".saving") %>
 
-<%= form_with model: account, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
+<%= form_with model: account, class: "rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs" do |form| %>
   <% if account.errors.any? %>
-    <div class="mb-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
-      <p class="font-medium">Account could not be saved.</p>
+    <div class="mb-5 rounded-base border border-danger bg-danger-soft p-4 text-sm text-fg-danger-strong">
+      <p class="font-medium"><%= t(".save_failed") %></p>
       <ul class="mt-2 list-disc ps-5">
         <% account.errors.full_messages.each do |message| %>
           <li><%= message %></li>
@@ -13,48 +15,48 @@
     </div>
   <% end %>
 
-  <%= render FormField::InputComponent.new(form: form, field: :name, label: "Name", autofocus: true, required: true) %>
+  <%= render FormField::InputComponent.new(form: form, field: :name, label: t(".name"), autofocus: true, required: true) %>
 
   <div class="mb-4 grid gap-4 sm:grid-cols-2">
     <div>
-      <%= form.label :account_category, "Category", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.label :account_category, t(".category"), class: "mb-2 block text-sm font-medium text-heading" %>
       <%= form.select :account_category, Account.account_categories.keys.map { |key| [ key.humanize, key ] }, {}, class: field_classes %>
     </div>
 
     <div>
-      <%= form.label :account_structure, "Structure", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.label :account_structure, t(".structure"), class: "mb-2 block text-sm font-medium text-heading" %>
       <%= form.select :account_structure, Account.account_structures.keys.map { |key| [ key.humanize, key ] }, {}, class: field_classes %>
     </div>
   </div>
 
-  <% parent_account_options = [ [ "No parent", "" ] ] + Array(@parent_account_options).map { |parent_account| [ parent_account.name, parent_account.to_param ] } %>
+  <% parent_account_options = [ [ t(".no_parent"), "" ] ] + Array(@parent_account_options).map { |parent_account| [ parent_account.name, parent_account.to_param ] } %>
   <div class="mb-4">
-    <%= form.label :parent_account_id, "Parent account", class: "block mb-2 text-sm font-medium text-heading" %>
+    <%= form.label :parent_account_id, t(".parent_account"), class: "mb-2 block text-sm font-medium text-heading" %>
     <%= form.select :parent_account_id, options_for_select(parent_account_options, account.parent_account&.to_param), {}, class: field_classes %>
   </div>
 
   <div class="mb-4 grid gap-4 sm:grid-cols-3">
     <div>
-      <%= form.label :icon_key, "Icon", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.label :icon_key, t(".icon"), class: "mb-2 block text-sm font-medium text-heading" %>
       <%= form.number_field :icon_key, min: 1, required: true, class: field_classes %>
     </div>
-    <%= render FormField::InputComponent.new(form: form, field: :color_hex, label: "Color", placeholder: "22C55E", required: true) %>
-    <%= render FormField::InputComponent.new(form: form, field: :currency_code, label: "Currency", placeholder: "USD", required: true) %>
+    <%= render FormField::InputComponent.new(form: form, field: :color_hex, label: t(".color"), placeholder: t(".color_placeholder"), required: true) %>
+    <%= render FormField::InputComponent.new(form: form, field: :currency_code, label: t(".currency"), placeholder: t(".currency_placeholder"), required: true) %>
   </div>
 
   <% unless account.persisted? %>
     <div class="mb-4">
-      <%= label_tag "account_opening_balance_cents", "Opening balance cents", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= label_tag "account_opening_balance_cents", t(".opening_balance_cents"), class: "mb-2 block text-sm font-medium text-heading" %>
       <%= number_field_tag "account[opening_balance_cents]", account.balance_cents, id: "account_opening_balance_cents", autocomplete: "off", class: field_classes %>
     </div>
   <% end %>
 
-  <%= render FormField::InputComponent.new(form: form, field: :comment, label: "Comment", type: :textarea) %>
+  <%= render FormField::InputComponent.new(form: form, field: :comment, label: t(".comment"), type: :textarea) %>
 
-  <%= render FormField::CheckboxComponent.new(form: form, field: :hidden, label: "Hidden") %>
+  <%= render FormField::CheckboxComponent.new(form: form, field: :hidden, label: t(".hidden")) %>
 
   <div class="flex items-center justify-end gap-3">
-    <%= render(ButtonComponent.new(variant: :secondary, href: accounts_path)) { "Cancel" } %>
+    <%= render(ButtonComponent.new(variant: :secondary, href: accounts_path)) { t(".cancel") } %>
     <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: submitting_label })) { submit_label } %>
   </div>
 <% end %>

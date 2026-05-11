@@ -26,12 +26,12 @@ class ReportsTest < ActionDispatch::IntegrationTest
     assert_select "p", text: /12.00 USD/
     assert_select "p", text: /7.00 CNY/
     assert_select "p", text: /57.00/, count: 0
-    assert_select "li", text: /Salary/i
-    assert_select "li", text: /Salary.*50\.00 USD/m
-    assert_select "li", text: /Salary.*7\.00 CNY/m
-    assert_select "li", text: /Salary.*57\.00/m, count: 0
-    assert_select "li", text: /Food/i
-    assert_select "li", text: /Other/i, count: 0
+    assert_select "tr", text: /Salary/i
+    assert_select "tr", text: /Salary.*50\.00 USD/m
+    assert_select "tr", text: /Salary.*7\.00 CNY/m
+    assert_select "tr", text: /Salary.*57\.00/m, count: 0
+    assert_select "tr", text: /Food/i
+    assert_select "tr", text: /Other/i, count: 0
   end
 
   test "shows empty report totals in the user's default currency" do

@@ -1,10 +1,12 @@
-<%# locals: (transaction:, accounts:, transaction_categories:, transaction_tags:, submit_label: "Record transaction", submitting_label: "Recording...") %>
+<%# locals: (transaction:, accounts:, transaction_categories:, transaction_tags:, submit_label: nil, submitting_label: nil) %>
 <% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+<% submit_label ||= t(".create") %>
+<% submitting_label ||= t(".saving") %>
 
-<%= form_with model: transaction, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
+<%= form_with model: transaction, class: "rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs" do |form| %>
   <% if transaction.errors.any? %>
-    <div class="mb-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
-      <p class="font-medium">Transaction could not be saved.</p>
+    <div class="mb-5 rounded-base border border-danger bg-danger-soft p-4 text-sm text-fg-danger-strong">
+      <p class="font-medium"><%= t(".save_failed") %></p>
       <ul class="mt-2 list-disc ps-5">
         <% transaction.errors.full_messages.each do |message| %>
           <li><%= message %></li>
@@ -13,59 +15,64 @@
     </div>
   <% end %>
 
+  <div class="mb-5 border-b border-default pb-4">
+    <h2 class="text-lg font-semibold text-heading"><%= t(".details_heading") %></h2>
+    <p class="mt-1 text-sm text-body"><%= t(".details_description") %></p>
+  </div>
+
   <div class="mb-4 grid gap-4 sm:grid-cols-2">
     <div>
-      <%= form.label :transaction_kind, "Type", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.label :transaction_kind, t(".type"), class: "mb-2 block text-sm font-medium text-heading" %>
       <%= form.select :transaction_kind, Transaction.transaction_kinds.except("balance_adjustment").keys.map { |key| [ key.humanize, key ] }, {}, class: field_classes %>
     </div>
     <div>
-      <%= form.label :transacted_at, "When", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.label :transacted_at, t(".when"), class: "mb-2 block text-sm font-medium text-heading" %>
       <%= form.datetime_field :transacted_at, required: true, class: field_classes %>
     </div>
   </div>
 
   <div class="mb-4 grid gap-4 sm:grid-cols-2">
     <div>
-      <%= form.label :account_id, "Account", class: "block mb-2 text-sm font-medium text-heading" %>
-      <%= form.collection_select :account_id, accounts, :id, :name, { prompt: "Choose account" }, required: true, class: field_classes %>
+      <%= form.label :account_id, t(".account"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.collection_select :account_id, accounts, :id, :name, { prompt: t(".choose_account") }, required: true, class: field_classes %>
     </div>
     <div>
-      <%= form.label :destination_account_id, "Destination account", class: "block mb-2 text-sm font-medium text-heading" %>
-      <%= form.collection_select :destination_account_id, accounts, :id, :name, { include_blank: "Not a transfer" }, class: field_classes %>
+      <%= form.label :destination_account_id, t(".destination_account"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.collection_select :destination_account_id, accounts, :id, :name, { include_blank: t(".not_a_transfer") }, class: field_classes %>
     </div>
   </div>
 
   <div class="mb-4 grid gap-4 sm:grid-cols-3">
     <div>
-      <%= form.label :transaction_category_id, "Category", class: "block mb-2 text-sm font-medium text-heading" %>
-      <%= form.collection_select :transaction_category_id, transaction_categories, :id, :name, { prompt: "Choose category" }, required: true, class: field_classes %>
+      <%= form.label :transaction_category_id, t(".category"), class: "mb-2 block text-sm font-medium text-heading" %>
+      <%= form.collection_select :transaction_category_id, transaction_categories, :id, :name, { prompt: t(".choose_category") }, required: true, class: field_classes %>
     </div>
-    <%= render FormField::InputComponent.new(form: form, field: :source_amount_cents, label: "Source cents", type: :number, required: true) %>
-    <%= render FormField::InputComponent.new(form: form, field: :destination_amount_cents, label: "Destination cents", type: :number) %>
+    <%= render FormField::InputComponent.new(form: form, field: :source_amount_cents, label: t(".source_cents"), type: :number, required: true) %>
+    <%= render FormField::InputComponent.new(form: form, field: :destination_amount_cents, label: t(".destination_cents"), type: :number) %>
   </div>
 
   <div class="mb-4">
-    <%= form.label :transaction_tag_ids, "Tags", class: "block mb-2 text-sm font-medium text-heading" %>
+    <%= form.label :transaction_tag_ids, t(".tags"), class: "mb-2 block text-sm font-medium text-heading" %>
     <%= form.collection_select :transaction_tag_ids, transaction_tags, :id, :name, {}, multiple: true, class: field_classes %>
   </div>
 
   <div class="mb-4 grid gap-4 sm:grid-cols-2">
-    <%= render FormField::InputComponent.new(form: form, field: :geo_latitude, label: "Latitude", type: :number) %>
-    <%= render FormField::InputComponent.new(form: form, field: :geo_longitude, label: "Longitude", type: :number) %>
+    <%= render FormField::InputComponent.new(form: form, field: :geo_latitude, label: t(".latitude"), type: :number) %>
+    <%= render FormField::InputComponent.new(form: form, field: :geo_longitude, label: t(".longitude"), type: :number) %>
   </div>
 
   <% unless transaction.persisted? %>
     <div class="mb-4">
-      <%= form.label :pictures, "Pictures", class: "block mb-2 text-sm font-medium text-heading" %>
+      <%= form.label :pictures, t(".pictures"), class: "mb-2 block text-sm font-medium text-heading" %>
       <%= form.file_field :pictures, multiple: true, class: "cursor-pointer bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full shadow-xs placeholder:text-body" %>
     </div>
   <% end %>
 
   <%= form.hidden_field :timezone_utc_offset_minutes %>
-  <%= render FormField::InputComponent.new(form: form, field: :comment, label: "Comment", type: :textarea) %>
+  <%= render FormField::InputComponent.new(form: form, field: :comment, label: t(".comment"), type: :textarea) %>
 
   <div class="flex items-center justify-end gap-3">
-    <%= render(ButtonComponent.new(variant: :secondary, href: transactions_path)) { "Cancel" } %>
+    <%= render(ButtonComponent.new(variant: :secondary, href: transactions_path)) { t(".cancel") } %>
     <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: submitting_label })) { submit_label } %>
   </div>
 <% end %>

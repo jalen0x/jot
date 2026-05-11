@@ -1,11 +1,11 @@
-<% content_for :title, "Edit tag" %>
+<% content_for :title, t(".title") %>
 
-<section class="mx-auto w-full max-w-2xl">
-  <div class="mb-6">
-    <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
-    <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Edit tag</h1>
-    <p class="mt-2 text-sm text-body">Update this transaction tag and its group.</p>
-  </div>
+<section class="mx-auto w-full max-w-3xl space-y-5">
+  <header>
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+    <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
+  </header>
 
-  <%= render "form", transaction_tag: @transaction_tag, transaction_tag_groups: @transaction_tag_groups, submit_label: "Update tag", submitting_label: "Updating..." %>
+  <%= render "form", transaction_tag: @transaction_tag, transaction_tag_groups: @transaction_tag_groups, submit_label: t(".submit"), submitting_label: t(".submitting") %>
 </section>

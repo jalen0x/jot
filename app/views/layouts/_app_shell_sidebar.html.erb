@@ -1,0 +1,49 @@
+<aside id="app-sidebar" class="fixed left-0 top-0 z-40 h-screen w-72 -translate-x-full border-e border-default bg-neutral-primary-soft shadow-xs transition-transform lg:translate-x-0" aria-label="<%= t("layouts.application.sidebar_label") %>">
+  <div class="flex h-full flex-col overflow-y-auto px-4 py-4">
+    <div class="mb-5 flex items-center justify-between border-b border-default pb-4">
+      <%= link_to dashboard_path, class: "flex min-w-0 items-center gap-3" do %>
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-base bg-brand text-base font-bold text-white shadow-xs">
+          <%= TemplateBase.config.application_name.first %>
+        </span>
+        <span class="min-w-0">
+          <span class="block truncate text-lg font-semibold tracking-tight text-heading"><%= TemplateBase.config.application_name %></span>
+          <span class="block truncate text-xs font-medium text-body-subtle"><%= t("layouts.application.ledger_console") %></span>
+        </span>
+      <% end %>
+
+      <button type="button" data-drawer-hide="app-sidebar" aria-controls="app-sidebar" class="inline-flex h-9 w-9 items-center justify-center rounded-base text-body hover:bg-neutral-tertiary-soft hover:text-heading lg:hidden">
+        <span class="sr-only"><%= t("layouts.application.close_menu") %></span>
+        <svg class="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+          <path d="M6 18 18 6M6 6l12 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+        </svg>
+      </button>
+    </div>
+
+    <nav class="flex-1 space-y-5">
+      <% app_shell_navigation_groups.each do |group| %>
+        <div>
+          <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-body-subtle"><%= group[:label] %></p>
+          <ul class="space-y-1">
+            <% group[:items].each do |item| %>
+              <li>
+                <%= link_to item[:path], class: app_shell_nav_item_classes(item), data: { drawer_hide: "app-sidebar" } do %>
+                  <%= app_shell_icon(item[:icon], css_class: "h-5 w-5 shrink-0 transition group-hover:text-fg-brand") %>
+                  <span class="truncate"><%= item[:label] %></span>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    </nav>
+
+    <div class="mt-5 rounded-base border border-default bg-neutral-secondary-soft p-3">
+      <p class="truncate text-sm font-semibold text-heading"><%= current_user.name.presence || current_user.email %></p>
+      <p class="mt-1 truncate text-xs text-body-subtle"><%= current_user.email %></p>
+      <div class="mt-3 flex gap-2">
+        <%= link_to t("layouts.application.profile"), user_profile_path, class: "flex-1 rounded-base bg-neutral-primary px-3 py-2 text-center text-xs font-medium text-body shadow-xs hover:text-heading" %>
+        <%= button_to t("layouts.application.sign_out"), destroy_user_session_path, method: :delete, form: { class: "flex-1" }, class: "w-full rounded-base bg-neutral-primary px-3 py-2 text-xs font-medium text-body shadow-xs hover:text-heading" %>
+      </div>
+    </div>
+  </div>
+</aside>

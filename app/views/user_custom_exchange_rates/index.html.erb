@@ -1,16 +1,29 @@
-<% content_for :title, "Custom Exchange Rates" %>
+<% content_for :title, t(".title") %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
 
-<section class="space-y-8">
-  <div class="max-w-3xl space-y-3">
-    <p class="text-sm font-medium uppercase tracking-wide text-fg-brand">Exchange rates</p>
-    <h1 class="text-3xl font-semibold tracking-tight text-heading">Custom exchange rates</h1>
-    <p class="text-body">Manage rates relative to your default currency, <%= @default_currency_code %>.</p>
-  </div>
+<section class="space-y-5">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+      <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+      <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description", default_currency_code: @default_currency_code) %></p>
+    </div>
 
-  <%= form_with model: @user_custom_exchange_rate, url: user_custom_exchange_rates_path, class: "bg-neutral-primary-soft border border-default rounded-base p-6 shadow-xs" do |form| %>
+    <div class="rounded-base border border-default bg-neutral-primary-soft px-4 py-3 text-sm shadow-xs">
+      <p class="font-medium text-body-subtle"><%= t(".default_currency") %></p>
+      <p class="mt-1 text-2xl font-semibold text-heading"><%= @default_currency_code %></p>
+    </div>
+  </header>
+
+  <%= form_with model: @user_custom_exchange_rate, url: user_custom_exchange_rates_path, class: "rounded-base border border-default bg-neutral-primary-soft p-5 shadow-xs" do |form| %>
+    <div class="mb-5 flex flex-col gap-1 border-b border-default pb-4">
+      <h2 class="text-lg font-semibold text-heading"><%= t(".new_rate_heading") %></h2>
+      <p class="text-sm text-body"><%= t(".new_rate_description") %></p>
+    </div>
+
     <% if @user_custom_exchange_rate.errors.any? %>
-      <div class="mb-5 rounded-base border border-danger bg-neutral-primary p-4 text-sm text-danger">
-        <p class="font-medium">Exchange rate could not be saved.</p>
+      <div class="mb-5 rounded-base border border-danger bg-danger-soft p-4 text-sm text-fg-danger-strong">
+        <p class="font-medium"><%= t(".save_failed") %></p>
         <ul class="mt-2 list-disc ps-5">
           <% @user_custom_exchange_rate.errors.full_messages.each do |message| %>
             <li><%= message %></li>
@@ -19,50 +32,58 @@
       </div>
     <% end %>
 
-    <div class="grid gap-4 sm:grid-cols-3">
+    <div class="grid gap-4 sm:grid-cols-[12rem_1fr_auto] sm:items-end">
       <div>
-        <%= form.label :currency_code, "Currency", class: "mb-2 block text-sm font-medium text-heading" %>
-        <%= form.text_field :currency_code, required: true, maxlength: 3, placeholder: "EUR", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+        <%= form.label :currency_code, t(".currency"), class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.text_field :currency_code, required: true, maxlength: 3, placeholder: t(".currency_placeholder"), class: field_classes %>
       </div>
       <div>
-        <%= form.label :rate, "Rate", class: "mb-2 block text-sm font-medium text-heading" %>
-        <%= form.text_field :rate, required: true, placeholder: "1.25", class: "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
+        <%= form.label :rate, t(".rate"), class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.text_field :rate, required: true, placeholder: t(".rate_placeholder"), class: field_classes %>
       </div>
-      <div class="flex items-end">
-        <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: "Saving..." })) { "Save rate" } %>
-      </div>
+      <%= render(ButtonComponent.new(type: :submit, data: { turbo_submits_with: t(".saving") })) { t(".save_rate") } %>
     </div>
   <% end %>
 
-  <div class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
-    <table class="w-full text-left text-sm text-body">
-      <thead class="border-b border-default bg-neutral-secondary-medium text-xs uppercase text-body-subtle">
-        <tr>
-          <th scope="col" class="px-5 py-3">Currency</th>
-          <th scope="col" class="px-5 py-3">Rate</th>
-          <th scope="col" class="px-5 py-3 text-right">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if @exchange_rates.any? %>
-          <% @exchange_rates.each do |exchange_rate| %>
-            <tr class="border-b border-default last:border-0">
-              <td class="px-5 py-4 font-medium text-heading"><%= exchange_rate.currency_code %></td>
-              <td class="px-5 py-4"><%= exchange_rate.rate.to_s("F") %></td>
-              <td class="px-5 py-4">
-                <div class="flex justify-end gap-2">
-                  <%= render(ButtonComponent.new(variant: :secondary, href: edit_user_custom_exchange_rate_path(exchange_rate))) { t(".edit") } %>
-                  <%= button_to "Delete", user_custom_exchange_rate_path(exchange_rate), method: :delete, form: { data: destructive_confirm_data("Delete this exchange rate?") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
-                </div>
+  <article class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+    <div class="border-b border-default px-5 py-4">
+      <h2 class="text-lg font-semibold text-heading"><%= t(".rate_list") %></h2>
+      <p class="mt-1 text-sm text-body"><%= t(".rate_list_description") %></p>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-start text-sm text-body">
+        <thead class="border-b border-default bg-neutral-secondary-medium text-xs uppercase tracking-wide text-body-subtle">
+          <tr>
+            <th scope="col" class="px-5 py-3"><%= t(".currency") %></th>
+            <th scope="col" class="px-5 py-3"><%= t(".rate") %></th>
+            <th scope="col" class="px-5 py-3 text-end"><%= t(".actions") %></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-default">
+          <% if @exchange_rates.any? %>
+            <% @exchange_rates.each do |exchange_rate| %>
+              <tr class="hover:bg-neutral-secondary-soft">
+                <td class="px-5 py-4 font-medium text-heading"><%= exchange_rate.currency_code %></td>
+                <td class="px-5 py-4"><%= exchange_rate.rate.to_s("F") %></td>
+                <td class="px-5 py-4">
+                  <div class="flex justify-end gap-2">
+                    <%= render(ButtonComponent.new(variant: :secondary, href: edit_user_custom_exchange_rate_path(exchange_rate))) { t(".edit") } %>
+                    <%= button_to t(".delete"), user_custom_exchange_rate_path(exchange_rate), method: :delete, form: { data: destructive_confirm_data(t(".delete_confirm")) }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr>
+              <td colspan="3" class="px-5 py-10 text-center">
+                <p class="font-semibold text-heading"><%= t(".empty_title") %></p>
+                <p class="mt-1 text-sm text-body-subtle"><%= t(".empty_description") %></p>
               </td>
             </tr>
           <% end %>
-        <% else %>
-          <tr>
-            <td colspan="3" class="px-5 py-8 text-center text-body-subtle">No custom exchange rates yet.</td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
+        </tbody>
+      </table>
+    </div>
+  </article>
 </section>

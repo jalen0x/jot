@@ -1,107 +1,161 @@
-<% content_for :title, "Transactions" %>
+<% content_for :title, t(".title") %>
+<% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
 
-<section class="flex flex-col gap-6">
+<section class="space-y-5">
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <p class="text-sm font-medium uppercase tracking-wide text-body-subtle">Ledger</p>
-      <h1 class="mt-1 text-3xl font-semibold tracking-tight text-heading">Transactions</h1>
-      <p class="mt-2 max-w-2xl text-sm text-body">Record income, expenses, and transfers against your Rails ledger.</p>
+      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+      <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+      <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
     </div>
 
-    <%= render(ButtonComponent.new(href: new_transaction_path)) { "New transaction" } %>
+    <%= render(ButtonComponent.new(href: new_transaction_path)) { t(".new") } %>
   </div>
 
-  <% field_classes = "bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" %>
-
-  <%= form_with url: transactions_path, method: :get, class: "bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs" do |form| %>
+  <%= form_with url: transactions_path, method: :get, class: "rounded-base border border-default bg-neutral-primary-soft p-4 shadow-xs" do |form| %>
     <div class="grid gap-4 md:grid-cols-4">
       <div>
-        <%= form.label :transaction_kind, "Type", class: "block mb-2 text-sm font-medium text-heading" %>
-        <%= form.select :transaction_kind, Transaction.transaction_kinds.except("balance_adjustment").keys.map { |key| [ key.humanize, key ] }, { include_blank: "All types", selected: params[:transaction_kind] }, class: field_classes %>
+        <%= form.label :transaction_kind, t(".type"), class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.select :transaction_kind, Transaction.transaction_kinds.except("balance_adjustment").keys.map { |key| [ key.humanize, key ] }, { include_blank: t(".all_types"), selected: params[:transaction_kind] }, class: field_classes %>
       </div>
       <div>
-        <%= form.label :account_id, "Account", class: "block mb-2 text-sm font-medium text-heading" %>
-        <%= form.collection_select :account_id, @filter_accounts, :id, :name, { include_blank: "All accounts", selected: params[:account_id] }, class: field_classes %>
+        <%= form.label :account_id, t(".account"), class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.collection_select :account_id, @filter_accounts, :id, :name, { include_blank: t(".all_accounts"), selected: params[:account_id] }, class: field_classes %>
       </div>
       <div>
-        <%= form.label :transaction_category_id, "Category", class: "block mb-2 text-sm font-medium text-heading" %>
-        <%= form.collection_select :transaction_category_id, @filter_categories, :id, :name, { include_blank: "All categories", selected: params[:transaction_category_id] }, class: field_classes %>
+        <%= form.label :transaction_category_id, t(".category"), class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.collection_select :transaction_category_id, @filter_categories, :id, :name, { include_blank: t(".all_categories"), selected: params[:transaction_category_id] }, class: field_classes %>
       </div>
       <div>
-        <%= form.label :tag_id, "Tag", class: "block mb-2 text-sm font-medium text-heading" %>
-        <%= form.collection_select :tag_id, @filter_tags, :id, :name, { include_blank: "All tags", selected: params[:tag_id] }, class: field_classes %>
+        <%= form.label :tag_id, t(".tag"), class: "mb-2 block text-sm font-medium text-heading" %>
+        <%= form.collection_select :tag_id, @filter_tags, :id, :name, { include_blank: t(".all_tags"), selected: params[:tag_id] }, class: field_classes %>
       </div>
     </div>
 
     <div class="mt-4 flex justify-end gap-3">
-      <%= render(ButtonComponent.new(variant: :secondary, href: transactions_path)) { "Clear" } %>
-      <%= render(ButtonComponent.new(type: :submit)) { "Apply filters" } %>
+      <%= render(ButtonComponent.new(variant: :secondary, href: transactions_path)) { t(".clear") } %>
+      <%= render(ButtonComponent.new(type: :submit)) { t(".apply_filters") } %>
     </div>
   <% end %>
 
   <% if @transactions.any? %>
-    <ul class="divide-y divide-default overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
-      <% @transactions.each do |transaction| %>
-        <li id="<%= dom_id(transaction) %>" class="p-5">
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h2 class="text-lg font-semibold text-heading"><%= transaction.comment.presence || transaction.transaction_kind.humanize %></h2>
-              <p class="mt-1 text-sm text-body-subtle">
-                <%= l(transaction.transacted_at, format: @transaction_datetime_format) %> · <%= transaction.account.name %> · <%= transaction.transaction_category.name %>
-              </p>
-              <% if transaction.geo_latitude.present? && transaction.geo_longitude.present? %>
-                <p class="mt-1 text-sm text-body-subtle">
-                  <%= format_coordinates(transaction.geo_latitude, transaction.geo_longitude) %>
-                  <%= link_to "Open map",
-                    map_location_url(transaction.geo_latitude, transaction.geo_longitude),
-                    target: "_blank",
-                    rel: "noopener",
-                    class: "ms-2 font-medium text-fg-brand hover:underline" %>
-                </p>
-              <% end %>
-              <% if transaction.transaction_tags.any? %>
-                <div class="mt-3 flex flex-wrap gap-2">
-                  <% transaction.transaction_tags.each do |tag| %>
-                    <span class="rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading"><%= tag.name %></span>
-                  <% end %>
-                </div>
-              <% end %>
-              <% if transaction.pictures.attached? %>
-                <div class="mt-3 flex flex-wrap gap-2">
-                  <% transaction.pictures.each do |picture| %>
-                    <div class="flex items-center gap-2 rounded-base bg-neutral-secondary-medium px-3 py-1 text-sm font-medium text-heading">
-                      <span><%= picture.filename %></span>
-                      <%= button_to "Remove picture",
-                        transaction_picture_path(transaction, picture),
-                        method: :delete,
-                        form: { class: "inline", data: destructive_confirm_data("Remove this picture?", accept: "Remove picture") },
-                        class: "text-danger hover:underline focus:outline-none" %>
+    <article class="overflow-hidden rounded-base border border-default bg-neutral-primary-soft shadow-xs">
+      <div class="hidden overflow-x-auto md:block">
+        <table class="w-full text-start text-sm text-body">
+          <thead class="border-b border-default bg-neutral-secondary-medium text-xs uppercase tracking-wide text-body-subtle">
+            <tr>
+              <th scope="col" class="px-5 py-3"><%= t(".transaction") %></th>
+              <th scope="col" class="px-5 py-3"><%= t(".account") %></th>
+              <th scope="col" class="px-5 py-3"><%= t(".category") %></th>
+              <th scope="col" class="px-5 py-3 text-end"><%= t(".amount") %></th>
+              <th scope="col" class="px-5 py-3 text-end"><%= t(".actions") %></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-default">
+            <% @transactions.each do |transaction| %>
+              <tr id="<%= dom_id(transaction) %>" class="hover:bg-neutral-secondary-soft">
+                <td class="px-5 py-4">
+                  <div class="max-w-md">
+                    <div class="flex items-center gap-2">
+                      <span class="rounded-base bg-neutral-secondary-medium px-2 py-1 text-xs font-medium text-body-subtle"><%= transaction.transaction_kind.humanize %></span>
+                      <p class="truncate font-medium text-heading"><%= transaction.comment.presence || transaction.transaction_kind.humanize %></p>
                     </div>
-                  <% end %>
-                </div>
-              <% end %>
-            </div>
+                    <p class="mt-1 text-xs text-body-subtle"><%= l(transaction.transacted_at, format: @transaction_datetime_format) %></p>
+                    <% if transaction.geo_latitude.present? && transaction.geo_longitude.present? %>
+                      <p class="mt-1 text-xs text-body-subtle">
+                        <%= format_coordinates(transaction.geo_latitude, transaction.geo_longitude) %>
+                        <%= link_to t(".open_map"),
+                          map_location_url(transaction.geo_latitude, transaction.geo_longitude),
+                          target: "_blank",
+                          rel: "noopener",
+                          class: "ms-2 font-medium text-fg-brand hover:underline" %>
+                      </p>
+                    <% end %>
+                    <% if transaction.transaction_tags.any? || transaction.pictures.attached? %>
+                      <div class="mt-2 flex flex-wrap gap-1.5">
+                        <% transaction.transaction_tags.each do |tag| %>
+                          <span class="rounded-base bg-brand-softer px-2 py-0.5 text-xs font-medium text-fg-brand"><%= tag.name %></span>
+                        <% end %>
+                        <% if transaction.pictures.attached? %>
+                          <span class="rounded-base bg-neutral-secondary-medium px-2 py-0.5 text-xs font-medium text-body-subtle"><%= t(".attachments", count: transaction.pictures.size) %></span>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                </td>
+                <td class="px-5 py-4 font-medium text-heading"><%= transaction.account.name %></td>
+                <td class="px-5 py-4 text-body-subtle"><%= transaction.transaction_category.name %></td>
+                <td class="px-5 py-4 text-end font-semibold <%= amount_color_class(transaction.transaction_kind) %>">
+                  <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, amount_options: @amount_format_options) %>
+                </td>
+                <td class="px-5 py-4">
+                  <div class="flex justify-end gap-2">
+                    <%= link_to t(".edit"), edit_transaction_path(transaction), class: "rounded-base px-3 py-2 text-sm font-medium text-fg-brand hover:bg-brand-softer" %>
+                    <%= button_to t(".delete"), transaction_path(transaction), method: :delete, form: { data: destructive_confirm_data(t(".delete_confirm")) }, class: "rounded-base px-3 py-2 text-sm font-medium text-danger hover:bg-danger-soft" %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
 
-            <div class="text-right">
-              <p class="text-base font-semibold <%= amount_color_class(transaction.transaction_kind) %>">
+      <ul class="divide-y divide-default md:hidden">
+        <% @transactions.each do |transaction| %>
+          <li id="<%= dom_id(transaction, :mobile) %>" class="p-4">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h2 class="truncate font-semibold text-heading"><%= transaction.comment.presence || transaction.transaction_kind.humanize %></h2>
+                <p class="mt-1 text-xs text-body-subtle"><%= l(transaction.transacted_at, format: @transaction_datetime_format) %></p>
+                <p class="mt-1 text-sm text-body-subtle"><%= transaction.account.name %> · <%= transaction.transaction_category.name %></p>
+                <% if transaction.geo_latitude.present? && transaction.geo_longitude.present? %>
+                  <p class="mt-1 text-sm text-body-subtle">
+                    <%= format_coordinates(transaction.geo_latitude, transaction.geo_longitude) %>
+                    <%= link_to t(".open_map"),
+                      map_location_url(transaction.geo_latitude, transaction.geo_longitude),
+                      target: "_blank",
+                      rel: "noopener",
+                      class: "ms-2 font-medium text-fg-brand hover:underline" %>
+                  </p>
+                <% end %>
+              </div>
+              <p class="shrink-0 text-end text-sm font-semibold <%= amount_color_class(transaction.transaction_kind) %>">
                 <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, amount_options: @amount_format_options) %>
               </p>
-              <p class="mt-1 text-sm text-body-subtle"><%= transaction.transaction_kind.humanize %></p>
             </div>
 
-            <div class="flex justify-end gap-2 sm:justify-start">
-              <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_path(transaction))) { "Edit" } %>
-              <%= button_to "Delete", transaction_path(transaction), method: :delete, form: { data: destructive_confirm_data("Delete this transaction?") }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
+            <% if transaction.transaction_tags.any? %>
+              <div class="mt-3 flex flex-wrap gap-1.5">
+                <% transaction.transaction_tags.each do |tag| %>
+                  <span class="rounded-base bg-brand-softer px-2 py-0.5 text-xs font-medium text-fg-brand"><%= tag.name %></span>
+                <% end %>
+              </div>
+            <% end %>
+
+            <% if transaction.pictures.attached? %>
+              <div class="mt-3 space-y-2">
+                <% transaction.pictures.each do |picture| %>
+                  <div class="flex items-center justify-between gap-2 rounded-base bg-neutral-secondary-medium px-3 py-2 text-xs font-medium text-heading">
+                    <span class="truncate"><%= picture.filename %></span>
+                    <%= button_to t(".remove_picture"), transaction_picture_path(transaction, picture), method: :delete, form: { class: "inline", data: destructive_confirm_data(t(".remove_picture_confirm"), accept: t(".remove_picture")) }, class: "text-danger hover:underline focus:outline-none" %>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+
+            <div class="mt-3 flex justify-end gap-2">
+              <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_path(transaction))) { t(".edit") } %>
+              <%= button_to t(".delete"), transaction_path(transaction), method: :delete, form: { data: destructive_confirm_data(t(".delete_confirm")) }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
             </div>
-          </div>
-        </li>
-      <% end %>
-    </ul>
+          </li>
+        <% end %>
+      </ul>
+    </article>
   <% else %>
-    <div class="bg-neutral-primary-soft border border-default rounded-base p-8 text-center shadow-xs">
-      <h2 class="text-xl font-semibold text-heading">No transactions yet</h2>
-      <p class="mx-auto mt-2 max-w-xl text-sm text-body">Create your first income, expense, or transfer after setting up accounts and categories.</p>
-      <div class="mt-5"><%= render(ButtonComponent.new(href: new_transaction_path)) { "Create first transaction" } %></div>
+    <div class="rounded-base border border-default bg-neutral-primary-soft p-8 text-center shadow-xs">
+      <h2 class="text-xl font-semibold text-heading"><%= t(".empty_title") %></h2>
+      <p class="mx-auto mt-2 max-w-xl text-sm text-body"><%= t(".empty_description") %></p>
+      <div class="mt-5"><%= render(ButtonComponent.new(href: new_transaction_path)) { t(".create_first") } %></div>
     </div>
   <% end %>
 </section>
