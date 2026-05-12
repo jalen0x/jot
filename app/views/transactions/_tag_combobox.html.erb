@@ -1,0 +1,66 @@
+<%# locals: (form:, field:, transaction_tags:, selected_ids:, label:, placeholder:, search_placeholder:, ungrouped_label:, remove_label:, empty_label:) %>
+<% field_name = "#{form.object_name}[#{field}][]" %>
+<% selected = Array(selected_ids).map(&:to_s) %>
+<% grouped = transaction_tags.group_by { |tag| tag.transaction_tag_group&.name.presence || ungrouped_label } %>
+
+<div class="relative" data-controller="multi-combobox"
+     data-multi-combobox-placeholder-value="<%= placeholder %>"
+     data-multi-combobox-name-value="<%= field_name %>"
+     data-multi-combobox-remove-label-value="<%= remove_label %>">
+  <div data-multi-combobox-target="hiddenContainer">
+    <input type="hidden" name="<%= field_name %>" value="">
+    <% selected.each do |id| %>
+      <input type="hidden" name="<%= field_name %>" value="<%= id %>">
+    <% end %>
+  </div>
+
+  <button type="button" data-action="click->multi-combobox#toggle" data-multi-combobox-target="button"
+          class="inline-flex items-center justify-between w-full gap-2 px-2.5 pb-2 pt-4 bg-transparent box-border border border-default-medium hover:border-default-strong focus:ring-0 focus:border-brand font-normal text-sm rounded-base shadow-xs focus:outline-none text-start">
+    <span class="flex flex-wrap items-center gap-1 min-h-5 flex-1" data-multi-combobox-target="chips"></span>
+    <svg class="w-4 h-4 ms-1.5 -me-0.5 shrink-0 text-body-subtle" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
+    </svg>
+  </button>
+
+  <span class="pointer-events-none absolute text-sm text-body bg-neutral-primary-soft px-2 -translate-y-4 scale-75 top-2 z-10 origin-[0] start-1"><%= label %></span>
+
+  <div data-multi-combobox-target="panel" hidden class="absolute z-30 mt-1 w-full bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg">
+    <div class="p-2 border-b border-default-medium">
+      <div class="relative">
+        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+          <svg class="w-4 h-4 text-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+          </svg>
+        </div>
+        <input type="search" data-multi-combobox-target="search" data-action="input->multi-combobox#filter"
+               autocomplete="off"
+               placeholder="<%= search_placeholder %>"
+               class="block w-full p-2 ps-9 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body">
+      </div>
+    </div>
+
+    <div class="max-h-72 overflow-y-auto p-2 text-sm text-body font-medium">
+      <% if transaction_tags.empty? %>
+        <p class="p-2 text-body-subtle"><%= empty_label %></p>
+      <% else %>
+        <% grouped.each do |group_name, tags| %>
+          <div data-multi-combobox-target="group">
+            <h4 class="px-2 pt-1 pb-1 text-sm font-normal text-body-subtle"><%= group_name %></h4>
+            <ul>
+              <% tags.each do |tag| %>
+                <li data-multi-combobox-target="option" data-value="<%= tag.id %>"
+                    data-display="<%= tag.name %>"
+                    data-search="<%= tag.name.downcase %>"
+                    data-action="click->multi-combobox#toggleOption"
+                    class="flex items-center gap-2 px-2 py-2 rounded cursor-pointer hover:bg-neutral-tertiary-medium hover:text-heading">
+                  <span class="text-body-subtle font-medium">#</span>
+                  <span class="flex-1 truncate"><%= tag.name %></span>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>

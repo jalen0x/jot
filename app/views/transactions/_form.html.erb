@@ -111,10 +111,17 @@
           <%= render FormField::InputComponent.new(form: form, field: :timezone_utc_offset_minutes, label: t(".timezone_offset"), type: :number, variant: :floating, data: { transaction_form_target: "timezoneInput" }) %>
         </div>
 
-        <div class="relative">
-          <%= form.collection_select :transaction_tag_ids, transaction_tags, :id, :name, { include_blank: false }, multiple: true, class: select_class %>
-          <%= form.label :transaction_tag_ids, t(".tags"), class: floating_label_class %>
-        </div>
+        <%= render "tag_combobox",
+                   form: form,
+                   field: :transaction_tag_ids,
+                   transaction_tags: transaction_tags,
+                   selected_ids: Array(transaction.transaction_tag_ids).map(&:to_s),
+                   label: t(".tags"),
+                   placeholder: t(".no_tags_selected"),
+                   search_placeholder: t(".search_tags"),
+                   ungrouped_label: t(".default_tag_group"),
+                   remove_label: t(".remove_tag"),
+                   empty_label: t(".no_tags_available") %>
 
         <%= render FormField::InputComponent.new(form: form, field: :comment, label: t(".comment"), type: :textarea, variant: :floating, rows: 3) %>
 

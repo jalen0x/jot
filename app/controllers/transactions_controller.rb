@@ -138,7 +138,7 @@ class TransactionsController < ApplicationController
   def load_form_collections
     @accounts = current_user.accounts.kept.order(:display_order, :name)
     @transaction_categories = current_user.transaction_categories.kept.includes(:parent_category).order(:category_type, :display_order, :name)
-    @transaction_tags = current_user.transaction_tags.kept.order(:display_order, :name)
+    @transaction_tags = current_user.transaction_tags.kept.includes(:transaction_tag_group).order(:display_order, :name)
   end
 
   def load_filter_collections
