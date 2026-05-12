@@ -13,7 +13,7 @@ class TransactionRecorder
         transaction.transaction_taggings.create!(user: user, transaction_tag: tag)
       end
       transaction.pictures.attach(picture_attachables(picture_files))
-      update_balances(transaction)
+      AccountBalanceLedger.new.apply(transaction)
     end
 
     transaction.association(:transaction_tags).target = tags
@@ -128,20 +128,6 @@ class TransactionRecorder
 
     if transaction.account&.currency_code == transaction.destination_account.currency_code && transaction.source_amount_cents != transaction.destination_amount_cents
       transaction.errors.add(:destination_amount_cents, "must equal source amount for same-currency transfers")
-    end
-  end
-
-  def update_balances(transaction)
-    case transaction.transaction_kind
-    when "balance_adjustment"
-      transaction.account.update!(balance_cents: transaction.account.balance_cents + transaction.source_amount_cents)
-    when "income"
-      transaction.account.update!(balance_cents: transaction.account.balance_cents + transaction.source_amount_cents)
-    when "expense"
-      transaction.account.update!(balance_cents: transaction.account.balance_cents - transaction.source_amount_cents)
-    when "transfer"
-      transaction.account.update!(balance_cents: transaction.account.balance_cents - transaction.source_amount_cents)
-      transaction.destination_account.update!(balance_cents: transaction.destination_account.balance_cents + transaction.destination_amount_cents)
     end
   end
 

@@ -128,6 +128,49 @@ class TransactionTest < ActiveSupport::TestCase
     assert_match(/transactions_geo_location_pair/i, error.message)
   end
 
+  test "balance_effects on a non-transfer returns one (account, delta) entry" do
+    user = create(:user)
+    account = create_account(user: user, name: "Checking")
+    category = create_category(user: user, category_type: :expense)
+
+    transaction = Transaction.create!(
+      user: user,
+      account: account,
+      transaction_category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse("2026-05-04 10:00:00"),
+      timezone_utc_offset_minutes: 0,
+      source_amount_cents: 1500,
+      destination_amount_cents: 0
+    )
+
+    assert_equal [ [ account, -1500 ] ], transaction.balance_effects
+  end
+
+  test "balance_effects on a transfer returns source and destination entries" do
+    user = create(:user)
+    source = create_account(user: user, name: "Checking")
+    destination = create_account(user: user, name: "Savings")
+    category = create_category(user: user, category_type: :transfer)
+
+    transaction = Transaction.create!(
+      user: user,
+      account: source,
+      destination_account: destination,
+      transaction_category: category,
+      transaction_kind: :transfer,
+      transacted_at: Time.zone.parse("2026-05-04 10:00:00"),
+      timezone_utc_offset_minutes: 0,
+      source_amount_cents: 1500,
+      destination_amount_cents: 1500
+    )
+
+    assert_equal(
+      [ [ source, -1500 ], [ destination, 1500 ] ],
+      transaction.balance_effects
+    )
+  end
+
   private
 
   def create_transaction_with_location(geo_latitude:, geo_longitude:)

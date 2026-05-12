@@ -5,7 +5,7 @@ class TransactionUpdater
       return Result.new(updated: false, transaction: transaction)
     end
 
-    original_balance = balance_snapshot(transaction)
+    original = transaction.dup
     attributes = attributes.to_h.symbolize_keys
     transaction.assign_attributes(transaction_attributes(attributes))
     tags = assign_owned_records(transaction.user, transaction, attributes, tag_ids)
@@ -13,14 +13,15 @@ class TransactionUpdater
 
     return Result.new(updated: false, transaction: transaction) if transaction.errors.any? || !transaction.valid?
 
+    ledger = AccountBalanceLedger.new
     ActiveRecord::Base.transaction do
-      reverse_balances(original_balance)
+      ledger.reverse(original)
       transaction.save!
       TransactionTagging.where(ledger_transaction: transaction).delete_all
       tags.each do |tag|
         transaction.transaction_taggings.create!(user: transaction.user, transaction_tag: tag)
       end
-      update_balances(transaction)
+      ledger.apply(transaction)
     end
 
     transaction.association(:transaction_tags).target = tags
@@ -113,46 +114,6 @@ class TransactionUpdater
     if transaction.account&.currency_code == transaction.destination_account.currency_code && transaction.source_amount_cents != transaction.destination_amount_cents
       transaction.errors.add(:destination_amount_cents, "must equal source amount for same-currency transfers")
     end
-  end
-
-  def balance_snapshot(transaction)
-    {
-      transaction_kind: transaction.transaction_kind,
-      account: transaction.account,
-      destination_account: transaction.destination_account,
-      source_amount_cents: transaction.source_amount_cents,
-      destination_amount_cents: transaction.destination_amount_cents
-    }
-  end
-
-  def reverse_balances(snapshot)
-    case snapshot.fetch(:transaction_kind)
-    when "balance_adjustment"
-      adjust_balance(snapshot.fetch(:account), -snapshot.fetch(:source_amount_cents))
-    when "income"
-      adjust_balance(snapshot.fetch(:account), -snapshot.fetch(:source_amount_cents))
-    when "expense"
-      adjust_balance(snapshot.fetch(:account), snapshot.fetch(:source_amount_cents))
-    when "transfer"
-      adjust_balance(snapshot.fetch(:account), snapshot.fetch(:source_amount_cents))
-      adjust_balance(snapshot.fetch(:destination_account), -snapshot.fetch(:destination_amount_cents))
-    end
-  end
-
-  def update_balances(transaction)
-    case transaction.transaction_kind
-    when "income"
-      adjust_balance(transaction.account, transaction.source_amount_cents)
-    when "expense"
-      adjust_balance(transaction.account, -transaction.source_amount_cents)
-    when "transfer"
-      adjust_balance(transaction.account, -transaction.source_amount_cents)
-      adjust_balance(transaction.destination_account, transaction.destination_amount_cents)
-    end
-  end
-
-  def adjust_balance(account, delta_cents)
-    account.update!(balance_cents: account.reload.balance_cents + delta_cents)
   end
 
   class Result

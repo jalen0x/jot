@@ -48,6 +48,23 @@ class Transaction < ApplicationRecord
     }
   end
 
+  def source_balance_delta
+    case transaction_kind
+    when "balance_adjustment", "income" then  source_amount_cents
+    when "expense", "transfer"          then -source_amount_cents
+    end
+  end
+
+  def destination_balance_delta
+    transfer? ? destination_amount_cents : 0
+  end
+
+  def balance_effects
+    effects = [ [ account, source_balance_delta ] ]
+    effects << [ destination_account, destination_balance_delta ] if transfer?
+    effects
+  end
+
   private
 
   def geo_location_pair
