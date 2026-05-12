@@ -171,7 +171,97 @@ class TransactionTest < ActiveSupport::TestCase
     )
   end
 
+  # ----- editable? -----
+
+  test "editable? is true when transacted_at is blank" do
+    user = create(:user)
+    transaction = user.transactions.build(transacted_at: nil)
+
+    assert_predicate transaction, :editable?
+  end
+
+  test "editable? allows every transaction when scope is all" do
+    transaction = build_editable_transaction(transacted_at: "2026-05-01 10:00:00")
+
+    assert transaction.editable?(current_time: Time.zone.parse("2026-05-04 12:00:00"))
+  end
+
+  test "editable? rejects every transaction when scope is none" do
+    transaction = build_editable_transaction(transaction_edit_scope: "none", transacted_at: "2026-05-04 10:00:00")
+
+    refute transaction.editable?(current_time: Time.zone.parse("2026-05-04 12:00:00"))
+  end
+
+  test "editable? allows only today or later when scope is today_or_later" do
+    current_time = Time.zone.parse("2026-05-04 12:00:00")
+    today = build_editable_transaction(transaction_edit_scope: "today_or_later", transacted_at: "2026-05-04 00:00:00")
+    yesterday = build_editable_transaction(transaction_edit_scope: "today_or_later", transacted_at: "2026-05-03 23:59:59")
+
+    assert today.editable?(current_time: current_time)
+    refute yesterday.editable?(current_time: current_time)
+  end
+
+  test "editable? uses a rolling 24 hour window" do
+    current_time = Time.zone.parse("2026-05-04 12:00:00")
+    inside_window = build_editable_transaction(transaction_edit_scope: "last_24_hours_or_later", transacted_at: "2026-05-03 12:00:01")
+    outside_window = build_editable_transaction(transaction_edit_scope: "last_24_hours_or_later", transacted_at: "2026-05-03 12:00:00")
+
+    assert inside_window.editable?(current_time: current_time)
+    refute outside_window.editable?(current_time: current_time)
+  end
+
+  test "editable? uses the user's first day of week for this_week_or_later" do
+    current_time = Time.zone.parse("2026-05-06 12:00:00")
+    sunday = build_editable_transaction(transaction_edit_scope: "this_week_or_later", first_day_of_week: 1, transacted_at: "2026-05-03 23:59:59")
+    monday = build_editable_transaction(transaction_edit_scope: "this_week_or_later", first_day_of_week: 1, transacted_at: "2026-05-04 00:00:00")
+
+    refute sunday.editable?(current_time: current_time)
+    assert monday.editable?(current_time: current_time)
+  end
+
+  test "editable? allows only this month or later when scope is this_month_or_later" do
+    current_time = Time.zone.parse("2026-05-04 12:00:00")
+    this_month = build_editable_transaction(transaction_edit_scope: "this_month_or_later", transacted_at: "2026-05-01 00:00:00")
+    last_month = build_editable_transaction(transaction_edit_scope: "this_month_or_later", transacted_at: "2026-04-30 23:59:59")
+
+    assert this_month.editable?(current_time: current_time)
+    refute last_month.editable?(current_time: current_time)
+  end
+
+  test "editable? allows only this year or later when scope is this_year_or_later" do
+    current_time = Time.zone.parse("2026-05-04 12:00:00")
+    this_year = build_editable_transaction(transaction_edit_scope: "this_year_or_later", transacted_at: "2026-01-01 00:00:00")
+    last_year = build_editable_transaction(transaction_edit_scope: "this_year_or_later", transacted_at: "2025-12-31 23:59:59")
+
+    assert this_year.editable?(current_time: current_time)
+    refute last_year.editable?(current_time: current_time)
+  end
+
   private
+
+  def build_editable_transaction(transaction_edit_scope: "all", first_day_of_week: 0, transacted_at:)
+    user = create(:user)
+    UserPreference.create!(
+      user: user,
+      default_currency_code: "USD",
+      first_day_of_week: first_day_of_week,
+      transaction_edit_scope: transaction_edit_scope
+    )
+    account = create_account(user: user, name: "Cash")
+    category = create_category(user: user, category_type: :expense)
+
+    Transaction.create!(
+      user: user,
+      account: account,
+      transaction_category: category,
+      transaction_kind: :expense,
+      transacted_at: Time.zone.parse(transacted_at),
+      timezone_utc_offset_minutes: 0,
+      source_amount_cents: 1_000,
+      destination_amount_cents: 0,
+      comment: "Lunch"
+    )
+  end
 
   def create_transaction_with_location(geo_latitude:, geo_longitude:)
     user = create(:user)

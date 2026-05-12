@@ -5,8 +5,8 @@ class TransactionReversal
       return Result.new(deleted: false, transaction: transaction)
     end
 
-    if enforce_transaction_edit_scope && !TransactionEditScope.new.editable?(transaction: transaction)
-      transaction.errors.add(:base, TransactionEditScope::NOT_EDITABLE_MESSAGE)
+    if enforce_transaction_edit_scope && !transaction.editable?
+      transaction.errors.add(:base, Transaction::NOT_EDITABLE_MESSAGE)
       return Result.new(deleted: false, transaction: transaction)
     end
 
