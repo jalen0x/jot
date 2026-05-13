@@ -98,7 +98,7 @@ builder:
 
 # Use a different ssh user than root
 ssh:
-  user: ubuntu
+  user: jalen
 
 # PostgreSQL runs as a Kamal-managed accessory container on the same host,
 # reached by the app container through the `kamal` Docker network under the
