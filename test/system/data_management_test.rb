@@ -3,11 +3,9 @@ require "application_system_test_case"
 class DataManagementSystemTest < BrowserSystemTestCase
   test "signed-in user can open data management page from navigation" do
     user = create(:user, password: "password123")
+    sign_in_as(user)
 
-    visit new_user_session_path
-    fill_in "Email", with: user.email
-    fill_in "Password", with: "password123"
-    click_button "Log in"
+    visit dashboard_path
     within("#app-sidebar") do
       click_link "Data Management"
     end

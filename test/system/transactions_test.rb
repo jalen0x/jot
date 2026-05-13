@@ -71,7 +71,9 @@ class TransactionsSystemTest < BrowserSystemTestCase
 
   def pick_account(display_name, scope: "[data-transaction-form-target='sourceAccount']")
     within scope do
-      find("button[data-combobox-target='button']").click
+      button = find("button[data-combobox-target='button']")
+      button.click
+      button.click unless has_selector?("div[data-combobox-target='panel']:not([hidden])", wait: 1)
       find("li[data-combobox-target='option']", text: display_name).click
     end
   end
@@ -99,13 +101,5 @@ class TransactionsSystemTest < BrowserSystemTestCase
       color_hex: "F97316",
       display_order: 1
     )
-  end
-
-  def sign_in_as(user)
-    visit new_user_session_path
-    fill_in "Email", with: user.email
-    fill_in "Password", with: "password123"
-    click_button "Log in"
-    assert_selector "#app-sidebar"
   end
 end
