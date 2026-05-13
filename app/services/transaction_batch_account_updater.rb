@@ -1,7 +1,10 @@
 class TransactionBatchAccountUpdater
   def update_account(transactions:, account:, destination_account: false)
-    failed_transaction = uneditable_transaction(transactions)
-    return Result.new(updated: false, transaction: failed_transaction) if failed_transaction.present?
+    failed_transaction = transactions.find { |transaction| !transaction.editable? }
+    if failed_transaction
+      failed_transaction.errors.add(:base, Transaction::NOT_EDITABLE_MESSAGE)
+      return Result.new(updated: false, transaction: failed_transaction)
+    end
 
     failed_transaction = transactions.find { |transaction| invalid_transaction?(transaction, account, destination_account) }
     return Result.new(updated: false, transaction: failed_transaction) if failed_transaction.present?
@@ -16,14 +19,6 @@ class TransactionBatchAccountUpdater
   end
 
   private
-
-  def uneditable_transaction(transactions)
-    transaction = TransactionEditScope.new.first_uneditable_transaction(transactions: transactions)
-    return if transaction.blank?
-
-    transaction.errors.add(:base, TransactionEditScope::NOT_EDITABLE_MESSAGE)
-    transaction
-  end
 
   def invalid_transaction?(transaction, account, destination_account)
     if destination_account
@@ -56,10 +51,11 @@ class TransactionBatchAccountUpdater
     old_account = transaction.account
     return if old_account == account
 
-    delta_cents = source_balance_delta(transaction)
-    adjust_balance(old_account, -delta_cents)
+    delta_cents = transaction.source_balance_delta
+    ledger = AccountBalanceLedger.new
+    ledger.adjust(old_account, -delta_cents)
     transaction.update!(account: account)
-    adjust_balance(account, delta_cents)
+    ledger.adjust(account, delta_cents)
   end
 
   def move_destination_account(transaction, account)
@@ -67,22 +63,10 @@ class TransactionBatchAccountUpdater
     return if old_account == account
 
     delta_cents = transaction.destination_amount_cents
-    adjust_balance(old_account, -delta_cents)
+    ledger = AccountBalanceLedger.new
+    ledger.adjust(old_account, -delta_cents)
     transaction.update!(destination_account: account)
-    adjust_balance(account, delta_cents)
-  end
-
-  def source_balance_delta(transaction)
-    case transaction.transaction_kind
-    when "balance_adjustment", "income"
-      transaction.source_amount_cents
-    when "expense", "transfer"
-      -transaction.source_amount_cents
-    end
-  end
-
-  def adjust_balance(account, delta_cents)
-    account.update!(balance_cents: account.reload.balance_cents + delta_cents)
+    ledger.adjust(account, delta_cents)
   end
 
   class Result

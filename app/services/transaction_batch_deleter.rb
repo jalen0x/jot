@@ -35,7 +35,7 @@ class TransactionBatchDeleter
     return "Transaction is already deleted" if transaction.discarded?
     return unless enforce_transaction_edit_scope
 
-    TransactionEditScope::NOT_EDITABLE_MESSAGE unless TransactionEditScope.new.editable?(transaction: transaction)
+    Transaction::NOT_EDITABLE_MESSAGE unless transaction.editable?
   end
 
   class Result

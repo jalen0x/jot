@@ -1,11 +1,20 @@
-<% content_for :title, t(".title") %>
+<% if turbo_frame_request? %>
+  <%= turbo_frame_tag "modal_content" do %>
+    <%= render(ModalComponent.new(title: t(".heading"), size: :wide, body_class: "px-6 py-5")) do %>
+      <p class="-mt-2 mb-4 text-sm text-body"><%= t(".description") %></p>
+      <%= render "form", transaction: @transaction, accounts: @accounts, transaction_categories: @transaction_categories, transaction_tags: @transaction_tags %>
+    <% end %>
+  <% end %>
+<% else %>
+  <% content_for :title, t(".title") %>
 
-<section class="mx-auto w-full max-w-4xl space-y-5">
-  <header>
-    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
-    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
-    <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
-  </header>
+  <section class="mx-auto w-full max-w-4xl space-y-5">
+    <header>
+      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-fg-brand"><%= t(".eyebrow") %></p>
+      <h1 class="mt-1 text-2xl font-semibold tracking-tight text-heading sm:text-3xl"><%= t(".heading") %></h1>
+      <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
+    </header>
 
-  <%= render "form", transaction: @transaction, accounts: @accounts, transaction_categories: @transaction_categories, transaction_tags: @transaction_tags %>
-</section>
+    <%= render "form", transaction: @transaction, accounts: @accounts, transaction_categories: @transaction_categories, transaction_tags: @transaction_tags %>
+  </section>
+<% end %>

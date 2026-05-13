@@ -117,8 +117,14 @@ module ApplicationHelper
     "https://www.openstreetmap.org/?#{query}#map=16/#{formatted_latitude}/#{formatted_longitude}"
   end
 
-  def format_money(cents, currency_code, amount_options: {}, currency_class: nil)
-    amount = number_to_currency(cents.to_f / 100, preferred_amount_format_options.merge(amount_options))
+  HIDDEN_AMOUNT_MASK = "••••".freeze
+
+  def amount_input_value(cents)
+    format("%.2f", (cents || 0).to_d / 100)
+  end
+
+  def format_money(cents, currency_code, amount_options: {}, currency_class: nil, mask: false)
+    amount = mask ? HIDDEN_AMOUNT_MASK : number_to_currency(cents.to_f / 100, preferred_amount_format_options.merge(amount_options))
     code = currency_class.present? ? tag.span(currency_code, class: currency_class) : currency_code.to_s
 
     case preferred_currency_display_format
@@ -174,11 +180,11 @@ module ApplicationHelper
   end
 
   def preferred_amount_format_options
-    { unit: "" }.merge(current_user&.user_preference&.number_format_options || UserPreference.number_format_options_for(UserPreference::DEFAULT_NUMBER_FORMAT))
+    @preferred_amount_format_options ||= { unit: "" }.merge(current_user&.user_preference&.number_format_options || UserPreference.number_format_options_for(UserPreference::DEFAULT_NUMBER_FORMAT))
   end
 
   def preferred_currency_display_format
-    current_user&.user_preference&.currency_display_format || UserPreference::DEFAULT_CURRENCY_DISPLAY_FORMAT
+    @preferred_currency_display_format ||= current_user&.user_preference&.currency_display_format || UserPreference::DEFAULT_CURRENCY_DISPLAY_FORMAT
   end
 
   def preferred_coordinate_display_format

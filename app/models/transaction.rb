@@ -1,6 +1,8 @@
 class Transaction < ApplicationRecord
   include Discard::Model
 
+  NOT_EDITABLE_MESSAGE = "Transaction is outside the editable date range"
+
   has_prefix_id :txn
 
   belongs_to :user
@@ -48,7 +50,49 @@ class Transaction < ApplicationRecord
     }
   end
 
+  def source_balance_delta
+    case transaction_kind
+    when "balance_adjustment", "income" then  source_amount_cents
+    when "expense", "transfer"          then -source_amount_cents
+    end
+  end
+
+  def destination_balance_delta
+    transfer? ? destination_amount_cents : 0
+  end
+
+  def balance_effects
+    effects = [ [ account, source_balance_delta ] ]
+    effects << [ destination_account, destination_balance_delta ] if transfer?
+    effects
+  end
+
+  def editable?(current_time: Time.current)
+    return true if transacted_at.blank?
+
+    case edit_scope
+    when "all"                    then true
+    when "none"                   then false
+    when "today_or_later"         then transacted_at >= current_time.beginning_of_day
+    when "last_24_hours_or_later" then transacted_at > current_time - 24.hours
+    when "this_week_or_later"     then transacted_at >= week_start(current_time)
+    when "this_month_or_later"    then transacted_at >= current_time.beginning_of_month
+    when "this_year_or_later"     then transacted_at >= current_time.beginning_of_year
+    else                               false
+    end
+  end
+
   private
+
+  def edit_scope
+    user.user_preference&.transaction_edit_scope || UserPreference::DEFAULT_TRANSACTION_EDIT_SCOPE
+  end
+
+  def week_start(current_time)
+    first_day_of_week = user.user_preference&.first_day_of_week || 0
+    days_since_week_start = (current_time.wday - first_day_of_week) % 7
+    current_time.beginning_of_day - days_since_week_start.days
+  end
 
   def geo_location_pair
     if geo_latitude.present? && geo_longitude.blank?

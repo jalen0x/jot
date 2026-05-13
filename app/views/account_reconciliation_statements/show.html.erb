@@ -72,7 +72,7 @@
                 <td class="px-5 py-4"><%= transaction.transaction_kind.humanize %></td>
                 <td class="px-5 py-4"><%= transaction.transacted_at.to_date.iso8601 %></td>
                 <td class="px-5 py-4 text-end font-semibold text-heading">
-                  <%= format_money(transaction.source_amount_cents, transaction.account.currency_code) %>
+                  <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, mask: transaction.hide_amount?) %>
                 </td>
               </tr>
             <% end %>

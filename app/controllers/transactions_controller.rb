@@ -24,7 +24,7 @@ class TransactionsController < ApplicationController
     result = TransactionRecorder.new.record_transaction(user: current_user, attributes: transaction_params, tag_ids: transaction_tag_ids, picture_files: picture_files)
 
     if result.recorded?
-      redirect_to transactions_path, notice: "Transaction recorded."
+      redirect_to post_save_destination, notice: "Transaction recorded."
     else
       @transaction = result.transaction
       load_form_collections
@@ -73,16 +73,23 @@ class TransactionsController < ApplicationController
     ledger_filter_params
   end
 
+  def post_save_destination
+    case params[:after_save]
+    when "new" then new_transaction_path
+    else transactions_path
+    end
+  end
+
   def transaction_params
-    params.expect(transaction: [
+    permitted = params.expect(transaction: [
       :transaction_kind,
       :account_id,
       :destination_account_id,
       :transaction_category_id,
       :transacted_at,
       :timezone_utc_offset_minutes,
-      :source_amount_cents,
-      :destination_amount_cents,
+      :source_amount,
+      :destination_amount,
       :hide_amount,
       :comment,
       :geo_latitude,
@@ -90,6 +97,18 @@ class TransactionsController < ApplicationController
       transaction_tag_ids: [],
       pictures: []
     ])
+
+    permitted[:source_amount_cents] = cents_from(permitted.delete(:source_amount)) if permitted.key?(:source_amount)
+    permitted[:destination_amount_cents] = cents_from(permitted.delete(:destination_amount)) if permitted.key?(:destination_amount)
+
+    permitted
+  end
+
+  def cents_from(amount_str)
+    return 0 if amount_str.blank?
+    (BigDecimal(amount_str.to_s) * 100).to_i
+  rescue ArgumentError
+    0
   end
 
   def transaction_tag_ids
@@ -118,8 +137,8 @@ class TransactionsController < ApplicationController
 
   def load_form_collections
     @accounts = current_user.accounts.kept.order(:display_order, :name)
-    @transaction_categories = current_user.transaction_categories.kept.order(:category_type, :display_order, :name)
-    @transaction_tags = current_user.transaction_tags.kept.order(:display_order, :name)
+    @transaction_categories = current_user.transaction_categories.kept.includes(:parent_category).order(:category_type, :display_order, :name)
+    @transaction_tags = current_user.transaction_tags.kept.includes(:transaction_tag_group).order(:display_order, :name)
   end
 
   def load_filter_collections

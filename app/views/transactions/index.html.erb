@@ -9,7 +9,7 @@
       <p class="mt-2 max-w-2xl text-sm text-body"><%= t(".description") %></p>
     </div>
 
-    <%= render(ButtonComponent.new(href: new_transaction_path)) { t(".new") } %>
+    <%= render(ButtonComponent.new(href: new_transaction_path, data: { turbo_frame: "modal_content" })) { t(".new") } %>
   </div>
 
   <%= form_with url: transactions_path, method: :get, class: "rounded-base border border-default bg-neutral-primary-soft p-4 shadow-xs" do |form| %>
@@ -86,11 +86,11 @@
                 <td class="px-5 py-4 font-medium text-heading"><%= transaction.account.name %></td>
                 <td class="px-5 py-4 text-body-subtle"><%= transaction.transaction_category.name %></td>
                 <td class="px-5 py-4 text-end font-semibold <%= amount_color_class(transaction.transaction_kind) %>">
-                  <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, amount_options: @amount_format_options) %>
+                  <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, amount_options: @amount_format_options, mask: transaction.hide_amount?) %>
                 </td>
                 <td class="px-5 py-4">
                   <div class="flex justify-end gap-2">
-                    <%= link_to t(".edit"), edit_transaction_path(transaction), class: "rounded-base px-3 py-2 text-sm font-medium text-fg-brand hover:bg-brand-softer" %>
+                    <%= link_to t(".edit"), edit_transaction_path(transaction), data: { turbo_frame: "modal_content" }, class: "rounded-base px-3 py-2 text-sm font-medium text-fg-brand hover:bg-brand-softer" %>
                     <%= button_to t(".delete"), transaction_path(transaction), method: :delete, form: { data: destructive_confirm_data(t(".delete_confirm")) }, class: "rounded-base px-3 py-2 text-sm font-medium text-danger hover:bg-danger-soft" %>
                   </div>
                 </td>
@@ -120,7 +120,7 @@
                 <% end %>
               </div>
               <p class="shrink-0 text-end text-sm font-semibold <%= amount_color_class(transaction.transaction_kind) %>">
-                <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, amount_options: @amount_format_options) %>
+                <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, amount_options: @amount_format_options, mask: transaction.hide_amount?) %>
               </p>
             </div>
 
@@ -144,7 +144,7 @@
             <% end %>
 
             <div class="mt-3 flex justify-end gap-2">
-              <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_path(transaction))) { t(".edit") } %>
+              <%= render(ButtonComponent.new(variant: :secondary, href: edit_transaction_path(transaction), data: { turbo_frame: "modal_content" })) { t(".edit") } %>
               <%= button_to t(".delete"), transaction_path(transaction), method: :delete, form: { data: destructive_confirm_data(t(".delete_confirm")) }, class: "text-danger bg-neutral-primary border border-danger hover:bg-danger hover:text-white focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none" %>
             </div>
           </li>
@@ -157,7 +157,7 @@
     <div class="rounded-base border border-default bg-neutral-primary-soft p-8 text-center shadow-xs">
       <h2 class="text-xl font-semibold text-heading"><%= t(".empty_title") %></h2>
       <p class="mx-auto mt-2 max-w-xl text-sm text-body"><%= t(".empty_description") %></p>
-      <div class="mt-5"><%= render(ButtonComponent.new(href: new_transaction_path)) { t(".create_first") } %></div>
+      <div class="mt-5"><%= render(ButtonComponent.new(href: new_transaction_path, data: { turbo_frame: "modal_content" })) { t(".create_first") } %></div>
     </div>
   <% end %>
 </section>

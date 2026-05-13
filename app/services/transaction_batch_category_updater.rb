@@ -1,7 +1,10 @@
 class TransactionBatchCategoryUpdater
   def update_category(transactions:, category:)
-    failed_transaction = uneditable_transaction(transactions)
-    return Result.new(updated: false, transaction: failed_transaction) if failed_transaction.present?
+    failed_transaction = transactions.find { |transaction| !transaction.editable? }
+    if failed_transaction
+      failed_transaction.errors.add(:base, Transaction::NOT_EDITABLE_MESSAGE)
+      return Result.new(updated: false, transaction: failed_transaction)
+    end
 
     failed_transaction = nil
 
@@ -23,14 +26,6 @@ class TransactionBatchCategoryUpdater
   end
 
   private
-
-  def uneditable_transaction(transactions)
-    transaction = TransactionEditScope.new.first_uneditable_transaction(transactions: transactions)
-    return if transaction.blank?
-
-    transaction.errors.add(:base, TransactionEditScope::NOT_EDITABLE_MESSAGE)
-    transaction
-  end
 
   def validate_category_type(transaction)
     return if transaction.balance_adjustment? || transaction.transaction_category.blank?

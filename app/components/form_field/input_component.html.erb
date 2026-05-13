@@ -1,17 +1,15 @@
-<div class="mb-4">
-  <%= form.label field, label_text, class: "block mb-2 text-sm font-medium text-heading" %>
-  <%
-    input_opts = { class: input_classes, placeholder: placeholder }.merge(options)
-    case type
-    when :password
-      input = form.password_field(field, **input_opts)
-    when :email
-      input = form.email_field(field, **input_opts)
-    when :textarea
-      input = form.text_area(field, **input_opts)
-    else
-      input = form.text_field(field, **input_opts)
-    end
-  %>
-  <%= input %>
-</div>
+<%
+  input_opts = { class: input_classes }.merge(options)
+  input_opts[:placeholder] = floating? ? " " : placeholder
+%>
+<% if floating? %>
+  <div class="relative">
+    <%= form.public_send(field_method, field, **input_opts) %>
+    <%= form.label field, label_text, class: label_classes %>
+  </div>
+<% else %>
+  <div class="mb-4">
+    <%= form.label field, label_text, class: label_classes %>
+    <%= form.public_send(field_method, field, **input_opts) %>
+  </div>
+<% end %>

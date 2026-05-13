@@ -27,23 +27,7 @@ class AccountReconciliation
   end
 
   def account_effect(transaction, account)
-    case transaction.transaction_kind
-    when "balance_adjustment", "income"
-      transaction.account_id == account.id ? transaction.source_amount_cents : 0
-    when "expense"
-      transaction.account_id == account.id ? -transaction.source_amount_cents : 0
-    when "transfer"
-      transfer_effect(transaction, account)
-    else
-      0
-    end
-  end
-
-  def transfer_effect(transaction, account)
-    effect = 0
-    effect -= transaction.source_amount_cents if transaction.account_id == account.id
-    effect += transaction.destination_amount_cents if transaction.destination_account_id == account.id
-    effect
+    transaction.balance_effects.sum { |effect_account, delta| effect_account.id == account.id ? delta : 0 }
   end
 
   class Result

@@ -4,11 +4,9 @@ class NavigationTest < BrowserSystemTestCase
   test "signed-in navigation stays usable on mobile width" do
     resize_window_to_mobile
     user = create(:user, password: "password123")
+    sign_in_as(user)
 
-    visit new_user_session_path
-    fill_in "Email", with: user.email
-    fill_in "Password", with: "password123"
-    click_button "Log in"
+    visit dashboard_path
 
     assert_no_horizontal_overflow
     click_button "Open menu"
@@ -26,10 +24,6 @@ class NavigationTest < BrowserSystemTestCase
 
   def resize_window_to_mobile
     page.driver.browser.manage.window.resize_to(390, 900)
-  end
-
-  def resize_window_to_desktop
-    page.driver.browser.manage.window.resize_to(1400, 1400)
   end
 
   def assert_no_horizontal_overflow

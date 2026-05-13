@@ -1,0 +1,60 @@
+<%# locals: (form:, field:, accounts:, label:, selected_id: nil, prompt: nil, allow_blank: false, action: nil, target: nil, blank_label: nil) %>
+<% selected_account = selected_id.present? ? accounts.find { |a| a.id.to_s == selected_id.to_s } : nil %>
+<div class="relative" data-controller="combobox"
+     data-combobox-placeholder-value="<%= prompt %>"
+     data-currency="<%= selected_account&.currency_code %>"
+     <%= "data-action=\"#{action}\"".html_safe if action.present? %>
+     <%= "data-transaction-form-target=\"#{target}\"".html_safe if target.present? %>>
+  <%= form.hidden_field field, value: selected_id, data: { combobox_target: "input" } %>
+
+  <button type="button" data-action="click->combobox#toggle" data-combobox-target="button"
+          class="inline-flex items-center justify-between w-full px-2.5 pb-2.5 pt-4 bg-transparent box-border border border-default-medium hover:border-default-strong focus:ring-0 focus:border-brand font-normal text-sm rounded-base shadow-xs focus:outline-none text-start">
+    <span class="truncate text-heading" data-combobox-target="display"></span>
+    <svg class="w-4 h-4 ms-1.5 -me-0.5 text-body-subtle" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" />
+    </svg>
+  </button>
+
+  <span class="pointer-events-none absolute text-sm text-body bg-neutral-primary-soft px-2 -translate-y-4 scale-75 top-2 z-10 origin-[0] start-1"><%= label %></span>
+
+  <div data-combobox-target="panel" hidden class="absolute z-30 mt-1 w-full bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg">
+    <div class="p-2 border-b border-default-medium">
+      <div class="relative">
+        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+          <svg class="w-4 h-4 text-body" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+          </svg>
+        </div>
+        <input type="search" data-combobox-target="search" data-action="input->combobox#filter"
+               autocomplete="off"
+               placeholder="<%= t("transactions.form.search_account") %>"
+               class="block w-full p-2 ps-9 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body">
+      </div>
+    </div>
+
+    <ul data-combobox-target="list" class="max-h-72 overflow-y-auto p-2 text-sm text-body font-medium">
+      <% if allow_blank %>
+        <li data-combobox-target="option" data-value="" data-display="<%= blank_label %>" data-search="" data-currency=""
+            data-action="click->combobox#select"
+            class="inline-flex items-center w-full gap-3 p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded cursor-pointer">
+          <span class="h-3 w-3 shrink-0 rounded-full border border-default-medium"></span>
+          <span class="flex-1 text-body-subtle"><%= blank_label %></span>
+        </li>
+      <% end %>
+      <% accounts.each do |account| %>
+        <li data-combobox-target="option" data-value="<%= account.id %>"
+            data-display="<%= account.display_name %>"
+            data-search="<%= [ account.name, account.currency_code ].join(' ').downcase %>"
+            data-currency="<%= account.currency_code %>"
+            data-action="click->combobox#select"
+            class="inline-flex items-center w-full gap-3 p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded cursor-pointer">
+          <span class="h-3 w-3 shrink-0 rounded-full border border-default-medium" style="background-color: #<%= account.color_hex %>"></span>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-heading"><%= account.display_name %></p>
+            <p class="text-xs text-body-subtle"><%= format_money(account.balance_cents, account.currency_code) %></p>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</div>

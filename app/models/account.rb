@@ -35,6 +35,10 @@ class Account < ApplicationRecord
   validates :color_hex, format: { with: /\A\h{6}\z/ }
   validates :currency_code, format: { with: /\A[A-Z]{3}\z/ }
 
+  def display_name
+    "#{name} (#{currency_code})"
+  end
+
   def as_json(_options = {})
     {
       id: to_param,
