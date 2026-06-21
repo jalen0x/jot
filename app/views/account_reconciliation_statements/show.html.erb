@@ -42,11 +42,11 @@
       </div>
       <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
         <p class="text-sm font-medium text-body-subtle"><%= t(".inflow") %></p>
-        <p class="mt-2 text-2xl font-semibold text-heading"><%= format_money(@statement.inflow_cents, @account.currency_code) %></p>
+        <p class="mt-2 text-2xl font-semibold <%= amount_color_class("income") %>"><%= format_money(@statement.inflow_cents, @account.currency_code) %></p>
       </div>
       <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
         <p class="text-sm font-medium text-body-subtle"><%= t(".outflow") %></p>
-        <p class="mt-2 text-2xl font-semibold text-heading"><%= format_money(@statement.outflow_cents, @account.currency_code) %></p>
+        <p class="mt-2 text-2xl font-semibold <%= amount_color_class("expense") %>"><%= format_money(@statement.outflow_cents, @account.currency_code) %></p>
       </div>
       <div class="bg-neutral-primary-soft border border-default rounded-base p-5 shadow-xs">
         <p class="text-sm font-medium text-body-subtle"><%= t(".closing_balance") %></p>
@@ -71,7 +71,7 @@
                 <td class="px-5 py-4 font-medium text-heading"><%= transaction.comment.presence || transaction.transaction_kind.humanize %></td>
                 <td class="px-5 py-4"><%= transaction.transaction_kind.humanize %></td>
                 <td class="px-5 py-4"><%= transaction.transacted_at.to_date.iso8601 %></td>
-                <td class="px-5 py-4 text-end font-semibold text-heading">
+                <td class="px-5 py-4 text-end font-semibold <%= amount_color_class(transaction.transaction_kind) %>">
                   <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, mask: transaction.hide_amount?) %>
                 </td>
               </tr>
