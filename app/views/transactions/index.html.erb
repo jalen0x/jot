@@ -84,7 +84,7 @@
                   </div>
                 </td>
                 <td class="px-5 py-4 font-medium text-heading"><%= transaction.account.name %></td>
-                <td class="px-5 py-4 text-body-subtle"><%= transaction.transaction_category.name %></td>
+                <td class="px-5 py-4 text-body-subtle"><%= transaction.transaction_category&.name || "—" %></td>
                 <td class="px-5 py-4 text-end font-semibold <%= amount_color_class(transaction.transaction_kind) %>">
                   <%= format_money(transaction.source_amount_cents, transaction.account.currency_code, amount_options: @amount_format_options, mask: transaction.hide_amount?) %>
                 </td>
@@ -107,7 +107,7 @@
               <div class="min-w-0">
                 <h2 class="truncate font-semibold text-heading"><%= transaction.comment.presence || transaction.transaction_kind.humanize %></h2>
                 <p class="mt-1 text-xs text-body-subtle"><%= l(transaction.transacted_at, format: @transaction_datetime_format) %></p>
-                <p class="mt-1 text-sm text-body-subtle"><%= transaction.account.name %> · <%= transaction.transaction_category.name %></p>
+                <p class="mt-1 text-sm text-body-subtle"><%= [ transaction.account.name, transaction.transaction_category&.name ].compact.join(" · ") %></p>
                 <% if transaction.geo_latitude.present? && transaction.geo_longitude.present? %>
                   <p class="mt-1 text-sm text-body-subtle">
                     <%= format_coordinates(transaction.geo_latitude, transaction.geo_longitude) %>
