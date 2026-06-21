@@ -34,7 +34,7 @@ OUT_DIR = Path("tmp/import")
 ALIPAY_CATEGORY_MAP = {
     "餐饮美食": "餐饮",
     "服饰装扮": "服饰",
-    "充值缴费": "话费",
+    "充值缴费": "通讯",
     "日用百货": "日用",
     "交通出行": "交通",
     "数码电器": "数码",
@@ -51,10 +51,10 @@ ALIPAY_CATEGORY_MAP = {
 }
 
 KEYWORD_CATEGORY = [
-    (re.compile(r"蜜雪|喜茶|coco|奈雪|霸王茶姬|益禾堂|沪上阿姨", re.I), "奶茶"),
+    (re.compile(r"蜜雪|喜茶|coco|奈雪|霸王茶姬|益禾堂|沪上阿姨", re.I), "奶茶🧋"),
     (re.compile(r"麦当劳|肯德基|kfc|星巴克|海底捞|美团|饿了么|拉扎斯|盒马|食堂|餐厅|餐饮", re.I), "餐饮"),
     (re.compile(r"滴滴|哈啰|青桔|铁路12306|高铁|地铁|出租车|加油"), "交通"),
-    (re.compile(r"中国移动|中国电信|中国联通|话费充值|话费"), "话费"),
+    (re.compile(r"中国移动|中国电信|中国联通|话费充值|话费"), "通讯"),
     (re.compile(r"京东|淘宝|拼多多|天猫"), "购物"),
     (re.compile(r"礼品卡|兑换码|订阅|会员|开通"), "虚拟服务"),
     (re.compile(r"红包|发给"), "亲友"),
@@ -117,11 +117,11 @@ def format_cmb_comment(summary: str, counter_blob: str) -> str:
 
 
 def categorize_personal_transfer(income: bool, party: str) -> str:
-    """Personal red-packet / transfer flows route to 莹莹-specific categories when
-    the counterparty is 莹莹, otherwise to the income/expense defaults so the
-    category-type validator stays happy."""
+    """Personal red-packet / transfer flows route to the single 莹莹 couple category
+    (both directions, income and expense, share it) when the counterparty is 莹莹,
+    otherwise to the income/expense defaults."""
     if "莹莹" in (party or ""):
-        return "❤️莹莹" if income else "莹莹❤️"
+        return "莹莹❤️"
     return DEFAULT_INCOME_CATEGORY if income else "亲友"
 
 
